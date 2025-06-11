@@ -46,8 +46,10 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
     }
   };
 
-  const handleGoogleError = () => {
-    console.error("Google login failed");
+  const handleGoogleError = (error?: any) => {
+    console.error("Google login failed:", error);
+    // Show error details to help with debugging
+    alert(`Google sign-in failed. Error: ${JSON.stringify(error)}`);
   };
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
@@ -88,8 +90,23 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
           </div>
 
           {step === 1 && (
-            <div className="flex justify-center">
-              <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-500 mb-3">or</p>
+                <Button 
+                  onClick={() => {
+                    setName("Demo User");
+                    setStep(2);
+                  }}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Continue with Demo Account
+                </Button>
+              </div>
             </div>
           )}
 

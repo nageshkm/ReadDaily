@@ -1,8 +1,9 @@
-import { X, Check, ExternalLink } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { X, Check, ExternalLink, ArrowRight } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Article, Category } from "@shared/schema";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface ArticleViewProps {
   article: Article | null;
@@ -11,6 +12,8 @@ interface ArticleViewProps {
   isRead: boolean;
   onClose: () => void;
   onMarkAsRead: (article: Article) => void;
+  onNextArticle?: () => void;
+  hasNextArticle?: boolean;
 }
 
 export function ArticleView({
@@ -20,6 +23,8 @@ export function ArticleView({
   isRead,
   onClose,
   onMarkAsRead,
+  onNextArticle,
+  hasNextArticle = false,
 }: ArticleViewProps) {
   if (!article || !category) return null;
 
@@ -41,6 +46,10 @@ export function ArticleView({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-hidden p-0">
+        <VisuallyHidden>
+          <DialogTitle>Article: {article.title}</DialogTitle>
+        </VisuallyHidden>
+        
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="sm" onClick={onClose}>
@@ -55,15 +64,6 @@ export function ArticleView({
               </span>
             </div>
           </div>
-          {!isRead && (
-            <Button
-              onClick={() => onMarkAsRead(article)}
-              className="bg-success text-white hover:bg-green-700 font-medium"
-            >
-              <Check className="mr-2" size={16} />
-              Mark as Read
-            </Button>
-          )}
         </div>
 
         <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
@@ -100,6 +100,35 @@ export function ArticleView({
                     {paragraph}
                   </p>
                 ))}
+              </div>
+
+              {/* Bottom Action Bar */}
+              <div className="border-t border-gray-200 pt-8 mt-12">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-500">
+                    Finished reading? Mark this article as complete.
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    {!isRead && (
+                      <Button
+                        onClick={() => onMarkAsRead(article)}
+                        className="bg-success text-white hover:bg-green-700 font-medium px-6"
+                      >
+                        <Check className="mr-2" size={16} />
+                        Mark as Read
+                      </Button>
+                    )}
+                    {hasNextArticle && onNextArticle && (
+                      <Button
+                        onClick={onNextArticle}
+                        variant="outline"
+                        className="font-medium"
+                      >
+                        Next Article <ArrowRight className="ml-2" size={16} />
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </article>

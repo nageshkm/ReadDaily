@@ -3,6 +3,7 @@ import { StreakDisplay } from "@/components/StreakDisplay";
 import { ArticleCard } from "@/components/ArticleCard";
 import { ArticleView } from "@/components/ArticleView";
 import { UserOnboarding } from "@/components/UserOnboarding";
+import { SuccessFeedback } from "@/components/SuccessFeedback";
 import { LocalStorage } from "@/lib/storage";
 import { getTodayString } from "@/lib/utils";
 import { User, Article, Category } from "@shared/schema";
@@ -14,6 +15,8 @@ export default function Home() {
   const [isArticleViewOpen, setIsArticleViewOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [todayReadCount, setTodayReadCount] = useState(0);
+  const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
+  const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
 
   const categories = LocalStorage.getCategories();
 
@@ -38,11 +41,15 @@ export default function Home() {
   };
 
   const handleReadArticle = (article: Article) => {
+    const index = dailyArticles.findIndex(a => a.id === article.id);
+    setCurrentArticleIndex(index);
     setSelectedArticle(article);
     setIsArticleViewOpen(true);
   };
 
   const handleViewArticle = (article: Article) => {
+    const index = dailyArticles.findIndex(a => a.id === article.id);
+    setCurrentArticleIndex(index);
     setSelectedArticle(article);
     setIsArticleViewOpen(true);
   };
@@ -54,6 +61,25 @@ export default function Home() {
     setUser(updatedUser);
     setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
     setIsArticleViewOpen(false);
+    setShowSuccessFeedback(true);
+  };
+
+  const handleNextArticle = () => {
+    const nextIndex = currentArticleIndex + 1;
+    if (nextIndex < dailyArticles.length) {
+      const nextArticle = dailyArticles[nextIndex];
+      setCurrentArticleIndex(nextIndex);
+      setSelectedArticle(nextArticle);
+      setShowSuccessFeedback(false);
+      setIsArticleViewOpen(true);
+    } else {
+      setShowSuccessFeedback(false);
+    }
+  };
+
+  const handleSuccessFeedbackClose = () => {
+    setShowSuccessFeedback(false);
+    setSelectedArticle(null);
   };
 
   const getCategoryById = (categoryId: string): Category | undefined => {
@@ -81,6 +107,8 @@ export default function Home() {
   const selectedCategory = selectedArticle 
     ? getCategoryById(selectedArticle.categoryId) 
     : null;
+
+  const hasNextArticle = currentArticleIndex < dailyArticles.length - 1;
 
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -122,11 +150,21 @@ export default function Home() {
 
       <ArticleView
         article={selectedArticle}
-        category={selectedCategory}
+        category={selectedCategory || null}
         isOpen={isArticleViewOpen}
         isRead={selectedArticle ? isArticleRead(selectedArticle.id) : false}
         onClose={() => setIsArticleViewOpen(false)}
         onMarkAsRead={handleMarkAsRead}
+        onNextArticle={handleNextArticle}
+        hasNextArticle={hasNextArticle}
+      />
+
+      <SuccessFeedback
+        isOpen={showSuccessFeedback}
+        onClose={handleSuccessFeedbackClose}
+        onNextArticle={hasNextArticle ? handleNextArticle : undefined}
+        hasNextArticle={hasNextArticle}
+        articleTitle={selectedArticle?.title || ""}
       />
     </main>
   );

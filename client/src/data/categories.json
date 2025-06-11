@@ -1,0 +1,22 @@
+[
+  {
+    "id": "tech",
+    "name": "Technology",
+    "description": "Latest in tech and innovation"
+  },
+  {
+    "id": "science",
+    "name": "Science",
+    "description": "Scientific discoveries and research"
+  },
+  {
+    "id": "business",
+    "name": "Business",
+    "description": "Business insights and entrepreneurship"
+  },
+  {
+    "id": "health",
+    "name": "Health",
+    "description": "Health and wellness topics"
+  }
+]

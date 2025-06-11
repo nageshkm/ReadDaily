@@ -26,29 +26,23 @@ function MobileNavigation() {
   return (
     <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50">
       <div className="flex justify-around">
-        <Link href="/">
-          <a className={`flex flex-col items-center space-y-1 ${
-            isActive("/") ? "text-accent" : "text-gray-500"
-          }`}>
-            <HomeIcon size={20} />
-            <span className="text-xs font-medium">Today</span>
-          </a>
+        <Link href="/" className={`flex flex-col items-center space-y-1 ${
+          isActive("/") ? "text-accent" : "text-gray-500"
+        }`}>
+          <HomeIcon size={20} />
+          <span className="text-xs font-medium">Today</span>
         </Link>
-        <Link href="/history">
-          <a className={`flex flex-col items-center space-y-1 ${
-            isActive("/history") ? "text-accent" : "text-gray-500"
-          }`}>
-            <HistoryIcon size={20} />
-            <span className="text-xs">History</span>
-          </a>
+        <Link href="/history" className={`flex flex-col items-center space-y-1 ${
+          isActive("/history") ? "text-accent" : "text-gray-500"
+        }`}>
+          <HistoryIcon size={20} />
+          <span className="text-xs">History</span>
         </Link>
-        <Link href="/profile">
-          <a className={`flex flex-col items-center space-y-1 ${
-            isActive("/profile") ? "text-accent" : "text-gray-500"
-          }`}>
-            <UserIcon size={20} />
-            <span className="text-xs">Profile</span>
-          </a>
+        <Link href="/profile" className={`flex flex-col items-center space-y-1 ${
+          isActive("/profile") ? "text-accent" : "text-gray-500"
+        }`}>
+          <UserIcon size={20} />
+          <span className="text-xs">Profile</span>
         </Link>
       </div>
     </nav>

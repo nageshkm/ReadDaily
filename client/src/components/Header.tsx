@@ -29,31 +29,31 @@ export function Header({ user }: HeaderProps) {
           
           <nav className="hidden sm:flex items-center space-x-6">
             <Link href="/">
-              <a className={`transition-colors pb-1 ${
+              <span className={`transition-colors pb-1 ${
                 isActive("/")
                   ? "text-accent font-medium border-b-2 border-accent"
                   : "text-gray-600 hover:text-primary"
               }`}>
                 Today
-              </a>
+              </span>
             </Link>
             <Link href="/history">
-              <a className={`transition-colors pb-1 ${
+              <span className={`transition-colors pb-1 ${
                 isActive("/history")
                   ? "text-accent font-medium border-b-2 border-accent"
                   : "text-gray-600 hover:text-primary"
               }`}>
                 History
-              </a>
+              </span>
             </Link>
             <Link href="/profile">
-              <a className={`transition-colors pb-1 ${
+              <span className={`transition-colors pb-1 ${
                 isActive("/profile")
                   ? "text-accent font-medium border-b-2 border-accent"
                   : "text-gray-600 hover:text-primary"
               }`}>
                 Profile
-              </a>
+              </span>
             </Link>
           </nav>
           

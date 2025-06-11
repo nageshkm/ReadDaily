@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { pgTable, text, integer, boolean, timestamp, serial } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
 
 // Category schema
 export const categorySchema = z.object({
@@ -56,9 +58,9 @@ export type StreakData = z.infer<typeof streakDataSchema>;
 export type ReadArticle = z.infer<typeof readArticleSchema>;
 export type User = z.infer<typeof userSchema>;
 
-// Insert schemas for form validation
-export const insertUserSchema = userSchema.omit({ id: true, joinDate: true, lastActive: true });
-export type InsertUser = z.infer<typeof insertUserSchema>;
+// Insert schemas for form validation  
+export const insertUserFormSchema = userSchema.omit({ id: true, joinDate: true, lastActive: true });
+export type InsertUserForm = z.infer<typeof insertUserFormSchema>;
 
 export const onboardingSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -66,3 +68,43 @@ export const onboardingSchema = z.object({
 });
 
 export type OnboardingData = z.infer<typeof onboardingSchema>;
+
+// Database Tables
+export const categories = pgTable("categories", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+});
+
+export const articles = pgTable("articles", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  summary: text("summary").notNull(),
+  sourceUrl: text("source_url").notNull(),
+  imageUrl: text("image_url").notNull(),
+  estimatedReadingTime: integer("estimated_reading_time").notNull(),
+  categoryId: text("category_id").notNull().references(() => categories.id),
+  publishDate: text("publish_date").notNull(),
+  featured: boolean("featured").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  joinDate: text("join_date").notNull(),
+  lastActive: text("last_active").notNull(),
+  preferences: text("preferences").notNull(), // JSON string
+  readArticles: text("read_articles").notNull(), // JSON string
+  streakData: text("streak_data").notNull(), // JSON string
+});
+
+// Database insert schemas
+export const insertCategorySchema = createInsertSchema(categories);
+export const insertArticleSchema = createInsertSchema(articles);
+export const insertUserDbSchema = createInsertSchema(users);
+
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
+export type InsertArticle = z.infer<typeof insertArticleSchema>;
+export type InsertUserDb = z.infer<typeof insertUserDbSchema>;

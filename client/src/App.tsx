@@ -10,6 +10,7 @@ import { User } from "@shared/schema";
 import Home from "@/pages/Home";
 import History from "@/pages/History";
 import Profile from "@/pages/Profile";
+import Admin from "@/pages/Admin";
 import NotFound from "@/pages/not-found";
 import { Home as HomeIcon, History as HistoryIcon, User as UserIcon } from "lucide-react";
 import { Link, useLocation } from "wouter";
@@ -55,6 +56,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/history" component={History} />
       <Route path="/profile" component={Profile} />
+      <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -12,8 +12,6 @@ function AppWithAuth() {
     fetch("/api/config")
       .then(res => res.json())
       .then(data => {
-        console.log("Loaded Google Client ID:", data.googleClientId);
-        console.log("Current domain:", window.location.origin);
         setGoogleClientId(data.googleClientId);
         setLoading(false);
       })

@@ -2,11 +2,27 @@ import { useState } from "react";
 import { BookOpen } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Category } from "@shared/schema";
 import { LocalStorage } from "@/lib/storage";
+import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
+
+function parseJwt(token: string): any {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch (_e) {
+    return {};
+  }
+}
 
 interface UserOnboardingProps {
   isOpen: boolean;
@@ -14,10 +30,25 @@ interface UserOnboardingProps {
 }
 
 export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
+  const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const categories = LocalStorage.getCategories();
+
+  const handleGoogleSuccess = (cred: CredentialResponse) => {
+    if (cred.credential) {
+      const payload = parseJwt(cred.credential);
+      if (payload?.name) {
+        setName(payload.name);
+        setStep(2);
+      }
+    }
+  };
+
+  const handleGoogleError = () => {
+    console.error("Google login failed");
+  };
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     if (checked) {
@@ -29,7 +60,7 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!name.trim() || selectedCategories.length === 0) return;
     
     setIsSubmitting(true);
@@ -56,52 +87,45 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
             <p className="text-gray-600">Build your daily reading habit with curated articles</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <Label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                What's your name?
-              </Label>
-              <Input
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your name"
-                className="w-full"
-                required
-              />
+          {step === 1 && (
+            <div className="flex justify-center">
+              <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
             </div>
+          )}
 
-            <div>
-              <Label className="block text-sm font-medium text-gray-700 mb-2">
-                Choose your interests
-              </Label>
-              <div className="grid grid-cols-2 gap-3">
-                {categories.map((category) => (
-                  <Label
-                    key={category.id}
-                    className="flex items-center space-x-2 p-3 border border-gray-300 rounded-lg hover:border-accent cursor-pointer"
-                  >
-                    <Checkbox
-                      checked={selectedCategories.includes(category.id)}
-                      onCheckedChange={(checked) =>
-                        handleCategoryChange(category.id, checked as boolean)
-                      }
-                    />
-                    <span className="text-sm">{category.name}</span>
-                  </Label>
-                ))}
+          {step === 2 && (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <Label className="block text-sm font-medium text-gray-700 mb-2">
+                  Choose your interests
+                </Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {categories.map((category) => (
+                    <Label
+                      key={category.id}
+                      className="flex items-center space-x-2 p-3 border border-gray-300 rounded-lg hover:border-accent cursor-pointer"
+                    >
+                      <Checkbox
+                        checked={selectedCategories.includes(category.id)}
+                        onCheckedChange={(checked) =>
+                          handleCategoryChange(category.id, checked as boolean)
+                        }
+                      />
+                      <span className="text-sm">{category.name}</span>
+                    </Label>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-accent text-white hover:bg-blue-700 font-medium"
-              disabled={!name.trim() || selectedCategories.length === 0 || isSubmitting}
-            >
-              {isSubmitting ? "Getting Started..." : "Start Reading Journey"}
-            </Button>
-          </form>
+              <Button
+                type="submit"
+                className="w-full bg-accent text-white hover:bg-blue-700 font-medium"
+                disabled={selectedCategories.length === 0 || isSubmitting}
+              >
+                {isSubmitting ? "Getting Started..." : "Start Reading Journey"}
+              </Button>
+            </form>
+          )}
         </div>
       </DialogContent>
     </Dialog>

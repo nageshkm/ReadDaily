@@ -93,11 +93,15 @@ export default function History() {
 
       <div className="grid gap-6">
         {readArticles.length > 0 ? readArticles.map((article: any) => {
-          const category = getCategoryById(article.categoryId);
-          console.log('Rendering article:', article.title, 'Category:', category);
+          let category = getCategoryById(article.categoryId);
+          
+          // Use fallback category if mapping fails
           if (!category) {
-            console.log('No category found for article:', article.title, 'categoryId:', article.categoryId);
-            return null;
+            category = { 
+              id: article.categoryId, 
+              name: article.categoryId.charAt(0).toUpperCase() + article.categoryId.slice(1), 
+              description: '' 
+            };
           }
 
           // Get read date for this article
@@ -119,12 +123,7 @@ export default function History() {
               )}
             </div>
           );
-        }) : (
-          <div className="text-center py-12">
-            <p className="text-gray-500">No read articles found.</p>
-            <p className="text-sm text-gray-400 mt-2">Debug: User exists: {!!user}, Articles count: {articles?.length || 0}</p>
-          </div>
-        )}
+        }) : null}
       </div>
 
       {readArticles.length === 0 && (

@@ -7,10 +7,10 @@ import { SuccessFeedback } from "@/components/SuccessFeedback";
 import { LocalStorage } from "@/lib/storage";
 import { getTodayString } from "@/lib/utils";
 import { User, Article, Category } from "@shared/schema";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
-  const [dailyArticles, setDailyArticles] = useState<Article[]>([]);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [isArticleViewOpen, setIsArticleViewOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -18,14 +18,17 @@ export default function Home() {
   const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
 
+  // Fetch articles from backend
+  const { data: articles = [], isLoading: articlesLoading } = useQuery({
+    queryKey: ["/api/articles"],
+  });
+
   const categories = LocalStorage.getCategories();
 
   useEffect(() => {
     const existingUser = LocalStorage.getUser();
     if (existingUser) {
       setUser(existingUser);
-      const articles = LocalStorage.getDailyArticles(existingUser);
-      setDailyArticles(articles);
       setTodayReadCount(LocalStorage.getTodayReadCount(existingUser));
     } else {
       setShowOnboarding(true);
@@ -34,14 +37,12 @@ export default function Home() {
 
   const handleOnboardingComplete = (newUser: User) => {
     setUser(newUser);
-    const articles = LocalStorage.getDailyArticles(newUser);
-    setDailyArticles(articles);
     setTodayReadCount(LocalStorage.getTodayReadCount(newUser));
     setShowOnboarding(false);
   };
 
   const handleReadArticle = (article: Article) => {
-    const index = dailyArticles.findIndex(a => a.id === article.id);
+    const index = articles.findIndex(a => a.id === article.id);
     setCurrentArticleIndex(index);
     setSelectedArticle(article);
     setIsArticleViewOpen(true);

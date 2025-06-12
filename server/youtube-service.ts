@@ -147,10 +147,8 @@ export class YouTubeContentService {
         );
 
         if (captions) {
-          // For now, return a placeholder indicating captions are available
-          // YouTube's Caption API requires OAuth for downloading actual content
           console.log(`Captions available for ${videoId}, would need OAuth for download`);
-          return `[Transcript available but requires OAuth authentication to download. Video: https://www.youtube.com/watch?v=${videoId}]`;
+          // Fall through to use video description instead
         }
       }
 
@@ -171,16 +169,20 @@ export class YouTubeContentService {
           let content = `# ${title}\n\n`;
           content += `*Originally from ${channel} on YouTube*\n\n`;
           
-          if (description.length > 100) {
-            // Use the video description as the main content
-            content += description;
+          if (description.length > 200) {
+            // Clean up the description for better readability
+            let cleanDescription = description
+              .replace(/https?:\/\/[^\s]+/g, '') // Remove URLs
+              .replace(/\d{1,2}:\d{2}(?::\d{2})?/g, '') // Remove timestamps
+              .replace(/\n{3,}/g, '\n\n') // Limit excessive line breaks
+              .replace(/^\s*[-•]\s*/gm, '• ') // Normalize bullet points
+              .trim();
+            
+            content += cleanDescription;
           } else {
-            // Fallback for short descriptions
-            content += `This video from ${channel} covers "${title}". `;
-            content += `The content discusses important insights and perspectives that are valuable for viewers interested in this topic.\n\n`;
-            if (description) {
-              content += `Video Description: ${description}\n\n`;
-            }
+            // Skip videos with insufficient description content
+            console.log(`Skipping video "${title}" - insufficient description content (${description.length} chars)`);
+            return null;
           }
           
           content += `\n\n**Watch the full video:** https://www.youtube.com/watch?v=${videoId}`;

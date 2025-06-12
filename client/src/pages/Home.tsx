@@ -42,14 +42,14 @@ export default function Home() {
   };
 
   const handleReadArticle = (article: Article) => {
-    const index = articles.findIndex(a => a.id === article.id);
+    const index = (articles as any[]).findIndex((a: any) => a.id === article.id);
     setCurrentArticleIndex(index);
     setSelectedArticle(article);
     setIsArticleViewOpen(true);
   };
 
   const handleViewArticle = (article: Article) => {
-    const index = dailyArticles.findIndex(a => a.id === article.id);
+    const index = (articles as any[]).findIndex((a: any) => a.id === article.id);
     setCurrentArticleIndex(index);
     setSelectedArticle(article);
     setIsArticleViewOpen(true);
@@ -67,8 +67,8 @@ export default function Home() {
 
   const handleNextArticle = () => {
     const nextIndex = currentArticleIndex + 1;
-    if (nextIndex < dailyArticles.length) {
-      const nextArticle = dailyArticles[nextIndex];
+    if (nextIndex < (articles as any[]).length) {
+      const nextArticle = (articles as any[])[nextIndex];
       setCurrentArticleIndex(nextIndex);
       setSelectedArticle(nextArticle);
       setShowSuccessFeedback(false);
@@ -105,11 +105,15 @@ export default function Home() {
     return <div>Loading...</div>;
   }
 
+  if (articlesLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading articles...</div>;
+  }
+
   const selectedCategory = selectedArticle 
     ? getCategoryById(selectedArticle.categoryId) 
     : null;
 
-  const hasNextArticle = currentArticleIndex < dailyArticles.length - 1;
+  const hasNextArticle = currentArticleIndex < (articles as any[]).length - 1;
 
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -122,7 +126,7 @@ export default function Home() {
         </div>
 
         <div className="grid gap-6">
-          {dailyArticles.map((article) => {
+          {(articles as any[]).map((article: any) => {
             const category = getCategoryById(article.categoryId);
             if (!category) return null;
 
@@ -139,7 +143,7 @@ export default function Home() {
           })}
         </div>
 
-        {dailyArticles.length === 0 && (
+        {(articles as any[]).length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500">No articles available for today.</p>
             <p className="text-sm text-gray-400 mt-2">
@@ -151,12 +155,12 @@ export default function Home() {
 
       <ArticleView
         article={selectedArticle}
-        category={selectedCategory || null}
+        category={selectedCategory}
         isOpen={isArticleViewOpen}
         isRead={selectedArticle ? isArticleRead(selectedArticle.id) : false}
         onClose={() => setIsArticleViewOpen(false)}
         onMarkAsRead={handleMarkAsRead}
-        onNextArticle={handleNextArticle}
+        onNextArticle={hasNextArticle ? handleNextArticle : undefined}
         hasNextArticle={hasNextArticle}
       />
 

@@ -61,11 +61,11 @@ export class ContentAutomationService {
         try {
           console.log(`Processing video: ${video.title}`);
           
-          // Extract transcript
+          // Extract content (transcript or video metadata)
           const transcript = await this.youtubeService.extractTranscript(video.id);
           
           if (!transcript) {
-            console.log(`No transcript available for ${video.title}, skipping...`);
+            console.log(`No content available for ${video.title}, skipping...`);
             continue;
           }
 

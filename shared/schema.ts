@@ -97,7 +97,7 @@ export const articles = pgTable("articles", {
 });
 
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
   joinDate: text("join_date").notNull(),
   lastActive: text("last_active").notNull(),

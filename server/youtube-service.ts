@@ -135,7 +135,7 @@ export class YouTubeContentService {
 
   async extractTranscript(videoId: string): Promise<string | null> {
     try {
-      // First try to get auto-generated captions
+      // Check if captions are available
       const response = await fetch(
         `https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${videoId}&key=${this.apiKey}`
       );
@@ -147,19 +147,27 @@ export class YouTubeContentService {
         );
 
         if (captions) {
-          // Try to download caption content
-          const captionResponse = await fetch(
-            `https://www.googleapis.com/youtube/v3/captions/${captions.id}?key=${this.apiKey}`
-          );
-          
-          if (captionResponse.ok) {
-            return await captionResponse.text();
-          }
+          // For now, return a placeholder indicating captions are available
+          // YouTube's Caption API requires OAuth for downloading actual content
+          console.log(`Captions available for ${videoId}, would need OAuth for download`);
+          return `[Transcript available but requires OAuth authentication to download. Video: https://www.youtube.com/watch?v=${videoId}]`;
         }
       }
 
-      // Fallback: Extract audio and use Whisper
-      return await this.extractWithWhisper(videoId);
+      // If no captions available, return video metadata as content
+      const videoResponse = await fetch(
+        `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${this.apiKey}`
+      );
+
+      if (videoResponse.ok) {
+        const videoData = await videoResponse.json();
+        const video = videoData.items?.[0];
+        if (video) {
+          return `Title: ${video.snippet.title}\n\nDescription: ${video.snippet.description}\n\nChannel: ${video.snippet.channelTitle}\n\nWatch: https://www.youtube.com/watch?v=${videoId}`;
+        }
+      }
+
+      return null;
     } catch (error) {
       console.error(`Failed to extract transcript for ${videoId}:`, error);
       return null;

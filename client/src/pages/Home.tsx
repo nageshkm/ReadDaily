@@ -58,19 +58,7 @@ export default function Home() {
   const handleMarkAsRead = (article: Article) => {
     if (!user) return;
     
-    console.log('handleMarkAsRead called:', {
-      articleId: article.id,
-      title: article.title,
-      currentReadArticles: user.readArticles.length
-    });
-    
     const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
-    
-    console.log('After marking as read:', {
-      newReadArticles: updatedUser.readArticles.length,
-      readIds: updatedUser.readArticles.map(ra => ra.articleId)
-    });
-    
     setUser(updatedUser);
     setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
     // Don't close the dialog automatically - let user navigate or close manually

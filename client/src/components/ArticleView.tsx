@@ -44,19 +44,7 @@ export function ArticleView({
       const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
       const isNearBottom = scrollPercentage >= 0.85; // 85% scrolled
 
-      console.log('Scroll debug:', {
-        scrollTop,
-        scrollHeight,
-        clientHeight,
-        scrollPercentage: Math.round(scrollPercentage * 100) + '%',
-        isNearBottom,
-        hasMarkedAsRead: hasMarkedAsRead.current,
-        isRead,
-        articleId: article.id
-      });
-
       if (isNearBottom && !hasMarkedAsRead.current && !isRead) {
-        console.log('MARKING AS READ:', article.title);
         hasMarkedAsRead.current = true;
         onMarkAsRead(article);
       }
@@ -68,22 +56,18 @@ export function ArticleView({
     const setupScrollListener = () => {
       const element = scrollRef.current;
       if (!element) {
-        console.log('Scroll element not ready, retrying in 200ms...');
         timeoutId = setTimeout(setupScrollListener, 200);
         return;
       }
 
-      console.log('Setting up scroll listener on element:', element);
       element.addEventListener('scroll', handleScroll, { passive: true });
       
       // Check initial scroll position
       setTimeout(() => {
-        console.log('Initial scroll check...');
         handleScroll();
       }, 100);
 
       cleanupFn = () => {
-        console.log('Removing scroll listener');
         element.removeEventListener('scroll', handleScroll);
       };
     };
@@ -198,7 +182,7 @@ export function ArticleView({
                 ))}
               </div>
 
-              {/* Clean bottom spacing */}
+              {/* Clean bottom spacing with next article button */}
               <div className="mt-12 pb-8">
                 {!isRead && (
                   <div className="text-center text-sm text-gray-400 italic">
@@ -206,11 +190,22 @@ export function ArticleView({
                   </div>
                 )}
                 {isRead && (
-                  <div className="text-center">
+                  <div className="text-center space-y-4">
                     <Badge className="bg-green-50 text-green-700 border-green-200">
                       <Check className="mr-1" size={14} />
                       Article Complete
                     </Badge>
+                    {hasNextArticle && onNextArticle && (
+                      <div>
+                        <Button
+                          onClick={onNextArticle}
+                          variant="outline"
+                          className="mt-4"
+                        >
+                          Next Article <ArrowRight className="ml-2" size={16} />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

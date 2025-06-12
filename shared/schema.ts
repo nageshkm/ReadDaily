@@ -88,6 +88,12 @@ export const articles = pgTable("articles", {
   publishDate: text("publish_date").notNull(),
   featured: boolean("featured").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
+  // YouTube-specific fields
+  youtubeVideoId: text("youtube_video_id"),
+  channelName: text("channel_name"),
+  transcript: text("transcript"), // Full transcript
+  isSummarized: boolean("is_summarized").default(false),
+  processingStatus: text("processing_status").default("pending"), // pending, processing, completed, failed
 });
 
 export const users = pgTable("users", {

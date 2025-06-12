@@ -1,0 +1,110 @@
+Automatically pull trending YouTube videos across selected knowledge categories, transcribe and summarize them into short daily articles for users to read.
+
+Content Scope:
+
+Knowledge-building content
+
+Personal enrichment content (productivity, business, science, psychology, health, philosophy)
+
+Long-form podcasts, interviews, expert talks
+
+No pure entertainment (celebrity, movies, memes, gossip)
+
+English only for v1
+
+YouTube Categories to Pull:
+
+Category ID 27: Education
+Reason: Science, learning, self-improvement, research
+
+Category ID 28: Science & Technology
+Reason: AI, tech trends, innovation
+
+Category ID 22: People & Blogs
+Reason: Interviews, long-form podcasts, thinkers
+
+Category ID 26: Howto & Style
+Reason: Life skills, health, productivity, mental models
+
+Category ID 24: Entertainment
+Note: Use only for whitelisted podcasts (Joe Rogan, Lex Fridman, Huberman, Tim Ferriss, etc)
+
+Channel Whitelist (initial curation):
+
+Huberman Lab: Science and health
+
+Lex Fridman: AI, tech, philosophy
+
+Joe Rogan: Interviews, diverse knowledge
+
+Tim Ferriss: Self-improvement, life design
+
+Ali Abdaal: Productivity, habits
+
+Thomas Frank: Study skills, focus
+
+Matt D’Avella: Minimalism, habits
+
+Naval / Hormozi: Business, frameworks
+
+Veritasium: Science explainers
+
+The Generalist: Business strategy
+
+My First Million: Business interviews
+
+API Flow:
+
+Use YouTube API videos.list with parameters:
+
+chart=mostPopular
+
+regionCode=US
+
+loop across Category IDs
+
+Use search.list for whitelisted channels:
+
+Always pull latest videos from these channels
+
+Filter titles and descriptions using:
+
+Exclude entertainment and buzzword-heavy content
+
+Prioritize keyword matches: productivity, mental models, AI, health, finance, business
+
+Transcript Extraction:
+
+Use YouTube captions if available
+
+Fallback to Whisper API for transcripts when captions are unavailable
+
+Summarization Logic:
+
+Chunk long transcripts into approximately 10 minute segments
+
+Summarize via GPT-4o into:
+
+300-500 word daily read articles
+
+3 key takeaways per summary
+
+Include link back to full video
+
+Exclusions:
+
+No non-English videos
+
+No pure reaction, gaming, or celebrity channels
+
+No Shorts or Reels for v1
+
+Why this spec works:
+
+Highly relevant for initial user base
+
+Lean, focused v1 build
+
+Easy to expand categories later
+
+Builds defensibility via personalization and curation

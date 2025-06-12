@@ -65,12 +65,20 @@ export default function Home() {
   };
 
   const handleNextArticle = () => {
-    const nextIndex = currentArticleIndex + 1;
-    if (nextIndex < (articles as any[]).length) {
-      const nextArticle = (articles as any[])[nextIndex];
-      setCurrentArticleIndex(nextIndex);
+    const unreadArticles = (articles as any[]).filter((article: any) => !isArticleRead(article.id));
+    const currentUnreadIndex = unreadArticles.findIndex((article: any) => article.id === selectedArticle?.id);
+    const nextIndex = currentUnreadIndex + 1;
+    
+    if (nextIndex < unreadArticles.length) {
+      const nextArticle = unreadArticles[nextIndex];
+      const originalIndex = (articles as any[]).findIndex((a: any) => a.id === nextArticle.id);
+      setCurrentArticleIndex(originalIndex);
       setSelectedArticle(nextArticle);
-      setIsArticleViewOpen(true);
+      // Keep dialog open, just change the article
+    } else {
+      // No more unread articles, close the dialog
+      setIsArticleViewOpen(false);
+      setSelectedArticle(null);
     }
   };
 

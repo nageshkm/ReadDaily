@@ -38,23 +38,35 @@ export function ArticleView({
 
     const handleScroll = () => {
       const element = scrollRef.current;
-      if (!element || hasMarkedAsRead.current) return;
+      if (!element || hasMarkedAsRead.current || isRead) return;
 
       const { scrollTop, scrollHeight, clientHeight } = element;
-      const isNearBottom = scrollTop + clientHeight >= scrollHeight - 50;
+      const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
 
-      if (isNearBottom) {
+      if (isNearBottom && !hasMarkedAsRead.current) {
         hasMarkedAsRead.current = true;
-        onMarkAsRead(article);
+        setTimeout(() => {
+          if (article && !isRead) {
+            onMarkAsRead(article);
+          }
+        }, 500); // Delay to ensure stable scroll position
       }
     };
 
     const element = scrollRef.current;
     if (element) {
-      element.addEventListener('scroll', handleScroll);
+      element.addEventListener('scroll', handleScroll, { passive: true });
       return () => element.removeEventListener('scroll', handleScroll);
     }
   }, [isOpen, isRead, article, onMarkAsRead]);
+
+  // Reset scroll position when article changes
+  useEffect(() => {
+    if (isOpen && scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+      hasMarkedAsRead.current = false;
+    }
+  }, [article?.id, isOpen]);
 
   if (!article || !category) return null;
 
@@ -74,8 +86,12 @@ export function ArticleView({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-hidden p-0">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent 
+        className="max-w-4xl w-full max-h-[90vh] overflow-hidden p-0"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <VisuallyHidden>
           <DialogTitle>Article: {article.title}</DialogTitle>
         </VisuallyHidden>
@@ -92,8 +108,27 @@ export function ArticleView({
               <span className="text-sm text-gray-500">
                 {article.estimatedReadingTime} min read
               </span>
+              {!isRead && (
+                <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                  Scroll to bottom to mark as read
+                </span>
+              )}
             </div>
           </div>
+          
+          {hasNextArticle && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNextArticle?.();
+              }}
+              className="text-xs"
+            >
+              Next Article →
+            </Button>
+          )}
         </div>
 
         <div ref={scrollRef} className="overflow-y-auto max-h-[calc(90vh-80px)]">

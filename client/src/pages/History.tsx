@@ -21,6 +21,14 @@ export default function History() {
   });
   const categories = config?.categories || [];
 
+  if (articlesLoading || !config) {
+    return (
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-12">Loading...</div>
+      </main>
+    );
+  }
+
   useEffect(() => {
     const existingUser = LocalStorage.getUser();
     if (existingUser) {
@@ -28,15 +36,18 @@ export default function History() {
     }
   }, []);
 
-  // Filter to show only read articles
-  const readArticles = user ? (articles as any[]).filter((article: any) => 
-    user.readArticles.some(ra => ra.articleId === article.id)
-  ).sort((a: any, b: any) => {
+  // Filter to show only read articles - debug logging
+  const readArticles = user ? (articles as any[]).filter((article: any) => {
+    const isRead = user.readArticles.some(ra => ra.articleId === article.id);
+    return isRead;
+  }).sort((a: any, b: any) => {
     // Sort by read date (most recent first)
     const dateA = user.readArticles.find(ra => ra.articleId === a.id)?.readDate || '';
     const dateB = user.readArticles.find(ra => ra.articleId === b.id)?.readDate || '';
     return new Date(dateB).getTime() - new Date(dateA).getTime();
   }) : [];
+
+
 
   const handleViewArticle = (article: Article) => {
     setSelectedArticle(article);
@@ -44,7 +55,7 @@ export default function History() {
   };
 
   const getCategoryById = (categoryId: string): Category | undefined => {
-    return categories.find(cat => cat.id === categoryId);
+    return categories.find((cat: any) => cat.id === categoryId);
   };
 
   const handleMarkAsRead = (article: Article) => {

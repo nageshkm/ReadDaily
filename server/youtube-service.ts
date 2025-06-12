@@ -45,7 +45,7 @@ export class YouTubeContentService {
     for (const categoryId of YOUTUBE_CATEGORIES) {
       try {
         const response = await fetch(
-          `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=US&videoCategoryId=${categoryId}&maxResults=5&key=${this.apiKey}`
+          `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&chart=mostPopular&regionCode=US&videoCategoryId=${categoryId}&maxResults=5&key=${this.apiKey}`
         );
         
         if (!response.ok) {
@@ -94,9 +94,15 @@ export class YouTubeContentService {
     const title = item.snippet?.title?.toLowerCase() || "";
     const description = item.snippet?.description?.toLowerCase() || "";
     
-    // Filter out entertainment and buzzword content
-    const excludeKeywords = ["reaction", "celebrity", "gossip", "meme", "funny", "viral"];
-    const includeKeywords = ["productivity", "mental", "ai", "health", "finance", "business", "science", "learning"];
+    // Check video duration - must be 10+ minutes
+    const duration = item.contentDetails?.duration;
+    if (duration && !this.isLongEnoughVideo(duration)) {
+      return false;
+    }
+    
+    // Filter out entertainment, fitness, and buzzword content
+    const excludeKeywords = ["reaction", "celebrity", "gossip", "meme", "funny", "viral", "workout", "fitness", "exercise", "gym", "training"];
+    const includeKeywords = ["productivity", "mental", "ai", "health", "finance", "business", "science", "learning", "technology", "education"];
     
     const hasExcluded = excludeKeywords.some(keyword => 
       title.includes(keyword) || description.includes(keyword)
@@ -108,6 +114,18 @@ export class YouTubeContentService {
 
     // Must not have excluded content and should have relevant content
     return !hasExcluded && (hasIncluded || WHITELISTED_CHANNELS.includes(item.snippet?.channelId));
+  }
+
+  private isLongEnoughVideo(duration: string): boolean {
+    // Parse ISO 8601 duration format (PT10M30S)
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return false;
+    
+    const hours = parseInt(match[1] || '0');
+    const minutes = parseInt(match[2] || '0');
+    const totalMinutes = hours * 60 + minutes;
+    
+    return totalMinutes >= 10;
   }
 
   private mapToVideo(item: any): YouTubeVideo {

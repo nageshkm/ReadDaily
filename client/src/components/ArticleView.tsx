@@ -88,7 +88,7 @@ export function ArticleView({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent 
-        className="max-w-4xl w-[95vw] sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden p-0"
+        className="max-w-4xl w-[95vw] sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden p-0 [&>button]:hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
@@ -175,11 +175,12 @@ export function ArticleView({
                 e.stopPropagation();
                 onNextArticle();
               }}
-              className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg rounded-full px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base"
+              variant="outline"
+              className="bg-white/90 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-900 shadow-md rounded-full px-4 py-2 sm:px-5 sm:py-2 text-sm backdrop-blur-sm"
               size="sm"
             >
               <span className="hidden sm:inline">Next Article</span>
-              <span className="sm:hidden">Next</span>
+              <span className="sm:hidden">Next Article</span>
               <ArrowRight className="ml-1 sm:ml-2" size={14} />
             </Button>
           </div>

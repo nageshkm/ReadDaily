@@ -111,7 +111,7 @@ export default function Home() {
   }
 
   const selectedCategory = selectedArticle 
-    ? getCategoryById(selectedArticle.categoryId) 
+    ? getCategoryById(selectedArticle.categoryId) || null
     : null;
 
   // Check if there are more unread articles after the current one

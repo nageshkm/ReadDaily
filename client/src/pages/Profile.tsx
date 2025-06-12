@@ -20,10 +20,23 @@ export default function Profile() {
     }
   }, []);
 
-  const handleClearData = () => {
+  const handleClearData = async () => {
     if (confirm("Are you sure you want to clear all your data? This action cannot be undone.")) {
-      LocalStorage.clearUser();
-      window.location.reload();
+      try {
+        // Delete user from server if we have a user ID
+        if (user?.id) {
+          await apiRequest('DELETE', `/api/users/${user.id}`);
+        }
+        
+        // Clear local storage
+        LocalStorage.clearUser();
+        window.location.reload();
+      } catch (error) {
+        console.error("Error deleting user from server:", error);
+        // Still clear local storage even if server deletion fails
+        LocalStorage.clearUser();
+        window.location.reload();
+      }
     }
   };
 

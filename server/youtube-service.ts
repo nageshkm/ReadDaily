@@ -283,12 +283,12 @@ Format as JSON:
         parsed = JSON.parse(content);
       } catch {
         // If that fails, try to extract JSON from markdown code blocks
-        const jsonMatch = content.match(/```(?:json)?\s*(\{.*?\})\s*```/s);
+        const jsonMatch = content.match(/```(?:json)?\s*(\{.*?\})\s*```/);
         if (jsonMatch) {
           parsed = JSON.parse(jsonMatch[1]);
         } else {
           // Last resort: look for JSON-like content
-          const objectMatch = content.match(/\{[^}]*"summary"[^}]*\}/s);
+          const objectMatch = content.match(/\{[^}]*"summary"[^}]*\}/);
           if (objectMatch) {
             parsed = JSON.parse(objectMatch[0]);
           } else {

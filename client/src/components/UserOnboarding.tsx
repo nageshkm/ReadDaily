@@ -69,13 +69,7 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
       };
 
       // Store user on server
-      const serverUser = await apiRequest('/api/users', {
-        method: 'POST',
-        body: JSON.stringify(userData),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const serverUser = await apiRequest('POST', '/api/users', userData);
 
       // Create local user for immediate use
       const localUser = LocalStorage.createUser(userName.trim(), userEmail.trim(), ['general']);

@@ -114,10 +114,11 @@ export default function Home() {
     ? getCategoryById(selectedArticle.categoryId) || null
     : null;
 
-  // Check if there are more unread articles after the current one
-  const unreadArticles = (articles as any[]).filter((article: any) => !isArticleRead(article.id));
-  const currentUnreadIndex = unreadArticles.findIndex((article: any) => article.id === selectedArticle?.id);
-  const hasNextArticle = currentUnreadIndex >= 0 && currentUnreadIndex < unreadArticles.length - 1;
+  // Check if there are more unread articles available
+  const unreadArticles = (articles as any[]).filter((article: any) => 
+    !isArticleRead(article.id) && article.id !== selectedArticle?.id
+  );
+  const hasNextArticle = unreadArticles.length > 0;
 
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -165,7 +166,7 @@ export default function Home() {
         onClose={() => setIsArticleViewOpen(false)}
         onMarkAsRead={handleMarkAsRead}
         onNextArticle={hasNextArticle ? handleNextArticle : undefined}
-        hasNextArticle={hasNextArticle}
+        hasNextArticle={hasNextArticle || false}
       />
 
 

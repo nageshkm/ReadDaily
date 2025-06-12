@@ -62,22 +62,39 @@ export function ArticleView({
       }
     };
 
-    const element = scrollRef.current;
-    if (element) {
-      console.log('Adding scroll listener to element:', element);
+    let timeoutId: NodeJS.Timeout;
+    let cleanupFn: (() => void) | undefined;
+
+    const setupScrollListener = () => {
+      const element = scrollRef.current;
+      if (!element) {
+        console.log('Scroll element not ready, retrying in 200ms...');
+        timeoutId = setTimeout(setupScrollListener, 200);
+        return;
+      }
+
+      console.log('Setting up scroll listener on element:', element);
       element.addEventListener('scroll', handleScroll, { passive: true });
-      // Also check initial scroll position in case content is short
+      
+      // Check initial scroll position
       setTimeout(() => {
         console.log('Initial scroll check...');
         handleScroll();
       }, 100);
-      return () => {
+
+      cleanupFn = () => {
         console.log('Removing scroll listener');
         element.removeEventListener('scroll', handleScroll);
       };
-    } else {
-      console.log('No scroll element found');
-    }
+    };
+
+    // Start setup after a brief delay to ensure Dialog is rendered
+    timeoutId = setTimeout(setupScrollListener, 100);
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (cleanupFn) cleanupFn();
+    };
   }, [isOpen, isRead, article, onMarkAsRead]);
 
   // Reset scroll position when article changes

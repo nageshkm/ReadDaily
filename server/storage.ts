@@ -47,7 +47,25 @@ export class MemStorage implements IStorage {
       .orderBy(desc(articles.createdAt))
       .limit(50);
     
-    return allArticles;
+    // Transform the data to match frontend schema expectations
+    return allArticles.map((article: any) => ({
+      id: article.id,
+      title: article.title,
+      content: article.content,
+      summary: article.summary,
+      categoryId: article.categoryId,
+      sourceUrl: article.sourceUrl,
+      imageUrl: article.imageUrl,
+      estimatedReadingTime: article.estimatedReadingTime,
+      publishDate: article.publishDate,
+      featured: article.featured,
+      createdAt: article.createdAt,
+      youtubeVideoId: article.youtubeVideoId,
+      channelName: article.channelName,
+      transcript: article.transcript,
+      isSummarized: article.isSummarized,
+      processingStatus: article.processingStatus
+    }));
   }
 }
 

@@ -189,23 +189,15 @@ export function ArticleView({
                     Reading will be marked complete automatically
                   </div>
                 )}
-                {isRead && (
-                  <div className="text-center space-y-4">
-                    <Badge className="bg-green-50 text-green-700 border-green-200">
-                      <Check className="mr-1" size={14} />
-                      Article Complete
-                    </Badge>
-                    {hasNextArticle && onNextArticle && (
-                      <div>
-                        <Button
-                          onClick={onNextArticle}
-                          variant="outline"
-                          className="mt-4"
-                        >
-                          Next Article <ArrowRight className="ml-2" size={16} />
-                        </Button>
-                      </div>
-                    )}
+                {isRead && hasNextArticle && onNextArticle && (
+                  <div className="text-center">
+                    <Button
+                      onClick={onNextArticle}
+                      variant="outline"
+                      className="mt-4"
+                    >
+                      Next Article <ArrowRight className="ml-2" size={16} />
+                    </Button>
                   </div>
                 )}
               </div>
@@ -213,20 +205,20 @@ export function ArticleView({
           </article>
         </div>
 
-        {/* Floating Next Article Button */}
+        {/* Fixed Next Article Button */}
         {hasNextArticle && onNextArticle && (
-          <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6">
+          <div className="fixed bottom-6 right-6 z-50">
             <Button
               onClick={(e) => {
                 e.stopPropagation();
                 onNextArticle();
               }}
               variant="outline"
-              className="bg-white/90 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-900 shadow-md rounded-full px-4 py-2 sm:px-5 sm:py-2 text-sm backdrop-blur-sm"
+              className="bg-white/95 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-900 shadow-lg rounded-full px-4 py-2 sm:px-5 sm:py-2 text-sm backdrop-blur-sm"
               size="sm"
             >
               <span className="hidden sm:inline">Next Article</span>
-              <span className="sm:hidden">Next Article</span>
+              <span className="sm:hidden">Next</span>
               <ArrowRight className="ml-1 sm:ml-2" size={14} />
             </Button>
           </div>

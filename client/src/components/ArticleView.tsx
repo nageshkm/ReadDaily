@@ -78,7 +78,7 @@ export function ArticleView({
       // Check if content is short enough to be "read" immediately
       setTimeout(() => {
         const element = scrollRef.current;
-        if (element && !hasMarkedAsRead.current && !isRead) {
+        if (element && !hasMarkedAsRead.current && !isRead && article) {
           const { scrollHeight, clientHeight } = element;
           const contentHeight = scrollHeight - clientHeight;
           console.log('Content height check:', { scrollHeight, clientHeight, contentHeight });
@@ -87,7 +87,7 @@ export function ArticleView({
           if (contentHeight <= 50) {
             console.log('Short content detected, marking as read');
             hasMarkedAsRead.current = true;
-            onMarkAsRead(article);
+            onMarkAsRead(article!);
           }
         }
       }, 200);

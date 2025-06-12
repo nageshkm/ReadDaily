@@ -58,9 +58,28 @@ export default function Home() {
   const handleMarkAsRead = (article: Article) => {
     if (!user) return;
     
+    console.log('Before marking as read:', {
+      articleId: article.id,
+      title: article.title,
+      userReadArticles: user.readArticles.length,
+      isCurrentlyRead: LocalStorage.isArticleRead(user, article.id)
+    });
+    
     const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
+    
+    console.log('After marking as read:', {
+      articleId: article.id,
+      updatedUserReadArticles: updatedUser.readArticles.length,
+      isNowRead: LocalStorage.isArticleRead(updatedUser, article.id),
+      readArticles: updatedUser.readArticles
+    });
+    
     setUser(updatedUser);
     setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
+    
+    // Force re-render of articles list by updating a counter
+    setCurrentArticleIndex(prev => prev);
+    
     // Don't close the dialog automatically - let user navigate or close manually
   };
 
@@ -90,7 +109,14 @@ export default function Home() {
 
   const isArticleRead = (articleId: string): boolean => {
     if (!user) return false;
-    return LocalStorage.isArticleRead(user, articleId);
+    const isRead = LocalStorage.isArticleRead(user, articleId);
+    console.log('Checking if article is read:', {
+      articleId,
+      isRead,
+      userReadArticles: user.readArticles.length,
+      readArticleIds: user.readArticles.map(ra => ra.articleId)
+    });
+    return isRead;
   };
 
   if (showOnboarding) {

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { LocalStorage } from "@/lib/storage";
 import { User as UserType, Category } from "@shared/schema";
 import { getInitials } from "@/lib/utils";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Profile() {
   const [user, setUser] = useState<UserType | null>(null);

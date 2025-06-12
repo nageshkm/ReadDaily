@@ -3,6 +3,8 @@ import { BookOpen } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LocalStorage } from "@/lib/storage";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
+import { apiRequest } from "@/lib/queryClient";
+import { getTodayString } from "@/lib/utils";
 
 function parseJwt(token: string): any {
   try {
@@ -49,9 +51,35 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
     setIsSubmitting(true);
     
     try {
-      // Create user with default categories since content is now curated for everyone
-      const user = LocalStorage.createUser(userName.trim(), userEmail.trim(), ['general']);
-      onComplete(user);
+      const today = getTodayString();
+      
+      // Create user data for server
+      const userData = {
+        name: userName.trim(),
+        email: userEmail.trim(),
+        joinDate: today,
+        lastActive: today,
+        preferences: JSON.stringify({ categories: ['general'] }),
+        readArticles: JSON.stringify([]),
+        streakData: JSON.stringify({
+          currentStreak: 0,
+          lastReadDate: "",
+          longestStreak: 0
+        })
+      };
+
+      // Store user on server
+      const serverUser = await apiRequest('/api/users', {
+        method: 'POST',
+        body: JSON.stringify(userData),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // Create local user for immediate use
+      const localUser = LocalStorage.createUser(userName.trim(), userEmail.trim(), ['general']);
+      onComplete(localUser);
     } catch (error) {
       console.error("Error creating user:", error);
     } finally {

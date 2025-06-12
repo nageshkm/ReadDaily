@@ -6,7 +6,9 @@ import { users, type User, type InsertUserDb } from "@shared/schema";
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUserDb): Promise<User>;
+  deleteUser(id: string): Promise<boolean>;
   getArticles(): Promise<any[]>;
 }
 
@@ -29,9 +31,28 @@ export class MemStorage implements IStorage {
     );
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.email === email,
+    );
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    return this.users.delete(id);
+  }
+
   async createUser(insertUser: InsertUserDb): Promise<User> {
     const id = this.currentId++;
-    const user: User = { ...insertUser, id: id.toString() };
+    const user: User = {
+      id: id.toString(),
+      name: insertUser.name,
+      email: insertUser.email,
+      joinDate: insertUser.joinDate,
+      lastActive: insertUser.lastActive,
+      preferences: JSON.parse(insertUser.preferences),
+      readArticles: JSON.parse(insertUser.readArticles),
+      streakData: JSON.parse(insertUser.streakData)
+    };
     this.users.set(id.toString(), user);
     return user;
   }

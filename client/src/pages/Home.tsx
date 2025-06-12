@@ -48,21 +48,10 @@ export default function Home() {
     setIsArticleViewOpen(true);
     
     // Mark as read immediately when clicked
-    console.log('handleReadArticle - checking conditions:', { 
-      hasUser: !!user, 
-      articleId: article.id, 
-      isRead: isArticleRead(article.id) 
-    });
-    
     if (user && !isArticleRead(article.id)) {
-      console.log('Marking article as read from handleReadArticle:', article.id);
-      console.log('User before marking:', user.readArticles);
       const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
-      console.log('User after marking:', updatedUser.readArticles);
       setUser(updatedUser);
       setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
-    } else {
-      console.log('Skipping mark as read - conditions not met in handleReadArticle');
     }
   };
 
@@ -73,21 +62,10 @@ export default function Home() {
     setIsArticleViewOpen(true);
     
     // Mark as read immediately when clicked
-    console.log('handleViewArticle - checking conditions:', { 
-      hasUser: !!user, 
-      articleId: article.id, 
-      isRead: isArticleRead(article.id) 
-    });
-    
     if (user && !isArticleRead(article.id)) {
-      console.log('Marking article as read:', article.id);
-      console.log('User before marking:', user.readArticles);
       const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
-      console.log('User after marking:', updatedUser.readArticles);
       setUser(updatedUser);
       setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
-    } else {
-      console.log('Skipping mark as read - conditions not met');
     }
   };
 
@@ -110,6 +88,14 @@ export default function Home() {
       const originalIndex = (articles as any[]).findIndex((a: any) => a.id === nextArticle.id);
       setCurrentArticleIndex(originalIndex);
       setSelectedArticle(nextArticle);
+      
+      // Mark the new article as read immediately when navigating to it
+      if (user && !isArticleRead(nextArticle.id)) {
+        const updatedUser = LocalStorage.markArticleAsRead(user, nextArticle.id);
+        setUser(updatedUser);
+        setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
+      }
+      
       // Keep dialog open, just change the article
     } else {
       // No more unread articles, close the dialog
@@ -126,9 +112,7 @@ export default function Home() {
 
   const isArticleRead = (articleId: string): boolean => {
     if (!user) return false;
-    const result = LocalStorage.isArticleRead(user, articleId);
-    console.log('Checking if article is read:', articleId, result, user.readArticles);
-    return result;
+    return LocalStorage.isArticleRead(user, articleId);
   };
 
   if (showOnboarding) {

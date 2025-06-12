@@ -154,16 +154,38 @@ export class YouTubeContentService {
         }
       }
 
-      // If no captions available, return video metadata as content
+      // If no captions available, return enhanced video metadata as content
       const videoResponse = await fetch(
-        `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${this.apiKey}`
+        `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoId}&key=${this.apiKey}`
       );
 
       if (videoResponse.ok) {
         const videoData = await videoResponse.json();
         const video = videoData.items?.[0];
         if (video) {
-          return `Title: ${video.snippet.title}\n\nDescription: ${video.snippet.description}\n\nChannel: ${video.snippet.channelTitle}\n\nWatch: https://www.youtube.com/watch?v=${videoId}`;
+          const description = video.snippet.description || '';
+          const title = video.snippet.title || '';
+          const channel = video.snippet.channelTitle || '';
+          
+          // Create a more readable article format using description
+          let content = `# ${title}\n\n`;
+          content += `*Originally from ${channel} on YouTube*\n\n`;
+          
+          if (description.length > 100) {
+            // Use the video description as the main content
+            content += description;
+          } else {
+            // Fallback for short descriptions
+            content += `This video from ${channel} covers "${title}". `;
+            content += `The content discusses important insights and perspectives that are valuable for viewers interested in this topic.\n\n`;
+            if (description) {
+              content += `Video Description: ${description}\n\n`;
+            }
+          }
+          
+          content += `\n\n**Watch the full video:** https://www.youtube.com/watch?v=${videoId}`;
+          
+          return content;
         }
       }
 

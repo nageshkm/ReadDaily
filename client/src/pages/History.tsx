@@ -16,10 +16,10 @@ export default function History() {
   });
 
   // Fetch categories from backend  
-  const { data: categories = [] } = useQuery({
+  const { data: config } = useQuery({
     queryKey: ["/api/config"],
-    select: (data) => data?.categories || [],
   });
+  const categories = config?.categories || [];
 
   useEffect(() => {
     const existingUser = LocalStorage.getUser();
@@ -47,10 +47,8 @@ export default function History() {
     return categories.find(cat => cat.id === categoryId);
   };
 
-  const getReadDateForArticle = (articleId: string): string => {
-    if (!user) return '';
-    const readArticle = user.readArticles.find(ra => ra.articleId === articleId);
-    return readArticle?.readDate || '';
+  const handleMarkAsRead = (article: Article) => {
+    // Articles in history are already read, no action needed
   };
 
   const selectedCategory = selectedArticle 
@@ -77,9 +75,12 @@ export default function History() {
       </div>
 
       <div className="grid gap-6">
-        {readArticles.map((article) => {
+        {readArticles.map((article: any) => {
           const category = getCategoryById(article.categoryId);
           if (!category) return null;
+
+          // Get read date for this article
+          const readDate = user?.readArticles.find(ra => ra.articleId === article.id)?.readDate || '';
 
           return (
             <div key={article.id} className="relative">
@@ -90,9 +91,11 @@ export default function History() {
                 onReadClick={() => {}} // Not needed for history view
                 onViewClick={handleViewArticle}
               />
-              <div className="absolute top-4 right-4 text-xs text-gray-500 bg-white px-2 py-1 rounded">
-                Read on {new Date(getReadDateForArticle(article.id)).toLocaleDateString()}
-              </div>
+              {readDate && (
+                <div className="absolute top-4 right-4 text-xs text-gray-500 bg-white px-2 py-1 rounded shadow-sm">
+                  Read on {new Date(readDate).toLocaleDateString()}
+                </div>
+              )}
             </div>
           );
         })}

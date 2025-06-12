@@ -231,24 +231,26 @@ export class YouTubeContentService {
     }
   }
 
-  async summarizeContent(transcript: string, title: string): Promise<{ summary: string; keyTakeaways: string[] }> {
+  async summarizeContent(transcript: string, title: string): Promise<{ summary: string; keyTakeaways: string[]; improvedTitle: string }> {
     try {
       const prompt = `
-Summarize the following video transcript into a 300-500 word article suitable for daily reading. 
-The summary should be engaging, informative, and capture the key insights.
+Analyze this educational content and create a structured summary for a professional reading app.
 
-Video Title: ${title}
+Original Title: ${title}
+Content: ${transcript}
 
-Transcript: ${transcript}
+Create a structured response with:
+1. An improved title focusing on key learning outcomes (max 60 characters)
+2. What the reader will learn (2-3 sentences)
+3. Key topics covered (3-5 main points)
+4. A conclusion with the main takeaway
 
-Please provide:
-1. A well-structured 300-500 word summary
-2. 3 key takeaways as bullet points
-
-Format your response as JSON:
+Format as JSON:
 {
-  "summary": "...",
-  "keyTakeaways": ["...", "...", "..."]
+  "improvedTitle": "...",
+  "whatYouWillLearn": "...",
+  "keyTopics": ["...", "...", "..."],
+  "conclusion": "..."
 }
 `;
 
@@ -295,9 +297,23 @@ Format your response as JSON:
         }
       }
       
+      // Format the structured summary
+      let summary = `## What You'll Learn\n${parsed.whatYouWillLearn || 'Key insights from this content.'}\n\n`;
+      
+      if (parsed.keyTopics && parsed.keyTopics.length > 0) {
+        summary += `## Key Topics Covered\n`;
+        parsed.keyTopics.forEach((topic: string, index: number) => {
+          summary += `${index + 1}. ${topic}\n`;
+        });
+        summary += '\n';
+      }
+      
+      summary += `## Conclusion\n${parsed.conclusion || 'This content provides valuable insights for professional development.'}`;
+
       return {
-        summary: parsed.summary || `Article about "${title}"`,
-        keyTakeaways: parsed.keyTakeaways || ["Key insights from the content"]
+        summary,
+        keyTakeaways: parsed.keyTopics || [],
+        improvedTitle: parsed.improvedTitle || title
       };
     } catch (error) {
       console.error("Failed to summarize content:", error);
@@ -308,7 +324,8 @@ Format your response as JSON:
           "Key insights from the video content",
           "Important takeaways for daily application", 
           "Actionable advice for personal growth"
-        ]
+        ],
+        improvedTitle: title
       };
     }
   }

@@ -69,25 +69,13 @@ export class ContentAutomationService {
             continue;
           }
 
-          // Determine if we should summarize or keep full transcript
-          const shouldSummarize = this.summarizationCount < this.MAX_SUMMARIZATIONS;
-          let content: string;
-          let summary: string;
-          let isSummarized = false;
-
-          if (shouldSummarize) {
-            console.log(`Summarizing video ${this.summarizationCount + 1}/${this.MAX_SUMMARIZATIONS}: ${video.title}`);
-            const summarized = await this.youtubeService.summarizeContent(transcript, video.title);
-            content = summarized.summary;
-            summary = summarized.keyTakeaways.join(" • ");
-            isSummarized = true;
-            this.summarizationCount++;
-          } else {
-            console.log(`Using full transcript for: ${video.title}`);
-            content = transcript;
-            summary = `Full transcript from "${video.title}" - ${video.channelTitle}`;
-            isSummarized = false;
-          }
+          // Always summarize all videos
+          console.log(`Summarizing video: ${video.title}`);
+          const summarized = await this.youtubeService.summarizeContent(transcript, video.title);
+          const content = summarized.summary;
+          const summary = summarized.keyTakeaways.join(" • ");
+          const improvedTitle = summarized.improvedTitle;
+          const isSummarized = true;
 
           const estimatedReadingTime = await this.youtubeService.estimateReadingTime(content);
           const categoryId = await this.assignCategory(video.channelTitle, video.title);
@@ -98,10 +86,13 @@ export class ContentAutomationService {
             continue;
           }
 
+          // Add video link to the content
+          const contentWithLink = content + `\n\n---\n**📺 Watch the full video:** [${video.title}](https://www.youtube.com/watch?v=${video.id})`;
+
           const article: ProcessedArticle = {
             id: `yt-${video.id}-${Date.now()}`,
-            title: video.title,
-            content,
+            title: improvedTitle,
+            content: contentWithLink,
             summary,
             sourceUrl: `https://www.youtube.com/watch?v=${video.id}`,
             imageUrl: video.thumbnail,

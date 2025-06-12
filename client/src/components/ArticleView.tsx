@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Article, Category } from "@shared/schema";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { useEffect, useRef } from "react";
 
 interface ArticleViewProps {
   article: Article | null;

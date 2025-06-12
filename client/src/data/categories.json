@@ -1,13 +1,18 @@
 [
   {
-    "id": "tech",
+    "id": "technology",
     "name": "Technology",
     "description": "Latest in tech and innovation"
   },
   {
-    "id": "science",
-    "name": "Science",
-    "description": "Scientific discoveries and research"
+    "id": "productivity",
+    "name": "Productivity",
+    "description": "Tips and strategies for better productivity"
+  },
+  {
+    "id": "general",
+    "name": "General",
+    "description": "General interest and lifestyle content"
   },
   {
     "id": "business",
@@ -18,5 +23,10 @@
     "id": "health",
     "name": "Health",
     "description": "Health and wellness topics"
+  },
+  {
+    "id": "education",
+    "name": "Education",
+    "description": "Educational content and learning"
   }
 ]

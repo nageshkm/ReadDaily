@@ -23,11 +23,6 @@ export default function Home() {
     queryKey: ["/api/articles"],
   });
 
-  // Debug logging
-  console.log('Articles data:', articles);
-  console.log('Articles length:', articles.length);
-  console.log('Articles loading:', articlesLoading);
-
   const categories = LocalStorage.getCategories();
 
   useEffect(() => {

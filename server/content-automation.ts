@@ -91,6 +91,12 @@ export class ContentAutomationService {
 
           const estimatedReadingTime = await this.youtubeService.estimateReadingTime(content);
           const categoryId = await this.assignCategory(video.channelTitle, video.title);
+          
+          // Skip videos that don't fit target categories
+          if (!categoryId) {
+            console.log(`Skipping video "${video.title}" - no suitable category`);
+            continue;
+          }
 
           const article: ProcessedArticle = {
             id: `yt-${video.id}-${Date.now()}`,
@@ -147,31 +153,44 @@ export class ContentAutomationService {
     return videos.filter(video => !existingIds.has(video.id));
   }
 
-  private async assignCategory(channelName: string, title: string): Promise<string> {
+  private async assignCategory(channelName: string, title: string): Promise<string | null> {
     const titleLower = title.toLowerCase();
     const channelLower = channelName.toLowerCase();
 
-    // Science & Health channels
-    if (channelLower.includes('huberman') || channelLower.includes('veritasium') || 
-        titleLower.includes('science') || titleLower.includes('health')) {
-      return 'science';
+    // Technology & AI
+    if (channelLower.includes('lex fridman') || titleLower.includes('ai') || 
+        titleLower.includes('technology') || titleLower.includes('tech') ||
+        titleLower.includes('apple') || titleLower.includes('google') ||
+        titleLower.includes('software') || titleLower.includes('update')) {
+      return 'technology';
     }
 
     // Business & Productivity
     if (channelLower.includes('ali abdaal') || channelLower.includes('thomas frank') || 
         channelLower.includes('tim ferriss') || titleLower.includes('productivity') || 
-        titleLower.includes('business')) {
+        titleLower.includes('business') || titleLower.includes('entrepreneur') ||
+        titleLower.includes('work') || titleLower.includes('guide') ||
+        titleLower.includes('tips') || titleLower.includes('study')) {
       return 'productivity';
     }
 
-    // Technology & AI
-    if (channelLower.includes('lex fridman') || titleLower.includes('ai') || 
-        titleLower.includes('technology') || titleLower.includes('tech')) {
-      return 'technology';
+    // Science & Health channels
+    if (channelLower.includes('huberman') || channelLower.includes('veritasium') || 
+        titleLower.includes('science') || titleLower.includes('health') ||
+        titleLower.includes('fitness') || titleLower.includes('workout') ||
+        titleLower.includes('exercise') || titleLower.includes('nutrition')) {
+      return 'health';
     }
 
-    // Default to general
-    return 'general';
+    // Education
+    if (titleLower.includes('learn') || titleLower.includes('education') ||
+        titleLower.includes('tutorial') || titleLower.includes('course') ||
+        channelLower.includes('education')) {
+      return 'education';
+    }
+
+    // Skip videos that don't fit specific categories
+    return null;
   }
 
   private async saveArticle(article: ProcessedArticle) {

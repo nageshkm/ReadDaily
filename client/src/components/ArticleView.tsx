@@ -88,7 +88,7 @@ export function ArticleView({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent 
-        className="max-w-4xl w-full max-h-[90vh] overflow-hidden p-0"
+        className="max-w-4xl w-[95vw] sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden p-0"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
       >
@@ -96,45 +96,25 @@ export function ArticleView({
           <DialogTitle>Article: {article.title}</DialogTitle>
         </VisuallyHidden>
         
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X size={20} />
-            </Button>
-            <div className="flex items-center space-x-2">
-              <Badge className={getCategoryColor(article.categoryId)}>
-                {category.name}
-              </Badge>
-              <span className="text-sm text-gray-500">
-                {article.estimatedReadingTime} min read
-              </span>
-              {!isRead && (
-                <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                  Scroll to bottom to mark as read
-                </span>
-              )}
-            </div>
+        {/* Clean header with just close button */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <div className="flex items-center space-x-3">
+            <Badge className={getCategoryColor(article.categoryId)} variant="secondary">
+              {category.name}
+            </Badge>
+            <span className="text-sm text-gray-500">
+              {article.estimatedReadingTime} min read
+            </span>
           </div>
-          
-          {hasNextArticle && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onNextArticle?.();
-              }}
-              className="text-xs"
-            >
-              Next Article →
-            </Button>
-          )}
+          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+            <X size={18} />
+          </Button>
         </div>
 
-        <div ref={scrollRef} className="overflow-y-auto max-h-[calc(90vh-80px)]">
-          <article className="p-8">
+        <div ref={scrollRef} className="overflow-y-auto max-h-[calc(95vh-60px)] sm:max-h-[calc(90vh-80px)]">
+          <article className="p-4 sm:p-8">
             <div className="max-w-3xl mx-auto">
-              <h1 className="text-3xl font-bold mb-4 font-serif">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-6 font-serif leading-tight">
                 {article.title}
               </h1>
 
@@ -167,34 +147,43 @@ export function ArticleView({
                 ))}
               </div>
 
-              {/* Bottom Action Bar */}
-              <div className="border-t border-gray-200 pt-8 mt-12">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-500">
-                    Scroll to the bottom to mark as read automatically.
+              {/* Clean bottom spacing */}
+              <div className="mt-12 pb-8">
+                {!isRead && (
+                  <div className="text-center text-sm text-gray-400 italic">
+                    Reading will be marked complete automatically
                   </div>
-                  <div className="flex items-center space-x-3">
-                    {hasNextArticle && onNextArticle && (
-                      <Button
-                        onClick={onNextArticle}
-                        variant="outline"
-                        className="font-medium"
-                      >
-                        Next Article <ArrowRight className="ml-2" size={16} />
-                      </Button>
-                    )}
-                    {isRead && (
-                      <Badge className="bg-green-100 text-green-800">
-                        <Check className="mr-1" size={14} />
-                        Read
-                      </Badge>
-                    )}
+                )}
+                {isRead && (
+                  <div className="text-center">
+                    <Badge className="bg-green-50 text-green-700 border-green-200">
+                      <Check className="mr-1" size={14} />
+                      Article Complete
+                    </Badge>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </article>
         </div>
+
+        {/* Floating Next Article Button */}
+        {hasNextArticle && onNextArticle && (
+          <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6">
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                onNextArticle();
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg rounded-full px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base"
+              size="sm"
+            >
+              <span className="hidden sm:inline">Next Article</span>
+              <span className="sm:hidden">Next</span>
+              <ArrowRight className="ml-1 sm:ml-2" size={14} />
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -41,21 +41,31 @@ export function ArticleView({
       if (!element || hasMarkedAsRead.current || isRead) return;
 
       const { scrollTop, scrollHeight, clientHeight } = element;
-      const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
+      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+      const isNearBottom = scrollPercentage >= 0.85; // 85% scrolled
 
-      if (isNearBottom && !hasMarkedAsRead.current) {
+      console.log('Scroll debug:', {
+        scrollTop,
+        scrollHeight,
+        clientHeight,
+        scrollPercentage: Math.round(scrollPercentage * 100) + '%',
+        isNearBottom,
+        articleId: article.id,
+        hasMarkedAsRead: hasMarkedAsRead.current
+      });
+
+      if (isNearBottom && !hasMarkedAsRead.current && !isRead) {
+        console.log('Marking article as read:', article.title);
         hasMarkedAsRead.current = true;
-        setTimeout(() => {
-          if (article && !isRead) {
-            onMarkAsRead(article);
-          }
-        }, 500); // Delay to ensure stable scroll position
+        onMarkAsRead(article);
       }
     };
 
     const element = scrollRef.current;
     if (element) {
       element.addEventListener('scroll', handleScroll, { passive: true });
+      // Also check initial scroll position in case content is short
+      setTimeout(() => handleScroll(), 100);
       return () => element.removeEventListener('scroll', handleScroll);
     }
   }, [isOpen, isRead, article, onMarkAsRead]);
@@ -65,8 +75,24 @@ export function ArticleView({
     if (isOpen && scrollRef.current) {
       scrollRef.current.scrollTop = 0;
       hasMarkedAsRead.current = false;
+      // Check if content is short enough to be "read" immediately
+      setTimeout(() => {
+        const element = scrollRef.current;
+        if (element && !hasMarkedAsRead.current && !isRead) {
+          const { scrollHeight, clientHeight } = element;
+          const contentHeight = scrollHeight - clientHeight;
+          console.log('Content height check:', { scrollHeight, clientHeight, contentHeight });
+          
+          // If content fits entirely in viewport or very little scrolling needed
+          if (contentHeight <= 50) {
+            console.log('Short content detected, marking as read');
+            hasMarkedAsRead.current = true;
+            onMarkAsRead(article);
+          }
+        }
+      }, 200);
     }
-  }, [article?.id, isOpen]);
+  }, [article?.id, isOpen, isRead, onMarkAsRead]);
 
   if (!article || !category) return null;
 

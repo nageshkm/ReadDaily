@@ -61,7 +61,7 @@ export default function Home() {
     const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
     setUser(updatedUser);
     setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
-    setIsArticleViewOpen(false);
+    // Don't close the dialog automatically - let user navigate or close manually
   };
 
   const handleNextArticle = () => {

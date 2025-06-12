@@ -38,7 +38,7 @@ export function ArticleView({
 
     const handleScroll = () => {
       const element = scrollRef.current;
-      if (!element || hasMarkedAsRead.current || isRead) return;
+      if (!element) return;
 
       const { scrollTop, scrollHeight, clientHeight } = element;
       const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
@@ -64,10 +64,19 @@ export function ArticleView({
 
     const element = scrollRef.current;
     if (element) {
+      console.log('Adding scroll listener to element:', element);
       element.addEventListener('scroll', handleScroll, { passive: true });
       // Also check initial scroll position in case content is short
-      setTimeout(() => handleScroll(), 100);
-      return () => element.removeEventListener('scroll', handleScroll);
+      setTimeout(() => {
+        console.log('Initial scroll check...');
+        handleScroll();
+      }, 100);
+      return () => {
+        console.log('Removing scroll listener');
+        element.removeEventListener('scroll', handleScroll);
+      };
+    } else {
+      console.log('No scroll element found');
     }
   }, [isOpen, isRead, article, onMarkAsRead]);
 

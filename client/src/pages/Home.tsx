@@ -55,6 +55,12 @@ export default function Home() {
     setIsArticleViewOpen(true);
     
     // Mark as read immediately when clicked
+    console.log('handleViewArticle - checking conditions:', { 
+      hasUser: !!user, 
+      articleId: article.id, 
+      isRead: isArticleRead(article.id) 
+    });
+    
     if (user && !isArticleRead(article.id)) {
       console.log('Marking article as read:', article.id);
       console.log('User before marking:', user.readArticles);
@@ -62,6 +68,8 @@ export default function Home() {
       console.log('User after marking:', updatedUser.readArticles);
       setUser(updatedUser);
       setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
+    } else {
+      console.log('Skipping mark as read - conditions not met');
     }
   };
 

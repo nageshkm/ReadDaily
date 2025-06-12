@@ -146,83 +146,85 @@ export function ArticleView({
           </Button>
         </div>
 
-        <div ref={scrollRef} className="overflow-y-auto max-h-[calc(95vh-60px)] sm:max-h-[calc(90vh-80px)]">
-          <article className="p-4 sm:p-8">
-            <div className="max-w-3xl mx-auto">
-              <h1 className="text-2xl sm:text-3xl font-bold mb-6 font-serif leading-tight">
-                {article.title}
-              </h1>
+        <div className="relative flex-1 overflow-hidden">
+          <div ref={scrollRef} className="overflow-y-auto h-[calc(95vh-60px)] sm:h-[calc(90vh-80px)]">
+            <article className="p-4 sm:p-8">
+              <div className="max-w-3xl mx-auto">
+                <h1 className="text-2xl sm:text-3xl font-bold mb-6 font-serif leading-tight">
+                  {article.title}
+                </h1>
 
-              <div className="flex items-center space-x-4 text-sm text-gray-600 mb-6">
-                <span>{article.sourceUrl.split("/")[2]}</span>
-                <span>•</span>
-                <span>{new Date(article.publishDate).toLocaleDateString()}</span>
-                <span>•</span>
-                <a
-                  href={article.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-accent hover:underline flex items-center"
-                >
-                  View Original <ExternalLink className="ml-1" size={14} />
-                </a>
+                <div className="flex items-center space-x-4 text-sm text-gray-600 mb-6">
+                  <span>{article.sourceUrl.split("/")[2]}</span>
+                  <span>•</span>
+                  <span>{new Date(article.publishDate).toLocaleDateString()}</span>
+                  <span>•</span>
+                  <a
+                    href={article.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent hover:underline flex items-center"
+                  >
+                    View Original <ExternalLink className="ml-1" size={14} />
+                  </a>
+                </div>
+
+                <img
+                  src={article.imageUrl}
+                  alt={article.title}
+                  className="w-full rounded-lg mb-8"
+                />
+
+                <div className="prose prose-lg max-w-none font-serif">
+                  {article.content.split('\n\n').map((paragraph, index) => (
+                    <p key={index} className="leading-relaxed mb-6">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+
+                {/* Clean bottom spacing with next article button */}
+                <div className="mt-12 pb-8">
+                  {!isRead && (
+                    <div className="text-center text-sm text-gray-400 italic">
+                      Reading will be marked complete automatically
+                    </div>
+                  )}
+                  {isRead && hasNextArticle && onNextArticle && (
+                    <div className="text-center">
+                      <Button
+                        onClick={onNextArticle}
+                        variant="outline"
+                        className="mt-4"
+                      >
+                        Next Article <ArrowRight className="ml-2" size={16} />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
-
-              <img
-                src={article.imageUrl}
-                alt={article.title}
-                className="w-full rounded-lg mb-8"
-              />
-
-              <div className="prose prose-lg max-w-none font-serif">
-                {article.content.split('\n\n').map((paragraph, index) => (
-                  <p key={index} className="leading-relaxed mb-6">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-
-              {/* Clean bottom spacing with next article button */}
-              <div className="mt-12 pb-8">
-                {!isRead && (
-                  <div className="text-center text-sm text-gray-400 italic">
-                    Reading will be marked complete automatically
-                  </div>
-                )}
-                {isRead && hasNextArticle && onNextArticle && (
-                  <div className="text-center">
-                    <Button
-                      onClick={onNextArticle}
-                      variant="outline"
-                      className="mt-4"
-                    >
-                      Next Article <ArrowRight className="ml-2" size={16} />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </article>
-        </div>
-
-        {/* Fixed Next Article Button */}
-        {hasNextArticle && onNextArticle && (
-          <div className="fixed bottom-6 right-6 z-50">
-            <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                onNextArticle();
-              }}
-              variant="outline"
-              className="bg-white/95 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-900 shadow-lg rounded-full px-4 py-2 sm:px-5 sm:py-2 text-sm backdrop-blur-sm"
-              size="sm"
-            >
-              <span className="hidden sm:inline">Next Article</span>
-              <span className="sm:hidden">Next</span>
-              <ArrowRight className="ml-1 sm:ml-2" size={14} />
-            </Button>
+            </article>
           </div>
-        )}
+
+          {/* Next Article Button - positioned relative to the content area */}
+          {hasNextArticle && onNextArticle && (
+            <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-10">
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onNextArticle();
+                }}
+                variant="outline"
+                className="bg-white/95 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-900 shadow-lg rounded-full px-4 py-2 sm:px-5 sm:py-2 text-sm backdrop-blur-sm"
+                size="sm"
+              >
+                <span className="hidden sm:inline">Next Article</span>
+                <span className="sm:hidden">Next</span>
+                <ArrowRight className="ml-1 sm:ml-2" size={14} />
+              </Button>
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

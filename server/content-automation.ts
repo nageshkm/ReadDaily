@@ -86,13 +86,10 @@ export class ContentAutomationService {
             continue;
           }
 
-          // Add video link to the content
-          const contentWithLink = content + `\n\n---\n**📺 Watch the full video:** [${video.title}](https://www.youtube.com/watch?v=${video.id})`;
-
           const article: ProcessedArticle = {
             id: `yt-${video.id}-${Date.now()}`,
             title: improvedTitle,
-            content: contentWithLink,
+            content,
             summary,
             sourceUrl: `https://www.youtube.com/watch?v=${video.id}`,
             imageUrl: video.thumbnail,

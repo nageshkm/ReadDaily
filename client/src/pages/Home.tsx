@@ -100,7 +100,9 @@ export default function Home() {
 
   const isArticleRead = (articleId: string): boolean => {
     if (!user) return false;
-    return LocalStorage.isArticleRead(user, articleId);
+    const result = LocalStorage.isArticleRead(user, articleId);
+    console.log('Checking if article is read:', articleId, result, user.readArticles);
+    return result;
   };
 
   if (showOnboarding) {

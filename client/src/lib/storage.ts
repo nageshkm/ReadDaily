@@ -85,21 +85,27 @@ export class LocalStorage {
 
   static markArticleAsRead(user: User, articleId: string): User {
     const today = new Date().toISOString().split('T')[0];
+    console.log('markArticleAsRead called with:', { userId: user.id, articleId, readArticles: user.readArticles });
     
     // Add to read articles if not already read
     const alreadyRead = user.readArticles.some(ra => ra.articleId === articleId);
+    console.log('Already read?', alreadyRead);
+    
     if (!alreadyRead) {
       user.readArticles.push({
         articleId,
         readDate: today
       });
+      console.log('Added to read articles. New array:', user.readArticles);
     }
 
     // Update streak
     user = this.updateStreak(user);
     user.lastActive = today;
 
+    console.log('Before saving user:', user.readArticles);
     this.saveUser(user);
+    console.log('After saving user, checking localStorage:', localStorage.getItem(`user_${user.id}`));
     return user;
   }
 

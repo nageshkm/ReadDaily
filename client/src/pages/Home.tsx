@@ -126,7 +126,7 @@ export default function Home() {
         </div>
 
         <div className="grid gap-6">
-          {(articles as any[]).map((article: any) => {
+          {(articles as any[]).filter((article: any) => !isArticleRead(article.id)).map((article: any) => {
             const category = getCategoryById(article.categoryId);
             if (!category) return null;
 
@@ -135,7 +135,7 @@ export default function Home() {
                 key={article.id}
                 article={article}
                 category={category}
-                isRead={isArticleRead(article.id)}
+                isRead={false}
                 onReadClick={handleReadArticle}
                 onViewClick={handleViewArticle}
               />

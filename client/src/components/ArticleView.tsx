@@ -27,6 +27,35 @@ export function ArticleView({
   onNextArticle,
   hasNextArticle = false,
 }: ArticleViewProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const hasMarkedAsRead = useRef(false);
+
+  useEffect(() => {
+    if (!isOpen || isRead || !article) {
+      hasMarkedAsRead.current = false;
+      return;
+    }
+
+    const handleScroll = () => {
+      const element = scrollRef.current;
+      if (!element || hasMarkedAsRead.current) return;
+
+      const { scrollTop, scrollHeight, clientHeight } = element;
+      const isNearBottom = scrollTop + clientHeight >= scrollHeight - 50;
+
+      if (isNearBottom) {
+        hasMarkedAsRead.current = true;
+        onMarkAsRead(article);
+      }
+    };
+
+    const element = scrollRef.current;
+    if (element) {
+      element.addEventListener('scroll', handleScroll);
+      return () => element.removeEventListener('scroll', handleScroll);
+    }
+  }, [isOpen, isRead, article, onMarkAsRead]);
+
   if (!article || !category) return null;
 
   const getCategoryColor = (categoryId: string) => {
@@ -67,7 +96,7 @@ export function ArticleView({
           </div>
         </div>
 
-        <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
+        <div ref={scrollRef} className="overflow-y-auto max-h-[calc(90vh-80px)]">
           <article className="p-8">
             <div className="max-w-3xl mx-auto">
               <h1 className="text-3xl font-bold mb-4 font-serif">
@@ -107,18 +136,9 @@ export function ArticleView({
               <div className="border-t border-gray-200 pt-8 mt-12">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-gray-500">
-                    Finished reading? Mark this article as complete.
+                    Scroll to the bottom to mark as read automatically.
                   </div>
                   <div className="flex items-center space-x-3">
-                    {!isRead && (
-                      <Button
-                        onClick={() => onMarkAsRead(article)}
-                        className="bg-success text-white hover:bg-green-700 font-medium px-6"
-                      >
-                        <Check className="mr-2" size={16} />
-                        Mark as Read
-                      </Button>
-                    )}
                     {hasNextArticle && onNextArticle && (
                       <Button
                         onClick={onNextArticle}
@@ -127,6 +147,12 @@ export function ArticleView({
                       >
                         Next Article <ArrowRight className="ml-2" size={16} />
                       </Button>
+                    )}
+                    {isRead && (
+                      <Badge className="bg-green-100 text-green-800">
+                        <Check className="mr-1" size={14} />
+                        Read
+                      </Badge>
                     )}
                   </div>
                 </div>

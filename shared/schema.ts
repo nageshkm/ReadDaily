@@ -111,7 +111,7 @@ export const users = pgTable("users", {
 // Database insert schemas
 export const insertCategorySchema = createInsertSchema(categories);
 export const insertArticleSchema = createInsertSchema(articles);
-export const insertUserDbSchema = createInsertSchema(users);
+export const insertUserDbSchema = createInsertSchema(users).omit({ id: true });
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type InsertArticle = z.infer<typeof insertArticleSchema>;

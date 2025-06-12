@@ -53,7 +53,7 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
     try {
       const today = getTodayString();
       
-      // Create user data for server
+      // Create user data for server (without ID - server will generate it)
       const userData = {
         name: userName.trim(),
         email: userEmail.trim(),
@@ -69,10 +69,26 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
       };
 
       // Store user on server
-      const serverUser = await apiRequest('POST', '/api/users', userData);
+      const response = await apiRequest('POST', '/api/users', userData);
+      const serverUser = await response.json();
 
-      // Create local user for immediate use
-      const localUser = LocalStorage.createUser(userName.trim(), userEmail.trim(), ['general']);
+      // Use server user data for local storage to maintain consistency
+      const localUser = {
+        id: serverUser.id,
+        name: serverUser.name,
+        email: serverUser.email,
+        joinDate: serverUser.joinDate,
+        lastActive: serverUser.lastActive,
+        preferences: { categories: ['general'] },
+        readArticles: [],
+        streakData: {
+          currentStreak: 0,
+          lastReadDate: "",
+          longestStreak: 0
+        }
+      };
+      
+      LocalStorage.saveUser(localUser);
       onComplete(localUser);
     } catch (error) {
       console.error("Error creating user:", error);

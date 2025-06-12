@@ -24,6 +24,10 @@ export default function History() {
   useEffect(() => {
     const existingUser = LocalStorage.getUser();
     if (existingUser) {
+      // Ensure readArticles array exists
+      if (!existingUser.readArticles) {
+        existingUser.readArticles = [];
+      }
       setUser(existingUser);
     }
   }, []);
@@ -46,6 +50,8 @@ export default function History() {
     const dateB = user.readArticles?.find((ra: any) => ra.articleId === b.id)?.readDate || '';
     return new Date(dateB).getTime() - new Date(dateA).getTime();
   }) : [];
+
+
 
 
 
@@ -86,15 +92,19 @@ export default function History() {
       </div>
 
       <div className="grid gap-6">
-        {readArticles.map((article: any) => {
+        {readArticles.length > 0 ? readArticles.map((article: any) => {
           const category = getCategoryById(article.categoryId);
-          if (!category) return null;
+          console.log('Rendering article:', article.title, 'Category:', category);
+          if (!category) {
+            console.log('No category found for article:', article.title, 'categoryId:', article.categoryId);
+            return null;
+          }
 
           // Get read date for this article
           const readDate = user?.readArticles?.find((ra: any) => ra.articleId === article.id)?.readDate || '';
 
           return (
-            <div key={article.id} className="relative">
+            <div key={article.id} className="relative opacity-75">
               <ArticleCard
                 article={article}
                 category={category}
@@ -109,7 +119,12 @@ export default function History() {
               )}
             </div>
           );
-        })}
+        }) : (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No read articles found.</p>
+            <p className="text-sm text-gray-400 mt-2">Debug: User exists: {!!user}, Articles count: {articles?.length || 0}</p>
+          </div>
+        )}
       </div>
 
       {readArticles.length === 0 && (

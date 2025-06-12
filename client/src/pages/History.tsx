@@ -16,12 +16,12 @@ export default function History() {
   });
 
   // Fetch categories from backend  
-  const { data: config } = useQuery({
+  const { data: config, isLoading: configLoading } = useQuery({
     queryKey: ["/api/config"],
   });
-  const categories = config?.categories || [];
+  const categories = (config as any)?.categories || [];
 
-  if (articlesLoading || !config) {
+  if (articlesLoading || configLoading) {
     return (
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">Loading...</div>
@@ -36,14 +36,14 @@ export default function History() {
     }
   }, []);
 
-  // Filter to show only read articles - debug logging
-  const readArticles = user ? (articles as any[]).filter((article: any) => {
-    const isRead = user.readArticles.some(ra => ra.articleId === article.id);
+  // Filter to show only read articles
+  const readArticles = user && Array.isArray(articles) ? (articles as any[]).filter((article: any) => {
+    const isRead = user.readArticles?.some((ra: any) => ra.articleId === article.id);
     return isRead;
   }).sort((a: any, b: any) => {
     // Sort by read date (most recent first)
-    const dateA = user.readArticles.find(ra => ra.articleId === a.id)?.readDate || '';
-    const dateB = user.readArticles.find(ra => ra.articleId === b.id)?.readDate || '';
+    const dateA = user.readArticles?.find((ra: any) => ra.articleId === a.id)?.readDate || '';
+    const dateB = user.readArticles?.find((ra: any) => ra.articleId === b.id)?.readDate || '';
     return new Date(dateB).getTime() - new Date(dateA).getTime();
   }) : [];
 
@@ -91,7 +91,7 @@ export default function History() {
           if (!category) return null;
 
           // Get read date for this article
-          const readDate = user?.readArticles.find(ra => ra.articleId === article.id)?.readDate || '';
+          const readDate = user?.readArticles?.find((ra: any) => ra.articleId === article.id)?.readDate || '';
 
           return (
             <div key={article.id} className="relative">
@@ -103,7 +103,7 @@ export default function History() {
                 onViewClick={handleViewArticle}
               />
               {readDate && (
-                <div className="absolute top-4 right-4 text-xs text-gray-500 bg-white px-2 py-1 rounded shadow-sm">
+                <div className="absolute top-4 right-4 text-xs text-gray-500 bg-white dark:bg-gray-800 px-2 py-1 rounded shadow-sm">
                   Read on {new Date(readDate).toLocaleDateString()}
                 </div>
               )}
@@ -123,7 +123,7 @@ export default function History() {
 
       <ArticleView
         article={selectedArticle}
-        category={selectedCategory}
+        category={selectedCategory || null}
         isOpen={isArticleViewOpen}
         isRead={true}
         onClose={() => setIsArticleViewOpen(false)}

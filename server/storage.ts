@@ -136,16 +136,13 @@ export class MemStorage implements IStorage {
       // Generate a unique ID
       const id = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
-      console.log("Creating user with data:", { id, ...insertUser });
-      
       // Insert into database
       const dbUser = {
         id,
         ...insertUser
       };
       
-      const result = await db.insert(users).values(dbUser).returning();
-      console.log("Database insert result:", result);
+      await db.insert(users).values(dbUser);
       
       // Create User object with parsed JSON fields
       const user: User = {
@@ -161,7 +158,6 @@ export class MemStorage implements IStorage {
       
       // Also store in memory for quick access
       this.users.set(id, user);
-      console.log("User created successfully:", user.id);
       return user;
     } catch (error) {
       console.error("Error creating user in database:", error);

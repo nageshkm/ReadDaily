@@ -212,9 +212,19 @@ Format your response as JSON:
 
       const completion = await openai.chat.completions.create({
         model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful assistant that creates article summaries. Always respond with valid JSON only, no additional text."
+          },
+          {
+            role: "user", 
+            content: prompt
+          }
+        ],
+        temperature: 0.3,
         max_tokens: 1000,
+        response_format: { type: "json_object" }
       });
 
       const content = completion.choices[0]?.message?.content;
@@ -222,7 +232,31 @@ Format your response as JSON:
         throw new Error("No response from OpenAI");
       }
 
-      return JSON.parse(content);
+      // Try to extract JSON from the response
+      let parsed;
+      try {
+        // First try direct JSON parse
+        parsed = JSON.parse(content);
+      } catch {
+        // If that fails, try to extract JSON from markdown code blocks
+        const jsonMatch = content.match(/```(?:json)?\s*(\{.*?\})\s*```/s);
+        if (jsonMatch) {
+          parsed = JSON.parse(jsonMatch[1]);
+        } else {
+          // Last resort: look for JSON-like content
+          const objectMatch = content.match(/\{[^}]*"summary"[^}]*\}/s);
+          if (objectMatch) {
+            parsed = JSON.parse(objectMatch[0]);
+          } else {
+            throw new Error("No valid JSON found in response");
+          }
+        }
+      }
+      
+      return {
+        summary: parsed.summary || `Article about "${title}"`,
+        keyTakeaways: parsed.keyTakeaways || ["Key insights from the content"]
+      };
     } catch (error) {
       console.error("Failed to summarize content:", error);
       // Fallback summary

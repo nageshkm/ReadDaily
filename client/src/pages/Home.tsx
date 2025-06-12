@@ -53,6 +53,13 @@ export default function Home() {
     setCurrentArticleIndex(index);
     setSelectedArticle(article);
     setIsArticleViewOpen(true);
+    
+    // Mark as read immediately when clicked
+    if (user && !isArticleRead(article.id)) {
+      const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
+      setUser(updatedUser);
+      setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
+    }
   };
 
   const handleMarkAsRead = (article: Article) => {

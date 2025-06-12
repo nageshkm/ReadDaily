@@ -28,80 +28,13 @@ export function ArticleView({
   hasNextArticle = false,
 }: ArticleViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const hasMarkedAsRead = useRef(false);
-
-  useEffect(() => {
-    if (!isOpen || isRead || !article) {
-      hasMarkedAsRead.current = false;
-      return;
-    }
-
-    const handleScroll = () => {
-      const element = scrollRef.current;
-      if (!element) return;
-
-      const { scrollTop, scrollHeight, clientHeight } = element;
-      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
-      const isNearBottom = scrollPercentage >= 0.85; // 85% scrolled
-
-      if (isNearBottom && !hasMarkedAsRead.current && !isRead) {
-        hasMarkedAsRead.current = true;
-        onMarkAsRead(article);
-      }
-    };
-
-    let timeoutId: NodeJS.Timeout;
-    let cleanupFn: (() => void) | undefined;
-
-    const setupScrollListener = () => {
-      const element = scrollRef.current;
-      if (!element) {
-        timeoutId = setTimeout(setupScrollListener, 200);
-        return;
-      }
-
-      element.addEventListener('scroll', handleScroll, { passive: true });
-      
-      // Check initial scroll position
-      setTimeout(() => {
-        handleScroll();
-      }, 100);
-
-      cleanupFn = () => {
-        element.removeEventListener('scroll', handleScroll);
-      };
-    };
-
-    // Start setup after a brief delay to ensure Dialog is rendered
-    timeoutId = setTimeout(setupScrollListener, 100);
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      if (cleanupFn) cleanupFn();
-    };
-  }, [isOpen, isRead, article, onMarkAsRead]);
 
   // Reset scroll position when article changes
   useEffect(() => {
     if (isOpen && scrollRef.current) {
       scrollRef.current.scrollTop = 0;
-      hasMarkedAsRead.current = false;
-      // Check if content is short enough to be "read" immediately
-      setTimeout(() => {
-        const element = scrollRef.current;
-        if (element && !hasMarkedAsRead.current && !isRead && article) {
-          const { scrollHeight, clientHeight } = element;
-          const contentHeight = scrollHeight - clientHeight;
-          
-          // If content fits entirely in viewport or very little scrolling needed
-          if (contentHeight <= 50) {
-            hasMarkedAsRead.current = true;
-            onMarkAsRead(article!);
-          }
-        }
-      }, 200);
     }
-  }, [article?.id, isOpen, isRead, onMarkAsRead]);
+  }, [article?.id, isOpen]);
 
   if (!article || !category) return null;
 
@@ -182,30 +115,14 @@ export function ArticleView({
                 ))}
               </div>
 
-              {/* Clean bottom spacing with next article button */}
+              {/* Clean bottom spacing */}
               <div className="mt-12 pb-8">
-                {!isRead && (
-                  <div className="text-center text-sm text-gray-400 italic">
-                    Reading will be marked complete automatically
-                  </div>
-                )}
-                {isRead && hasNextArticle && onNextArticle && (
-                  <div className="text-center">
-                    <Button
-                      onClick={onNextArticle}
-                      variant="outline"
-                      className="mt-4"
-                    >
-                      Next Article <ArrowRight className="ml-2" size={16} />
-                    </Button>
-                  </div>
-                )}
               </div>
             </div>
           </article>
         </div>
 
-        {/* Sticky Next Article Button - positioned outside scroll area */}
+        {/* Floating Next Article Button - positioned outside scroll area */}
         {hasNextArticle && onNextArticle && (
           <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 pointer-events-none">
             <Button
@@ -217,8 +134,7 @@ export function ArticleView({
               className="bg-white/95 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-900 shadow-lg rounded-full px-4 py-2 sm:px-5 sm:py-2 text-sm backdrop-blur-sm pointer-events-auto"
               size="sm"
             >
-              <span className="hidden sm:inline">Next Article</span>
-              <span className="sm:hidden">Next</span>
+              Next Article
               <ArrowRight className="ml-1 sm:ml-2" size={14} />
             </Button>
           </div>

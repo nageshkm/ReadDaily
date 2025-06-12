@@ -43,6 +43,8 @@ export default function History() {
   // Filter to show only read articles
   const readArticles = user && Array.isArray(articles) ? (articles as any[]).filter((article: any) => {
     const isRead = user.readArticles?.some((ra: any) => ra.articleId === article.id);
+    console.log('Checking if article is read:', article.id, isRead);
+    console.log('User read articles:', user.readArticles);
     return isRead;
   }).sort((a: any, b: any) => {
     // Sort by read date (most recent first)

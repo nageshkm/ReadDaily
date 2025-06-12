@@ -56,7 +56,10 @@ export default function Home() {
     
     // Mark as read immediately when clicked
     if (user && !isArticleRead(article.id)) {
+      console.log('Marking article as read:', article.id);
+      console.log('User before marking:', user.readArticles);
       const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
+      console.log('User after marking:', updatedUser.readArticles);
       setUser(updatedUser);
       setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
     }

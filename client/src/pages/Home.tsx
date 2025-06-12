@@ -3,7 +3,7 @@ import { StreakDisplay } from "@/components/StreakDisplay";
 import { ArticleCard } from "@/components/ArticleCard";
 import { ArticleView } from "@/components/ArticleView";
 import { UserOnboarding } from "@/components/UserOnboarding";
-import { SuccessFeedback } from "@/components/SuccessFeedback";
+
 import { LocalStorage } from "@/lib/storage";
 import { getTodayString } from "@/lib/utils";
 import { User, Article, Category } from "@shared/schema";
@@ -15,7 +15,7 @@ export default function Home() {
   const [isArticleViewOpen, setIsArticleViewOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [todayReadCount, setTodayReadCount] = useState(0);
-  const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
+
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
 
   // Fetch articles from backend
@@ -62,7 +62,6 @@ export default function Home() {
     setUser(updatedUser);
     setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
     setIsArticleViewOpen(false);
-    setShowSuccessFeedback(true);
   };
 
   const handleNextArticle = () => {
@@ -71,17 +70,11 @@ export default function Home() {
       const nextArticle = (articles as any[])[nextIndex];
       setCurrentArticleIndex(nextIndex);
       setSelectedArticle(nextArticle);
-      setShowSuccessFeedback(false);
       setIsArticleViewOpen(true);
-    } else {
-      setShowSuccessFeedback(false);
     }
   };
 
-  const handleSuccessFeedbackClose = () => {
-    setShowSuccessFeedback(false);
-    setSelectedArticle(null);
-  };
+
 
   const getCategoryById = (categoryId: string): Category | undefined => {
     return categories.find(cat => cat.id === categoryId);
@@ -164,13 +157,7 @@ export default function Home() {
         hasNextArticle={hasNextArticle}
       />
 
-      <SuccessFeedback
-        isOpen={showSuccessFeedback}
-        onClose={handleSuccessFeedbackClose}
-        onNextArticle={hasNextArticle ? handleNextArticle : undefined}
-        hasNextArticle={hasNextArticle}
-        articleTitle={selectedArticle?.title || ""}
-      />
+
     </main>
   );
 }

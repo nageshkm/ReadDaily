@@ -3,37 +3,40 @@ import { ArticleCard } from "@/components/ArticleCard";
 import { ArticleView } from "@/components/ArticleView";
 import { LocalStorage } from "@/lib/storage";
 import { User, Article, Category } from "@shared/schema";
+import { useQuery } from "@tanstack/react-query";
 
 export default function History() {
   const [user, setUser] = useState<User | null>(null);
-  const [readArticles, setReadArticles] = useState<Article[]>([]);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [isArticleViewOpen, setIsArticleViewOpen] = useState(false);
 
-  const categories = LocalStorage.getCategories();
-  const allArticles = LocalStorage.getArticles();
+  // Fetch articles from backend
+  const { data: articles = [], isLoading: articlesLoading } = useQuery({
+    queryKey: ["/api/articles"],
+  });
+
+  // Fetch categories from backend  
+  const { data: categories = [] } = useQuery({
+    queryKey: ["/api/config"],
+    select: (data) => data?.categories || [],
+  });
 
   useEffect(() => {
     const existingUser = LocalStorage.getUser();
     if (existingUser) {
       setUser(existingUser);
-      
-      // Get articles that user has read
-      const userReadArticleIds = existingUser.readArticles.map(ra => ra.articleId);
-      const userReadArticles = allArticles.filter(article => 
-        userReadArticleIds.includes(article.id)
-      );
-      
-      // Sort by read date (most recent first)
-      const sortedArticles = userReadArticles.sort((a, b) => {
-        const dateA = existingUser.readArticles.find(ra => ra.articleId === a.id)?.readDate || '';
-        const dateB = existingUser.readArticles.find(ra => ra.articleId === b.id)?.readDate || '';
-        return new Date(dateB).getTime() - new Date(dateA).getTime();
-      });
-      
-      setReadArticles(sortedArticles);
     }
   }, []);
+
+  // Filter to show only read articles
+  const readArticles = user ? (articles as any[]).filter((article: any) => 
+    user.readArticles.some(ra => ra.articleId === article.id)
+  ).sort((a: any, b: any) => {
+    // Sort by read date (most recent first)
+    const dateA = user.readArticles.find(ra => ra.articleId === a.id)?.readDate || '';
+    const dateB = user.readArticles.find(ra => ra.articleId === b.id)?.readDate || '';
+    return new Date(dateB).getTime() - new Date(dateA).getTime();
+  }) : [];
 
   const handleViewArticle = (article: Article) => {
     setSelectedArticle(article);

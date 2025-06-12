@@ -1,10 +1,6 @@
 import { useState } from "react";
 import { BookOpen } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Category } from "@shared/schema";
 import { LocalStorage } from "@/lib/storage";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 
@@ -30,18 +26,15 @@ interface UserOnboardingProps {
 }
 
 export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
-  const [step, setStep] = useState(1);
   const [name, setName] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const categories = LocalStorage.getCategories();
 
   const handleGoogleSuccess = (cred: CredentialResponse) => {
     if (cred.credential) {
       const payload = parseJwt(cred.credential);
       if (payload?.name) {
         setName(payload.name);
-        setStep(2);
+        handleSubmit(payload.name);
       }
     }
   };
@@ -50,23 +43,14 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
     console.error("Google login failed:", error);
   };
 
-  const handleCategoryChange = (categoryId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedCategories([...selectedCategories, categoryId]);
-    } else {
-      setSelectedCategories(selectedCategories.filter(id => id !== categoryId));
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!name.trim() || selectedCategories.length === 0) return;
+  const handleSubmit = async (userName: string) => {
+    if (!userName.trim()) return;
     
     setIsSubmitting(true);
     
     try {
-      const user = LocalStorage.createUser(name.trim(), selectedCategories);
+      // Create user with default categories since content is now curated for everyone
+      const user = LocalStorage.createUser(userName.trim(), ['general']);
       onComplete(user);
     } catch (error) {
       console.error("Error creating user:", error);
@@ -87,45 +71,9 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
             <p className="text-gray-600">Build your daily reading habit with curated articles</p>
           </div>
 
-          {step === 1 && (
-            <div className="flex justify-center">
-              <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
-            </div>
-          )}
-
-          {step === 2 && (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Label className="block text-sm font-medium text-gray-700 mb-2">
-                  Choose your interests
-                </Label>
-                <div className="grid grid-cols-2 gap-3">
-                  {categories.map((category) => (
-                    <Label
-                      key={category.id}
-                      className="flex items-center space-x-2 p-3 border border-gray-300 rounded-lg hover:border-accent cursor-pointer"
-                    >
-                      <Checkbox
-                        checked={selectedCategories.includes(category.id)}
-                        onCheckedChange={(checked) =>
-                          handleCategoryChange(category.id, checked as boolean)
-                        }
-                      />
-                      <span className="text-sm">{category.name}</span>
-                    </Label>
-                  ))}
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full bg-accent text-white hover:bg-blue-700 font-medium"
-                disabled={selectedCategories.length === 0 || isSubmitting}
-              >
-                {isSubmitting ? "Getting Started..." : "Start Reading Journey"}
-              </Button>
-            </form>
-          )}
+          <div className="flex justify-center">
+            <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleError} />
+          </div>
         </div>
       </DialogContent>
     </Dialog>

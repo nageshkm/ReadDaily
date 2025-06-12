@@ -44,7 +44,19 @@ export function ArticleView({
       const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
       const isNearBottom = scrollPercentage >= 0.85; // 85% scrolled
 
+      console.log('Scroll debug:', {
+        scrollTop,
+        scrollHeight,
+        clientHeight,
+        scrollPercentage: Math.round(scrollPercentage * 100) + '%',
+        isNearBottom,
+        hasMarkedAsRead: hasMarkedAsRead.current,
+        isRead,
+        articleId: article.id
+      });
+
       if (isNearBottom && !hasMarkedAsRead.current && !isRead) {
+        console.log('MARKING AS READ:', article.title);
         hasMarkedAsRead.current = true;
         onMarkAsRead(article);
       }

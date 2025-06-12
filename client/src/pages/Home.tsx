@@ -58,7 +58,19 @@ export default function Home() {
   const handleMarkAsRead = (article: Article) => {
     if (!user) return;
     
+    console.log('handleMarkAsRead called:', {
+      articleId: article.id,
+      title: article.title,
+      currentReadArticles: user.readArticles.length
+    });
+    
     const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
+    
+    console.log('After marking as read:', {
+      newReadArticles: updatedUser.readArticles.length,
+      readIds: updatedUser.readArticles.map(ra => ra.articleId)
+    });
+    
     setUser(updatedUser);
     setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
     // Don't close the dialog automatically - let user navigate or close manually
@@ -130,17 +142,16 @@ export default function Home() {
         </div>
 
         <div className="grid gap-6">
-          {(articles as any[]).map((article: any) => {
+          {(articles as any[]).filter((article: any) => !isArticleRead(article.id)).map((article: any) => {
             const category = getCategoryById(article.categoryId);
             if (!category) return null;
-            const isRead = isArticleRead(article.id);
 
             return (
               <ArticleCard
                 key={article.id}
                 article={article}
                 category={category}
-                isRead={isRead}
+                isRead={false}
                 onReadClick={handleReadArticle}
                 onViewClick={handleViewArticle}
               />

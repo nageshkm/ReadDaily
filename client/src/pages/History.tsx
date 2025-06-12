@@ -21,6 +21,13 @@ export default function History() {
   });
   const categories = (config as any)?.categories || [];
 
+  useEffect(() => {
+    const existingUser = LocalStorage.getUser();
+    if (existingUser) {
+      setUser(existingUser);
+    }
+  }, []);
+
   if (articlesLoading || configLoading) {
     return (
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -28,13 +35,6 @@ export default function History() {
       </main>
     );
   }
-
-  useEffect(() => {
-    const existingUser = LocalStorage.getUser();
-    if (existingUser) {
-      setUser(existingUser);
-    }
-  }, []);
 
   // Filter to show only read articles
   const readArticles = user && Array.isArray(articles) ? (articles as any[]).filter((article: any) => {

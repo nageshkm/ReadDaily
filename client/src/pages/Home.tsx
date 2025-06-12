@@ -46,6 +46,24 @@ export default function Home() {
     setCurrentArticleIndex(index);
     setSelectedArticle(article);
     setIsArticleViewOpen(true);
+    
+    // Mark as read immediately when clicked
+    console.log('handleReadArticle - checking conditions:', { 
+      hasUser: !!user, 
+      articleId: article.id, 
+      isRead: isArticleRead(article.id) 
+    });
+    
+    if (user && !isArticleRead(article.id)) {
+      console.log('Marking article as read from handleReadArticle:', article.id);
+      console.log('User before marking:', user.readArticles);
+      const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
+      console.log('User after marking:', updatedUser.readArticles);
+      setUser(updatedUser);
+      setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
+    } else {
+      console.log('Skipping mark as read - conditions not met in handleReadArticle');
+    }
   };
 
   const handleViewArticle = (article: Article) => {

@@ -22,39 +22,151 @@ export class MemStorage implements IStorage {
   }
 
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    // First check memory cache
+    const cached = this.users.get(id);
+    if (cached) return cached;
+    
+    // If not in cache, query database
+    const { db } = await import("./db");
+    const { users } = await import("@shared/schema");
+    const { eq } = await import("drizzle-orm");
+    
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    if (result.length === 0) return undefined;
+    
+    const dbUser = result[0];
+    const user: User = {
+      id: dbUser.id,
+      name: dbUser.name,
+      email: dbUser.email,
+      joinDate: dbUser.joinDate,
+      lastActive: dbUser.lastActive,
+      preferences: JSON.parse(dbUser.preferences),
+      readArticles: JSON.parse(dbUser.readArticles),
+      streakData: JSON.parse(dbUser.streakData)
+    };
+    
+    // Cache for future use
+    this.users.set(id, user);
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.name === username,
-    );
+    // Check memory first
+    const cached = Array.from(this.users.values()).find(user => user.name === username);
+    if (cached) return cached;
+    
+    // Query database
+    const { db } = await import("./db");
+    const { users } = await import("@shared/schema");
+    const { eq } = await import("drizzle-orm");
+    
+    const result = await db.select().from(users).where(eq(users.name, username)).limit(1);
+    if (result.length === 0) return undefined;
+    
+    const dbUser = result[0];
+    const user: User = {
+      id: dbUser.id,
+      name: dbUser.name,
+      email: dbUser.email,
+      joinDate: dbUser.joinDate,
+      lastActive: dbUser.lastActive,
+      preferences: JSON.parse(dbUser.preferences),
+      readArticles: JSON.parse(dbUser.readArticles),
+      streakData: JSON.parse(dbUser.streakData)
+    };
+    
+    this.users.set(dbUser.id, user);
+    return user;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.email === email,
-    );
+    // Check memory first
+    const cached = Array.from(this.users.values()).find(user => user.email === email);
+    if (cached) return cached;
+    
+    // Query database
+    const { db } = await import("./db");
+    const { users } = await import("@shared/schema");
+    const { eq } = await import("drizzle-orm");
+    
+    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    if (result.length === 0) return undefined;
+    
+    const dbUser = result[0];
+    const user: User = {
+      id: dbUser.id,
+      name: dbUser.name,
+      email: dbUser.email,
+      joinDate: dbUser.joinDate,
+      lastActive: dbUser.lastActive,
+      preferences: JSON.parse(dbUser.preferences),
+      readArticles: JSON.parse(dbUser.readArticles),
+      streakData: JSON.parse(dbUser.streakData)
+    };
+    
+    this.users.set(dbUser.id, user);
+    return user;
   }
 
   async deleteUser(id: string): Promise<boolean> {
-    return this.users.delete(id);
+    try {
+      const { db } = await import("./db");
+      const { users } = await import("@shared/schema");
+      const { eq } = await import("drizzle-orm");
+      
+      // Delete from database
+      const result = await db.delete(users).where(eq(users.id, id));
+      
+      // Remove from memory cache
+      this.users.delete(id);
+      
+      return true;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return false;
+    }
   }
 
   async createUser(insertUser: InsertUserDb): Promise<User> {
-    const id = this.currentId++;
-    const user: User = {
-      id: id.toString(),
-      name: insertUser.name,
-      email: insertUser.email,
-      joinDate: insertUser.joinDate,
-      lastActive: insertUser.lastActive,
-      preferences: JSON.parse(insertUser.preferences),
-      readArticles: JSON.parse(insertUser.readArticles),
-      streakData: JSON.parse(insertUser.streakData)
-    };
-    this.users.set(id.toString(), user);
-    return user;
+    try {
+      const { db } = await import("./db");
+      const { users } = await import("@shared/schema");
+      
+      // Generate a unique ID
+      const id = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      console.log("Creating user with data:", { id, ...insertUser });
+      
+      // Insert into database
+      const dbUser = {
+        id,
+        ...insertUser
+      };
+      
+      const result = await db.insert(users).values(dbUser).returning();
+      console.log("Database insert result:", result);
+      
+      // Create User object with parsed JSON fields
+      const user: User = {
+        id,
+        name: insertUser.name,
+        email: insertUser.email,
+        joinDate: insertUser.joinDate,
+        lastActive: insertUser.lastActive,
+        preferences: JSON.parse(insertUser.preferences),
+        readArticles: JSON.parse(insertUser.readArticles),
+        streakData: JSON.parse(insertUser.streakData)
+      };
+      
+      // Also store in memory for quick access
+      this.users.set(id, user);
+      console.log("User created successfully:", user.id);
+      return user;
+    } catch (error) {
+      console.error("Error creating user in database:", error);
+      throw error;
+    }
   }
 
   async getArticles(): Promise<any[]> {

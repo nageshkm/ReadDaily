@@ -44,18 +44,7 @@ export function ArticleView({
       const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
       const isNearBottom = scrollPercentage >= 0.85; // 85% scrolled
 
-      console.log('Scroll debug:', {
-        scrollTop,
-        scrollHeight,
-        clientHeight,
-        scrollPercentage: Math.round(scrollPercentage * 100) + '%',
-        isNearBottom,
-        articleId: article.id,
-        hasMarkedAsRead: hasMarkedAsRead.current
-      });
-
       if (isNearBottom && !hasMarkedAsRead.current && !isRead) {
-        console.log('Marking article as read:', article.title);
         hasMarkedAsRead.current = true;
         onMarkAsRead(article);
       }
@@ -81,11 +70,9 @@ export function ArticleView({
         if (element && !hasMarkedAsRead.current && !isRead && article) {
           const { scrollHeight, clientHeight } = element;
           const contentHeight = scrollHeight - clientHeight;
-          console.log('Content height check:', { scrollHeight, clientHeight, contentHeight });
           
           // If content fits entirely in viewport or very little scrolling needed
           if (contentHeight <= 50) {
-            console.log('Short content detected, marking as read');
             hasMarkedAsRead.current = true;
             onMarkAsRead(article!);
           }

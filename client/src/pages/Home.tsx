@@ -58,28 +58,9 @@ export default function Home() {
   const handleMarkAsRead = (article: Article) => {
     if (!user) return;
     
-    console.log('Before marking as read:', {
-      articleId: article.id,
-      title: article.title,
-      userReadArticles: user.readArticles.length,
-      isCurrentlyRead: LocalStorage.isArticleRead(user, article.id)
-    });
-    
     const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
-    
-    console.log('After marking as read:', {
-      articleId: article.id,
-      updatedUserReadArticles: updatedUser.readArticles.length,
-      isNowRead: LocalStorage.isArticleRead(updatedUser, article.id),
-      readArticles: updatedUser.readArticles
-    });
-    
     setUser(updatedUser);
     setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
-    
-    // Force re-render of articles list by updating a counter
-    setCurrentArticleIndex(prev => prev);
-    
     // Don't close the dialog automatically - let user navigate or close manually
   };
 
@@ -109,14 +90,7 @@ export default function Home() {
 
   const isArticleRead = (articleId: string): boolean => {
     if (!user) return false;
-    const isRead = LocalStorage.isArticleRead(user, articleId);
-    console.log('Checking if article is read:', {
-      articleId,
-      isRead,
-      userReadArticles: user.readArticles.length,
-      readArticleIds: user.readArticles.map(ra => ra.articleId)
-    });
-    return isRead;
+    return LocalStorage.isArticleRead(user, articleId);
   };
 
   if (showOnboarding) {
@@ -156,16 +130,17 @@ export default function Home() {
         </div>
 
         <div className="grid gap-6">
-          {(articles as any[]).filter((article: any) => !isArticleRead(article.id)).map((article: any) => {
+          {(articles as any[]).map((article: any) => {
             const category = getCategoryById(article.categoryId);
             if (!category) return null;
+            const isRead = isArticleRead(article.id);
 
             return (
               <ArticleCard
                 key={article.id}
                 article={article}
                 category={category}
-                isRead={false}
+                isRead={isRead}
                 onReadClick={handleReadArticle}
                 onViewClick={handleViewArticle}
               />

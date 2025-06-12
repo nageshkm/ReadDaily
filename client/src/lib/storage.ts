@@ -152,13 +152,14 @@ export class LocalStorage {
     return user.readArticles.some(ra => ra.articleId === articleId);
   }
 
-  static createUser(name: string, categories: string[]): User {
+  static createUser(name: string, email: string, categories: string[]): User {
     const today = new Date().toISOString().split('T')[0];
     const userId = `user-${Date.now()}`;
     
     const newUser: User = {
       id: userId,
       name,
+      email,
       joinDate: today,
       lastActive: today,
       preferences: {

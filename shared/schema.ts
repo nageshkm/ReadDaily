@@ -46,6 +46,7 @@ export const readArticleSchema = z.object({
 export const userSchema = z.object({
   id: z.string(),
   name: z.string(),
+  email: z.string().email(),
   joinDate: z.string(),
   lastActive: z.string(),
   preferences: userPreferencesSchema,
@@ -99,6 +100,7 @@ export const articles = pgTable("articles", {
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
+  email: text("email").notNull(),
   joinDate: text("join_date").notNull(),
   lastActive: text("last_active").notNull(),
   preferences: text("preferences").notNull(), // JSON string

@@ -32,9 +32,9 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
   const handleGoogleSuccess = (cred: CredentialResponse) => {
     if (cred.credential) {
       const payload = parseJwt(cred.credential);
-      if (payload?.name) {
+      if (payload?.name && payload?.email) {
         setName(payload.name);
-        handleSubmit(payload.name);
+        handleSubmit(payload.name, payload.email);
       }
     }
   };
@@ -43,14 +43,14 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
     console.error("Google login failed:", error);
   };
 
-  const handleSubmit = async (userName: string) => {
-    if (!userName.trim()) return;
+  const handleSubmit = async (userName: string, userEmail: string) => {
+    if (!userName.trim() || !userEmail.trim()) return;
     
     setIsSubmitting(true);
     
     try {
       // Create user with default categories since content is now curated for everyone
-      const user = LocalStorage.createUser(userName.trim(), ['general']);
+      const user = LocalStorage.createUser(userName.trim(), userEmail.trim(), ['general']);
       onComplete(user);
     } catch (error) {
       console.error("Error creating user:", error);

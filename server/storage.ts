@@ -7,6 +7,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  getArticles(): Promise<any[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -33,6 +34,20 @@ export class MemStorage implements IStorage {
     const user: User = { ...insertUser, id };
     this.users.set(id, user);
     return user;
+  }
+
+  async getArticles(): Promise<any[]> {
+    const { db } = await import("./db");
+    const { articles } = await import("@shared/schema");
+    const { desc } = await import("drizzle-orm");
+    
+    const allArticles = await db
+      .select()
+      .from(articles)
+      .orderBy(desc(articles.createdAt))
+      .limit(50);
+    
+    return allArticles;
   }
 }
 

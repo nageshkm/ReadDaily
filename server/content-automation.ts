@@ -2,7 +2,7 @@ import cron from "node-cron";
 import { YouTubeContentService } from "./youtube-service";
 import { db } from "./db";
 import { articles, categories } from "@shared/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, isNotNull } from "drizzle-orm";
 
 interface ProcessedArticle {
   id: string;
@@ -131,12 +131,18 @@ export class ContentAutomationService {
   }
 
   private async filterExistingVideos(videos: any[]) {
-    const existingVideoIds = await db
+    const videoIds = videos.map(v => v.id);
+    
+    const existingArticles = await db
       .select({ youtubeVideoId: articles.youtubeVideoId })
       .from(articles)
-      .where(eq(articles.youtubeVideoId, videos.map(v => v.id)));
+      .where(isNotNull(articles.youtubeVideoId));
 
-    const existingIds = new Set(existingVideoIds.map(row => row.youtubeVideoId));
+    const existingIds = new Set(
+      existingArticles
+        .map(row => row.youtubeVideoId)
+        .filter(id => id && videoIds.includes(id))
+    );
     
     return videos.filter(video => !existingIds.has(video.id));
   }

@@ -149,8 +149,10 @@ export class ContentAutomationService {
     if (channelLower.includes('lex fridman') || titleLower.includes('ai') || 
         titleLower.includes('technology') || titleLower.includes('tech') ||
         titleLower.includes('apple') || titleLower.includes('google') ||
-        titleLower.includes('software') || titleLower.includes('update')) {
-      return 'technology';
+        titleLower.includes('software') || titleLower.includes('update') ||
+        titleLower.includes('xr') || titleLower.includes('glasses') ||
+        titleLower.includes('vr') || titleLower.includes('ar')) {
+      return 'tech';
     }
 
     // Business & Productivity
@@ -159,7 +161,7 @@ export class ContentAutomationService {
         titleLower.includes('business') || titleLower.includes('entrepreneur') ||
         titleLower.includes('work') || titleLower.includes('guide') ||
         titleLower.includes('tips') || titleLower.includes('study')) {
-      return 'productivity';
+      return 'business';
     }
 
     // Science & Health channels
@@ -170,15 +172,15 @@ export class ContentAutomationService {
       return 'health';
     }
 
-    // Education
-    if (titleLower.includes('learn') || titleLower.includes('education') ||
-        titleLower.includes('tutorial') || titleLower.includes('course') ||
-        channelLower.includes('education')) {
-      return 'education';
+    // Podcasts and interviews - default to business for broad appeal
+    if (titleLower.includes('experience') || titleLower.includes('podcast') ||
+        titleLower.includes('interview') || channelLower.includes('rogan') ||
+        channelLower.includes('lex')) {
+      return 'business';
     }
 
-    // Skip videos that don't fit specific categories
-    return null;
+    // Default fallback for any remaining videos
+    return 'business';
   }
 
   private async saveArticle(article: ProcessedArticle) {

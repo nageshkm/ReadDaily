@@ -140,7 +140,7 @@ Title: ${title}
 Description: ${description}
 Domain: ${domain}
 
-Categorize this article into one of these categories: "tech", "business", "health", "science"
+Categorize this article into one of these categories: "technology", "business", "health", "productivity", "general", "education"
 
 Estimate reading time based on typical article length for this type of content (3-15 minutes).
 
@@ -158,8 +158,21 @@ Respond with JSON in this exact format:
 
       const result = JSON.parse(response.choices[0].message.content || '{}');
       
+      // Map categories to match frontend schema
+      const categoryMap: { [key: string]: string } = {
+        'tech': 'technology',
+        'science': 'technology',
+        'general': 'general',
+        'productivity': 'productivity',
+        'business': 'business',
+        'health': 'health',
+        'education': 'education'
+      };
+
+      const mappedCategory = categoryMap[result.category] || result.category || 'general';
+      
       return {
-        category: result.category || 'business',
+        category: mappedCategory,
         estimatedReadTime: Math.max(1, Math.min(15, result.estimatedReadTime || 5))
       };
 

@@ -55,10 +55,6 @@ export default function Home() {
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Article liked!",
-        description: "Your like has been recorded."
-      });
       queryClient.invalidateQueries({ queryKey: ['/api/articles/recommended', user?.id] });
     },
     onError: (error: any) => {

@@ -1,10 +1,11 @@
-import { X, Check, ExternalLink, ArrowRight } from "lucide-react";
+import { X, Check, ExternalLink, ArrowRight, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Article, Category } from "@shared/schema";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 interface ArticleViewProps {
   article: Article | null;

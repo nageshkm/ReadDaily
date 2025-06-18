@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertUserDbSchema, insertArticleCommentSchema, insertArticleLikeSchema } from "@shared/schema";
 import { z } from "zod";
 import { urlMetadataService } from "./url-metadata";
+import { contentExtractor } from "./content-extractor";
 import { db } from "./db";
 import { articles, articleLikes, articleComments, users } from "@shared/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
@@ -301,6 +302,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching article details:", error);
       res.status(500).json({ message: "Failed to fetch article details" });
+    }
+  });
+
+  // Extract full article content
+  app.get("/api/articles/:id/content", async (req, res) => {
+    try {
+      const { id: articleId } = req.params;
+      
+      // Get article from database
+      const article = await db
+        .select()
+        .from(articles)
+        .where(eq(articles.id, articleId))
+        .limit(1);
+
+      if (article.length === 0) {
+        return res.status(404).json({ message: "Article not found" });
+      }
+
+      // Extract full content from source URL
+      const extractedContent = await contentExtractor.extractArticleContent(article[0].sourceUrl);
+      
+      if (!extractedContent || !extractedContent.isExtractable) {
+        return res.status(200).json({ 
+          success: false, 
+          message: "Content not extractable",
+          fallbackUrl: article[0].sourceUrl 
+        });
+      }
+
+      res.json({
+        success: true,
+        content: extractedContent
+      });
+    } catch (error) {
+      console.error("Error extracting article content:", error);
+      res.status(500).json({ message: "Failed to extract content" });
     }
   });
 

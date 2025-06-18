@@ -5,7 +5,7 @@ import { ArticleCard } from "@/components/ArticleCard";
 import { ArticleView } from "@/components/ArticleView";
 import { UserOnboarding } from "@/components/UserOnboarding";
 import { ShareArticleForm } from "@/components/ShareArticleForm";
-import { Header } from "@/components/Header";
+
 import { SuccessFeedback } from "@/components/SuccessFeedback";
 
 import { LocalStorage } from "@/lib/storage";
@@ -146,8 +146,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header user={user} />
-      
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-8">
           <StreakDisplay user={user} todayReadCount={todayReadCount} />

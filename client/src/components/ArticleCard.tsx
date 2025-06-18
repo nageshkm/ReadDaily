@@ -27,6 +27,9 @@ export function ArticleCard({
   isRead,
   onReadClick,
   onViewClick,
+  onLikeClick,
+  showSocialActions = false,
+  recommenderName,
 }: ArticleCardProps) {
   const getCategoryColor = (categoryId: string) => {
     switch (categoryId) {
@@ -70,13 +73,59 @@ export function ArticleCard({
               <Circle className="text-accent fill-accent animate-pulse" size={8} />
             )}
           </div>
+          
           <h3 className="text-xl font-semibold mb-2 line-clamp-2">
             {article.title}
           </h3>
           <p className="text-gray-600 mb-4 line-clamp-3">{article.summary}</p>
+          
+          {/* User commentary */}
+          {article.userCommentary && (
+            <div className="mb-3 p-3 bg-muted/50 rounded-md">
+              <p className="text-sm italic text-foreground/80">
+                "{article.userCommentary}"
+              </p>
+            </div>
+          )}
+
+          {/* Recommender info */}
+          {recommenderName && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
+              <User className="h-3 w-3" />
+              <span>Shared by {recommenderName}</span>
+              {article.recommendedAt && (
+                <span>• {formatDate(article.recommendedAt)}</span>
+              )}
+            </div>
+          )}
+
+          {/* Social actions */}
+          {showSocialActions && (
+            <div className="flex items-center gap-4 mb-3 pb-3 border-b">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onLikeClick?.(article)}
+                className="flex items-center gap-1 text-muted-foreground hover:text-red-500"
+              >
+                <Heart className="h-4 w-4" />
+                <span>{article.likesCount || 0}</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onViewClick(article)}
+                className="flex items-center gap-1 text-muted-foreground"
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span>Comment</span>
+              </Button>
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <span>{article.sourceUrl.split("/")[2]}</span>
+              <span>{article.sourceUrl?.split("/")[2] || "Unknown"}</span>
               <span>•</span>
               <span>Today</span>
             </div>

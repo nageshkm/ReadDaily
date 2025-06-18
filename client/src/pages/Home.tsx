@@ -1,29 +1,74 @@
 import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { StreakDisplay } from "@/components/StreakDisplay";
 import { ArticleCard } from "@/components/ArticleCard";
 import { ArticleView } from "@/components/ArticleView";
 import { UserOnboarding } from "@/components/UserOnboarding";
+import { ShareArticleForm } from "@/components/ShareArticleForm";
+import { Header } from "@/components/Header";
+import { SuccessFeedback } from "@/components/SuccessFeedback";
 
 import { LocalStorage } from "@/lib/storage";
 import { getTodayString } from "@/lib/utils";
 import { User, Article, Category } from "@shared/schema";
-import { useQuery } from "@tanstack/react-query";
+import { Loader2, Plus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [isArticleViewOpen, setIsArticleViewOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("recommended");
   const [todayReadCount, setTodayReadCount] = useState(0);
 
-  const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const categories = LocalStorage.getCategories();
 
-  // Fetch articles from backend
-  const { data: articles = [], isLoading: articlesLoading } = useQuery({
-    queryKey: ["/api/articles"],
+  const { data: myArticles = [], isLoading: isLoadingMy } = useQuery({
+    queryKey: ['/api/articles/my', user?.id],
+    enabled: !!user,
   });
 
-  const categories = LocalStorage.getCategories();
+  const { data: recommendedArticles = [], isLoading: isLoadingRecommended } = useQuery({
+    queryKey: ['/api/articles/recommended', user?.id],
+    enabled: !!user,
+  });
+
+  const likeArticleMutation = useMutation({
+    mutationFn: async (articleId: string) => {
+      const response = await fetch(`/api/articles/${articleId}/like`, {
+        method: "POST",
+        body: JSON.stringify({ userId: user?.id }),
+        headers: { "Content-Type": "application/json" }
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to like article");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Article liked!",
+        description: "Your like has been recorded."
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/articles/recommended', user?.id] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to like article",
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
 
   useEffect(() => {
     const existingUser = LocalStorage.getUser();
@@ -36,37 +81,25 @@ export default function Home() {
   }, []);
 
   const handleOnboardingComplete = (newUser: User) => {
+    LocalStorage.saveUser(newUser);
     setUser(newUser);
     setTodayReadCount(LocalStorage.getTodayReadCount(newUser));
     setShowOnboarding(false);
   };
 
   const handleReadArticle = (article: Article) => {
-    const index = (articles as any[]).findIndex((a: any) => a.id === article.id);
-    setCurrentArticleIndex(index);
+    if (!user) return;
+    
+    const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
+    setUser(updatedUser);
+    setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
     setSelectedArticle(article);
     setIsArticleViewOpen(true);
-    
-    // Mark as read immediately when clicked
-    if (user && !isArticleRead(article.id)) {
-      const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
-      setUser(updatedUser);
-      setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
-    }
   };
 
   const handleViewArticle = (article: Article) => {
-    const index = (articles as any[]).findIndex((a: any) => a.id === article.id);
-    setCurrentArticleIndex(index);
     setSelectedArticle(article);
     setIsArticleViewOpen(true);
-    
-    // Mark as read immediately when clicked
-    if (user && !isArticleRead(article.id)) {
-      const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
-      setUser(updatedUser);
-      setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
-    }
   };
 
   const handleMarkAsRead = (article: Article) => {
@@ -75,36 +108,13 @@ export default function Home() {
     const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
     setUser(updatedUser);
     setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
-    // Don't close the dialog automatically - let user navigate or close manually
+    setShowSuccessFeedback(true);
   };
 
-  const handleNextArticle = () => {
-    const unreadArticles = (articles as any[]).filter((article: any) => !isArticleRead(article.id));
-    const currentUnreadIndex = unreadArticles.findIndex((article: any) => article.id === selectedArticle?.id);
-    const nextIndex = currentUnreadIndex + 1;
-    
-    if (nextIndex < unreadArticles.length) {
-      const nextArticle = unreadArticles[nextIndex];
-      const originalIndex = (articles as any[]).findIndex((a: any) => a.id === nextArticle.id);
-      setCurrentArticleIndex(originalIndex);
-      setSelectedArticle(nextArticle);
-      
-      // Mark the new article as read immediately when navigating to it
-      if (user && !isArticleRead(nextArticle.id)) {
-        const updatedUser = LocalStorage.markArticleAsRead(user, nextArticle.id);
-        setUser(updatedUser);
-        setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
-      }
-      
-      // Keep dialog open, just change the article
-    } else {
-      // No more unread articles, close the dialog
-      setIsArticleViewOpen(false);
-      setSelectedArticle(null);
-    }
+  const handleLikeArticle = (article: Article) => {
+    if (!user) return;
+    likeArticleMutation.mutate(article.id);
   };
-
-
 
   const getCategoryById = (categoryId: string): Category | undefined => {
     return categories.find(cat => cat.id === categoryId);
@@ -128,70 +138,131 @@ export default function Home() {
     return <div>Loading...</div>;
   }
 
-  if (articlesLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading articles...</div>;
-  }
-
   const selectedCategory = selectedArticle 
     ? getCategoryById(selectedArticle.categoryId) || null
     : null;
 
-  // Check if there are more unread articles available
-  const unreadArticles = (articles as any[]).filter((article: any) => 
-    !isArticleRead(article.id) && article.id !== selectedArticle?.id
-  );
-  const hasNextArticle = unreadArticles.length > 0;
+  const isSelectedRead = selectedArticle ? isArticleRead(selectedArticle.id) : false;
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <StreakDisplay user={user} todayReadCount={todayReadCount} />
+    <div className="min-h-screen bg-gray-50">
+      <Header user={user} />
+      
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <StreakDisplay user={user} todayReadCount={todayReadCount} />
+        </div>
 
-      <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold">Today's Articles</h2>
-          <span className="text-sm text-gray-500">{getTodayString()}</span>
-        </div>
-
-        <div className="grid gap-6">
-          {(articles as any[]).filter((article: any) => !isArticleRead(article.id)).map((article: any) => {
-            const category = getCategoryById(article.categoryId);
-            if (!category) return null;
-
-            return (
-              <ArticleCard
-                key={article.id}
-                article={article}
-                category={category}
-                isRead={false}
-                onReadClick={handleReadArticle}
-                onViewClick={handleViewArticle}
+          <h2 className="text-2xl font-bold">Articles</h2>
+          <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Share Article
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <ShareArticleForm 
+                user={user} 
+                onSuccess={() => setIsShareDialogOpen(false)}
               />
-            );
-          })}
+            </DialogContent>
+          </Dialog>
         </div>
 
-        {(articles as any[]).length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500">No articles available for today.</p>
-            <p className="text-sm text-gray-400 mt-2">
-              Check back later for new content!
-            </p>
-          </div>
-        )}
-      </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="recommended">Recommended Articles</TabsTrigger>
+            <TabsTrigger value="my">My Articles</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="recommended" className="space-y-6">
+            {isLoadingRecommended ? (
+              <div className="flex justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : recommendedArticles.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No recommended articles yet.</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Articles shared by other users will appear here.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-6">
+                {recommendedArticles.map((article: any) => {
+                  const category = getCategoryById(article.categoryId);
+                  const isRead = isArticleRead(article.id);
+                  
+                  return category ? (
+                    <ArticleCard
+                      key={article.id}
+                      article={article}
+                      category={category}
+                      isRead={isRead}
+                      onReadClick={handleReadArticle}
+                      onViewClick={handleViewArticle}
+                      onLikeClick={handleLikeArticle}
+                      showSocialActions={true}
+                      recommenderName="Community Member"
+                    />
+                  ) : null;
+                })}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="my" className="space-y-6">
+            {isLoadingMy ? (
+              <div className="flex justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : myArticles.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">You haven't shared any articles yet.</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Click "Share Article" to add your first article.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-6">
+                {myArticles.map((article: any) => {
+                  const category = getCategoryById(article.categoryId);
+                  const isRead = isArticleRead(article.id);
+                  
+                  return category ? (
+                    <ArticleCard
+                      key={article.id}
+                      article={article}
+                      category={category}
+                      isRead={isRead}
+                      onReadClick={handleReadArticle}
+                      onViewClick={handleViewArticle}
+                      showSocialActions={false}
+                    />
+                  ) : null;
+                })}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </main>
 
       <ArticleView
         article={selectedArticle}
         category={selectedCategory}
         isOpen={isArticleViewOpen}
-        isRead={selectedArticle ? isArticleRead(selectedArticle.id) : false}
+        isRead={isSelectedRead}
         onClose={() => setIsArticleViewOpen(false)}
         onMarkAsRead={handleMarkAsRead}
-        onNextArticle={hasNextArticle ? handleNextArticle : undefined}
-        hasNextArticle={hasNextArticle || false}
       />
 
-
-    </main>
+      <SuccessFeedback
+        isOpen={showSuccessFeedback}
+        onClose={() => setShowSuccessFeedback(false)}
+        articleTitle={selectedArticle?.title || ""}
+      />
+    </div>
   );
 }

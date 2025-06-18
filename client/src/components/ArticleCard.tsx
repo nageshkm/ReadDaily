@@ -1,10 +1,14 @@
-import { CheckCircle, ArrowRight, Circle, Heart, MessageCircle, User, ExternalLink, FileText, Code, Building, Heart as HealthIcon, BookOpen } from "lucide-react";
+import { CheckCircle, ArrowRight, Circle, Heart, MessageCircle, User, ExternalLink, FileText, Code, Building, Heart as HealthIcon, BookOpen, Send } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { Article, Category } from "@shared/schema";
 import { formatDate } from "@/lib/utils";
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 interface ArticleImageProps {
   src: string;
@@ -91,6 +95,7 @@ interface ArticleCardProps {
   onLikeClick?: (article: Article) => void;
   showSocialActions?: boolean;
   recommenderName?: string;
+  currentUserId?: string;
 }
 
 export function ArticleCard({

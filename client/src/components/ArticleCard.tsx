@@ -111,13 +111,14 @@ export function ArticleCard({
 }: ArticleCardProps) {
   const [comment, setComment] = useState("");
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
+  const [isAllCommentsDialogOpen, setIsAllCommentsDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch article comments
   const { data: articleDetails } = useQuery({
     queryKey: ['/api/articles', article.id, 'details'],
-    enabled: showSocialActions
+    enabled: true // Always fetch comments for all articles
   });
 
   const typedArticleDetails = articleDetails as {
@@ -351,11 +352,11 @@ export function ArticleCard({
             </div>
           )}
 
-          {/* Comments display */}
-          {showSocialActions && typedArticleDetails && 'comments' in typedArticleDetails && typedArticleDetails.comments.length > 0 && (
+          {/* Comments display - always show if comments exist */}
+          {typedArticleDetails && 'comments' in typedArticleDetails && typedArticleDetails.comments.length > 0 && (
             <div className="mt-4 pt-3 border-t">
               <h4 className="text-sm font-medium mb-2">Comments ({typedArticleDetails.comments.length})</h4>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
+              <div className="space-y-2">
                 {typedArticleDetails.comments.slice(0, 3).map((comment: any) => (
                   <div key={comment.id} className="text-xs bg-gray-50 p-2 rounded">
                     <div className="flex items-center gap-1 mb-1">
@@ -367,9 +368,12 @@ export function ArticleCard({
                   </div>
                 ))}
                 {typedArticleDetails.comments.length > 3 && (
-                  <p className="text-xs text-gray-500 italic">
-                    +{typedArticleDetails.comments.length - 3} more comments
-                  </p>
+                  <button 
+                    className="text-xs text-blue-600 hover:text-blue-800 font-medium mt-1"
+                    onClick={() => setIsAllCommentsDialogOpen(true)}
+                  >
+                    See more comments ({typedArticleDetails.comments.length - 3} more)
+                  </button>
                 )}
               </div>
             </div>
@@ -405,6 +409,30 @@ export function ArticleCard({
           </div>
         </div>
       </div>
+
+      {/* All Comments Dialog */}
+      <Dialog open={isAllCommentsDialogOpen} onOpenChange={setIsAllCommentsDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>All Comments - {article.title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-4">
+            {typedArticleDetails && 'comments' in typedArticleDetails && typedArticleDetails.comments.map((comment: any) => (
+              <div key={comment.id} className="p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="font-medium text-sm">{comment.userName || 'Anonymous'}</span>
+                  <span className="text-gray-400">•</span>
+                  <span className="text-gray-500 text-xs">{formatDate(comment.commentedAt)}</span>
+                </div>
+                <p className="text-gray-700 text-sm">{comment.content}</p>
+              </div>
+            ))}
+            {(!typedArticleDetails || !('comments' in typedArticleDetails) || typedArticleDetails.comments.length === 0) && (
+              <p className="text-gray-500 text-center py-4">No comments yet</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

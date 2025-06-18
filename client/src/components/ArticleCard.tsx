@@ -107,7 +107,43 @@ export function ArticleCard({
   onLikeClick,
   showSocialActions = false,
   recommenderName,
+  currentUserId,
 }: ArticleCardProps) {
+  const [comment, setComment] = useState("");
+  const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const commentMutation = useMutation({
+    mutationFn: async (data: { content: string; userId: string; articleId: string }) => {
+      const response = await fetch(`/api/articles/${data.articleId}/comment`, {
+        method: "POST",
+        body: JSON.stringify({ content: data.content, userId: data.userId }),
+        headers: { "Content-Type": "application/json" }
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to add comment");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Comment added!",
+        description: "Your comment has been posted."
+      });
+      setComment("");
+      setIsCommentDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/articles/recommended'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to add comment",
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
   const getCategoryColor = (categoryId: string) => {
     switch (categoryId) {
       case "tech":
@@ -188,15 +224,58 @@ export function ArticleCard({
                 <Heart className="h-4 w-4" />
                 <span>{article.likesCount || 0}</span>
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onViewClick(article)}
-                className="flex items-center gap-1 text-muted-foreground"
-              >
-                <MessageCircle className="h-4 w-4" />
-                <span>Comment</span>
-              </Button>
+              <Dialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-1 text-muted-foreground"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    <span>Comment</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Add Comment</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">{article.title}</h4>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{article.summary}</p>
+                    </div>
+                    <Textarea
+                      placeholder="Share your thoughts about this article..."
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      className="min-h-[100px]"
+                    />
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsCommentDialogOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          if (comment.trim() && currentUserId) {
+                            commentMutation.mutate({
+                              content: comment.trim(),
+                              userId: currentUserId,
+                              articleId: article.id
+                            });
+                          }
+                        }}
+                        disabled={!comment.trim() || commentMutation.isPending}
+                      >
+                        {commentMutation.isPending ? "Posting..." : "Post Comment"}
+                        <Send className="ml-1 h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           )}
 

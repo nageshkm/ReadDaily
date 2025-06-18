@@ -207,6 +207,7 @@ export default function Home() {
                       onLikeClick={handleLikeArticle}
                       showSocialActions={true}
                       recommenderName="Community Member"
+                      currentUserId={user?.id}
                     />
                   );
                 })}
@@ -244,6 +245,7 @@ export default function Home() {
                       onReadClick={handleReadArticle}
                       onViewClick={handleViewArticle}
                       showSocialActions={false}
+                      currentUserId={user?.id}
                     />
                   );
                 })}

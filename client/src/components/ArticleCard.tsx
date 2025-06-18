@@ -209,7 +209,13 @@ export function ArticleCard({
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
+    <Card 
+      className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+      onClick={() => {
+        window.open(article.sourceUrl, '_blank', 'noopener,noreferrer');
+        onReadClick(article); // Mark as read
+      }}
+    >
       <div className="flex flex-col sm:flex-row">
         <div className="sm:w-48 h-48 sm:h-auto">
           <ArticleImage 
@@ -265,7 +271,7 @@ export function ArticleCard({
 
           {/* Social actions */}
           {showSocialActions && (
-            <div className="flex items-center gap-4 mb-3 pb-3 border-b">
+            <div className="flex items-center gap-4 mb-3 pb-3 border-b" onClick={(e) => e.stopPropagation()}>
               <Button
                 variant="ghost"
                 size="sm"
@@ -341,7 +347,7 @@ export function ArticleCard({
 
           {/* Comments display - always show if comments exist */}
           {typedArticleDetails?.comments && typedArticleDetails.comments.length > 0 && (
-            <div className="mt-4 pt-3 border-t">
+            <div className="mt-4 pt-3 border-t" onClick={(e) => e.stopPropagation()}>
               <h4 className="text-sm font-medium mb-2">Comments ({typedArticleDetails.comments.length})</h4>
               <div className="space-y-2">
                 {typedArticleDetails.comments.slice(0, 2).map((comment: any) => (
@@ -372,27 +378,9 @@ export function ArticleCard({
               <span>•</span>
               <span>Today</span>
             </div>
-            {isRead ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.open(article.sourceUrl, '_blank', 'noopener,noreferrer')}
-                className="text-accent hover:text-blue-700 font-medium"
-              >
-                View Article <ExternalLink className="ml-1" size={16} />
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                onClick={() => {
-                  window.open(article.sourceUrl, '_blank', 'noopener,noreferrer');
-                  onReadClick(article); // Mark as read
-                }}
-                className="bg-accent text-white hover:bg-blue-700 font-medium"
-              >
-                Read Now <ExternalLink className="ml-1" size={16} />
-              </Button>
-            )}
+            <div className="text-xs text-gray-500">
+              {isRead ? "✓ Read" : "Click to read"}
+            </div>
           </div>
         </div>
       </div>

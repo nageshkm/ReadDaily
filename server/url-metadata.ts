@@ -98,17 +98,190 @@ export class UrlMetadataService {
       /<meta name="description" content="([^"]*)"[^>]*>/i
     ]) || 'No description available';
 
-    const image = this.extractFromHtml(html, [
-      /<meta property="og:image" content="([^"]*)"[^>]*>/i,
-      /<meta name="twitter:image" content="([^"]*)"[^>]*>/i,
-      /<meta name="twitter:image:src" content="([^"]*)"[^>]*>/i
-    ]) || 'https://via.placeholder.com/400x200?text=Article';
+    const image = this.extractHeadlineImage(html);
 
     return {
       title: this.cleanText(title),
       description: this.cleanText(description),
-      image: image.startsWith('http') ? image : `https:${image}`
+      image: image
     };
+  }
+
+  private extractHeadlineImage(html: string): string {
+    // Try multiple strategies to find the best headline image
+    const strategies = [
+      // 1. Open Graph and Twitter Card images (highest priority)
+      () => this.extractFromHtml(html, [
+        /<meta property="og:image" content="([^"]*)"[^>]*>/i,
+        /<meta name="twitter:image" content="([^"]*)"[^>]*>/i,
+        /<meta name="twitter:image:src" content="([^"]*)"[^>]*>/i
+      ]),
+      
+      // 2. Article-specific meta tags
+      () => this.extractFromHtml(html, [
+        /<meta name="article:image" content="([^"]*)"[^>]*>/i,
+        /<meta property="article:image" content="([^"]*)"[^>]*>/i,
+        /<meta name="image" content="([^"]*)"[^>]*>/i
+      ]),
+      
+      // 3. Schema.org structured data
+      () => this.extractStructuredDataImage(html),
+      
+      // 4. Common article image patterns
+      () => this.extractArticleImages(html),
+      
+      // 5. First suitable image in content
+      () => this.extractContentImages(html)
+    ];
+
+    for (const strategy of strategies) {
+      const image = strategy();
+      if (image && this.isValidImageUrl(image)) {
+        return this.normalizeImageUrl(image);
+      }
+    }
+
+    // Return null if no valid image found - let the frontend handle the fallback
+    return '';
+  }
+
+  private extractStructuredDataImage(html: string): string | null {
+    // Look for JSON-LD structured data
+    const jsonLdMatch = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/i);
+    if (jsonLdMatch) {
+      try {
+        const data = JSON.parse(jsonLdMatch[1]);
+        if (data.image) {
+          return Array.isArray(data.image) ? data.image[0] : data.image;
+        }
+      } catch (e) {
+        // Ignore JSON parsing errors
+      }
+    }
+    return null;
+  }
+
+  private extractArticleImages(html: string): string | null {
+    // Look for images with article-related classes or attributes
+    const patterns = [
+      /<img[^>]*class="[^"]*(?:hero|featured|article|headline|main|banner)[^"]*"[^>]*src="([^"]*)"[^>]*>/i,
+      /<img[^>]*src="([^"]*)"[^>]*class="[^"]*(?:hero|featured|article|headline|main|banner)[^"]*"[^>]*>/i,
+      /<figure[^>]*class="[^"]*(?:hero|featured|article|headline|main)[^"]*"[^>]*>[\s\S]*?<img[^>]*src="([^"]*)"[^>]*>[\s\S]*?<\/figure>/i,
+      /<div[^>]*class="[^"]*(?:hero|featured|article|headline|main)[^"]*"[^>]*>[\s\S]*?<img[^>]*src="([^"]*)"[^>]*>[\s\S]*?<\/div>/i
+    ];
+    
+    return this.extractFromHtml(html, patterns);
+  }
+
+  private extractContentImages(html: string): string | null {
+    // Extract all img tags and find the first one that looks substantial
+    const imgMatches = html.match(/<img[^>]*src="([^"]*)"[^>]*>/gi);
+    if (imgMatches) {
+      for (const imgTag of imgMatches) {
+        const srcMatch = imgTag.match(/src="([^"]*)"/i);
+        if (srcMatch && srcMatch[1]) {
+          const src = srcMatch[1];
+          // Skip small images, icons, and common ad/tracking images
+          if (this.isLikelyContentImage(imgTag, src)) {
+            return src;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private isLikelyContentImage(imgTag: string, src: string): boolean {
+    const lowercaseSrc = src.toLowerCase();
+    const lowercaseTag = imgTag.toLowerCase();
+    
+    // Skip common non-content images
+    const skipPatterns = [
+      /icon/i, /logo/i, /avatar/i, /profile/i, 
+      /ad[s]?[-_]/i, /tracking/i, /pixel/i, /beacon/i,
+      /social/i, /share/i, /button/i, /arrow/i,
+      /loading/i, /spinner/i, /placeholder/i,
+      /1x1/i, /\.gif$/i
+    ];
+    
+    if (skipPatterns.some(pattern => pattern.test(lowercaseSrc) || pattern.test(lowercaseTag))) {
+      return false;
+    }
+    
+    // Check for minimum size indicators
+    const widthMatch = imgTag.match(/width="?(\d+)"?/i);
+    const heightMatch = imgTag.match(/height="?(\d+)"?/i);
+    
+    if (widthMatch && heightMatch) {
+      const width = parseInt(widthMatch[1]);
+      const height = parseInt(heightMatch[1]);
+      // Skip very small images
+      if (width < 200 || height < 100) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  private isValidImageUrl(url: string): boolean {
+    if (!url) return false;
+    
+    // Check if it's a valid URL format
+    try {
+      new URL(url.startsWith('http') ? url : `https:${url}`);
+    } catch {
+      return false;
+    }
+    
+    // Check if it has image extension or is from known image services
+    const imagePatterns = [
+      /\.(jpg|jpeg|png|gif|webp|svg)($|\?)/i,
+      /imgur\.com/i,
+      /cloudinary\.com/i,
+      /amazonaws\.com/i,
+      /googleusercontent\.com/i,
+      /wp\.com/i,
+      /wordpress\.com/i,
+      /medium\.com/i,
+      /substack\.com/i
+    ];
+    
+    return imagePatterns.some(pattern => pattern.test(url));
+  }
+
+  private normalizeImageUrl(url: string): string {
+    if (!url) return '';
+    
+    // Handle protocol-relative URLs
+    if (url.startsWith('//')) {
+      return `https:${url}`;
+    }
+    
+    // Handle relative URLs (would need base URL, skip for now)
+    if (!url.startsWith('http')) {
+      return url.startsWith('/') ? url : `/${url}`;
+    }
+    
+    // Clean up query parameters that might break the image
+    try {
+      const urlObj = new URL(url);
+      // Remove common tracking parameters but keep image size parameters
+      const paramsToKeep = ['w', 'h', 'width', 'height', 'quality', 'format', 'crop', 'fit'];
+      const newParams = new URLSearchParams();
+      
+      const params = Array.from(urlObj.searchParams.entries());
+      for (const [key, value] of params) {
+        if (paramsToKeep.includes(key.toLowerCase())) {
+          newParams.set(key, value);
+        }
+      }
+      
+      urlObj.search = newParams.toString();
+      return urlObj.toString();
+    } catch {
+      return url;
+    }
   }
 
   private extractFromHtml(html: string, patterns: RegExp[]): string | null {

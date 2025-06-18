@@ -1,9 +1,81 @@
-import { CheckCircle, ArrowRight, Circle, Heart, MessageCircle, User, ExternalLink } from "lucide-react";
+import { CheckCircle, ArrowRight, Circle, Heart, MessageCircle, User, ExternalLink, FileText, Code, Building, Heart as HealthIcon, BookOpen } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Article, Category } from "@shared/schema";
 import { formatDate } from "@/lib/utils";
+import { useState } from "react";
+
+interface ArticleImageProps {
+  src: string;
+  alt: string;
+  categoryId: string;
+}
+
+function ArticleImage({ src, alt, categoryId }: ArticleImageProps) {
+  const [imageError, setImageError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const getCategoryIcon = (categoryId: string) => {
+    switch (categoryId) {
+      case "technology":
+        return <Code className="h-12 w-12 text-blue-500" />;
+      case "business":
+        return <Building className="h-12 w-12 text-purple-500" />;
+      case "health":
+        return <HealthIcon className="h-12 w-12 text-pink-500" />;
+      case "science":
+        return <BookOpen className="h-12 w-12 text-green-500" />;
+      default:
+        return <FileText className="h-12 w-12 text-gray-500" />;
+    }
+  };
+
+  const getCategoryGradient = (categoryId: string) => {
+    switch (categoryId) {
+      case "technology":
+        return "from-blue-100 to-blue-200";
+      case "business":
+        return "from-purple-100 to-purple-200";
+      case "health":
+        return "from-pink-100 to-pink-200";
+      case "science":
+        return "from-green-100 to-green-200";
+      default:
+        return "from-gray-100 to-gray-200";
+    }
+  };
+
+  if (!src || imageError) {
+    return (
+      <div className={`w-full h-full bg-gradient-to-br ${getCategoryGradient(categoryId)} flex items-center justify-center`}>
+        {getCategoryIcon(categoryId)}
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full h-full">
+      {isLoading && (
+        <div className={`absolute inset-0 bg-gradient-to-br ${getCategoryGradient(categoryId)} flex items-center justify-center animate-pulse`}>
+          {getCategoryIcon(categoryId)}
+        </div>
+      )}
+      <img
+        src={src}
+        alt={alt}
+        className={`w-full h-full object-cover transition-opacity duration-300 ${
+          isLoading ? 'opacity-0' : 'opacity-100'
+        }`}
+        onLoad={() => setIsLoading(false)}
+        onError={() => {
+          setImageError(true);
+          setIsLoading(false);
+        }}
+      />
+    </div>
+  );
+}
 
 interface ArticleCardProps {
   article: Article & {
@@ -50,10 +122,10 @@ export function ArticleCard({
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
       <div className="flex flex-col sm:flex-row">
         <div className="sm:w-48 h-48 sm:h-auto">
-          <img
-            src={article.imageUrl}
+          <ArticleImage 
+            src={article.imageUrl} 
             alt={article.title}
-            className="w-full h-full object-cover"
+            categoryId={article.categoryId}
           />
         </div>
         <div className="flex-1 p-6">

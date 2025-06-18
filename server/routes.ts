@@ -127,16 +127,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         likesCount: 0
       });
 
-      // Update user's shared articles in database
-      const userData = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-      if (userData.length > 0) {
-        const sharedArticles = JSON.parse(userData[0].articlesShared || "[]");
-        sharedArticles.push(articleId);
-        
-        await db.update(users)
-          .set({ articlesShared: JSON.stringify(sharedArticles) })
-          .where(eq(users.id, userId));
-      }
+      // Note: articlesShared field doesn't exist in current schema, 
+      // but the article is linked via recommendedBy field
 
       res.json({ message: "Article shared successfully", articleId });
     } catch (error) {

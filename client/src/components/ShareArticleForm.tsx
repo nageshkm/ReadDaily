@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -73,14 +74,18 @@ export function ShareArticleForm({ user, onSuccess }: ShareArticleFormProps) {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <>
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2">
           <Link className="h-5 w-5" />
           Share an Article
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+        </DialogTitle>
+        <DialogDescription>
+          Share an interesting article with the community by providing its URL and your thoughts.
+        </DialogDescription>
+      </DialogHeader>
+      
+      <div className="mt-4">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="url">Article URL</Label>
@@ -117,7 +122,7 @@ export function ShareArticleForm({ user, onSuccess }: ShareArticleFormProps) {
             {shareArticleMutation.isPending ? "Sharing..." : "Share Article"}
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </>
   );
 }

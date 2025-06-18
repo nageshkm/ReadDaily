@@ -182,7 +182,7 @@ export default function Home() {
               <div className="flex justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
               </div>
-            ) : recommendedArticles.length === 0 ? (
+            ) : (recommendedArticles as any[]).length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">No recommended articles yet.</p>
                 <p className="text-sm text-muted-foreground mt-2">

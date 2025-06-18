@@ -202,7 +202,7 @@ export class MemStorage implements IStorage {
   async getMyArticles(userId: string): Promise<any[]> {
     const { db } = await import("./db");
     const { articles } = await import("@shared/schema");
-    const { eq, desc } = await import("drizzle-orm");
+    const { eq, desc, isNotNull } = await import("drizzle-orm");
     
     try {
       const myArticles = await db
@@ -211,7 +211,22 @@ export class MemStorage implements IStorage {
         .where(eq(articles.recommendedBy, userId))
         .orderBy(desc(articles.recommendedAt));
       
-      return myArticles;
+      return myArticles.map((article: any) => ({
+        id: article.id,
+        title: article.title,
+        content: article.content,
+        summary: article.summary,
+        categoryId: article.categoryId,
+        sourceUrl: article.sourceUrl,
+        imageUrl: article.imageUrl,
+        estimatedReadingTime: article.estimatedReadingTime,
+        publishDate: article.publishDate,
+        featured: article.featured,
+        recommendedBy: article.recommendedBy,
+        recommendedAt: article.recommendedAt,
+        userCommentary: article.userCommentary,
+        likesCount: article.likesCount || 0
+      }));
     } catch (error) {
       console.error("Error fetching my articles:", error);
       return [];
@@ -230,7 +245,22 @@ export class MemStorage implements IStorage {
         .where(isNotNull(articles.recommendedBy))
         .orderBy(desc(articles.recommendedAt));
       
-      return recommendedArticles;
+      return recommendedArticles.map((article: any) => ({
+        id: article.id,
+        title: article.title,
+        content: article.content,
+        summary: article.summary,
+        categoryId: article.categoryId,
+        sourceUrl: article.sourceUrl,
+        imageUrl: article.imageUrl,
+        estimatedReadingTime: article.estimatedReadingTime,
+        publishDate: article.publishDate,
+        featured: article.featured,
+        recommendedBy: article.recommendedBy,
+        recommendedAt: article.recommendedAt,
+        userCommentary: article.userCommentary,
+        likesCount: article.likesCount || 0
+      }));
     } catch (error) {
       console.error("Error fetching recommended articles:", error);
       return [];

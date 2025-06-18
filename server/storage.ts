@@ -285,6 +285,63 @@ export class MemStorage implements IStorage {
       return [];
     }
   }
+
+  async getArticleById(id: string): Promise<any | undefined> {
+    const { db } = await import("./db");
+    const { articles, users } = await import("@shared/schema");
+    const { eq } = await import("drizzle-orm");
+    
+    try {
+      const result = await db
+        .select({
+          id: articles.id,
+          title: articles.title,
+          content: articles.content,
+          summary: articles.summary,
+          categoryId: articles.categoryId,
+          sourceUrl: articles.sourceUrl,
+          imageUrl: articles.imageUrl,
+          estimatedReadingTime: articles.estimatedReadingTime,
+          publishDate: articles.publishDate,
+          featured: articles.featured,
+          recommendedBy: articles.recommendedBy,
+          recommendedAt: articles.recommendedAt,
+          userCommentary: articles.userCommentary,
+          likesCount: articles.likesCount,
+          recommenderName: users.name
+        })
+        .from(articles)
+        .leftJoin(users, eq(articles.recommendedBy, users.id))
+        .where(eq(articles.id, id))
+        .limit(1);
+      
+      if (result.length === 0) {
+        return undefined;
+      }
+      
+      const article = result[0];
+      return {
+        id: article.id,
+        title: article.title,
+        content: article.content,
+        summary: article.summary,
+        categoryId: article.categoryId,
+        sourceUrl: article.sourceUrl,
+        imageUrl: article.imageUrl,
+        estimatedReadingTime: article.estimatedReadingTime,
+        publishDate: article.publishDate,
+        featured: article.featured,
+        recommendedBy: article.recommendedBy,
+        recommendedAt: article.recommendedAt,
+        userCommentary: article.userCommentary,
+        likesCount: article.likesCount || 0,
+        recommenderName: article.recommenderName || 'Unknown User'
+      };
+    } catch (error) {
+      console.error("Error fetching article by ID:", error);
+      return undefined;
+    }
+  }
 }
 
 export const storage = new MemStorage();

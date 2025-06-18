@@ -11,6 +11,7 @@ import Home from "@/pages/Home";
 import History from "@/pages/History";
 import Profile from "@/pages/Profile";
 import Admin from "@/pages/Admin";
+import ArticleShare from "@/pages/ArticleShare";
 import NotFound from "@/pages/not-found";
 import { Home as HomeIcon, History as HistoryIcon, User as UserIcon } from "lucide-react";
 import { Link, useLocation } from "wouter";
@@ -51,15 +52,25 @@ function MobileNavigation() {
 }
 
 function Router() {
-  return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/history" component={History} />
-      <Route path="/profile" component={Profile} />
-      <Route path="/admin" component={Admin} />
-      <Route component={NotFound} />
-    </Switch>
-  );
+  const [location] = useLocation();
+  
+  // Handle article sharing routes
+  if (location.startsWith("/article/")) {
+    return <ArticleShare />;
+  }
+  
+  switch (location) {
+    case "/":
+      return <Home />;
+    case "/history":
+      return <History />;
+    case "/profile":
+      return <Profile />;
+    case "/admin":
+      return <Admin />;
+    default:
+      return <NotFound />;
+  }
 }
 
 function App() {

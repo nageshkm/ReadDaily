@@ -87,7 +87,7 @@ export function ArticleView({
               </h1>
 
               <div className="flex items-center space-x-4 text-sm text-gray-600 mb-6">
-                <span>{article.sourceUrl.split("/")[2]}</span>
+                <span>{article.sourceUrl?.split("/")[2] || "Unknown"}</span>
                 <span>•</span>
                 <span>{new Date(article.publishDate).toLocaleDateString()}</span>
                 <span>•</span>
@@ -108,11 +108,14 @@ export function ArticleView({
               />
 
               <div className="prose prose-lg max-w-none font-serif">
-                {article.content.split('\n\n').map((paragraph, index) => (
-                  <p key={index} className="leading-relaxed mb-6">
-                    {paragraph}
+                {article.userCommentary && (
+                  <p className="leading-relaxed mb-6 italic text-gray-700">
+                    {article.userCommentary}
                   </p>
-                ))}
+                )}
+                <p className="text-gray-600">
+                  Click "View Original" above to read the full article.
+                </p>
               </div>
 
               {/* Clean bottom spacing */}

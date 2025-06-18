@@ -202,7 +202,7 @@ export default function Home() {
                       onViewClick={handleViewArticle}
                       onLikeClick={handleLikeArticle}
                       showSocialActions={true}
-                      recommenderName="Community Member"
+                      recommenderName={article.recommenderName}
                       currentUserId={user?.id}
                     />
                   );

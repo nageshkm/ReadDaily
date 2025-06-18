@@ -1,4 +1,4 @@
-import { CheckCircle, ArrowRight, Circle, Heart, MessageCircle, User, ExternalLink, FileText, Code, Building, Heart as HealthIcon, BookOpen, Send } from "lucide-react";
+import { CheckCircle, ArrowRight, Circle, Heart, MessageCircle, User, ExternalLink, FileText, Code, Building, Heart as HealthIcon, BookOpen, Send, Share2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -144,6 +144,41 @@ export function ArticleCard({
       });
     }
   });
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/article/${article.id}`;
+    const shareText = `Check out this article on ReadDaily: ${article.title}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: article.title,
+          text: shareText,
+          url: shareUrl,
+        });
+      } catch (error) {
+        // User cancelled sharing or share failed
+        copyToClipboard(shareUrl);
+      }
+    } else {
+      copyToClipboard(shareUrl);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast({
+        title: "Link copied!",
+        description: "Article link has been copied to clipboard."
+      });
+    }).catch(() => {
+      toast({
+        title: "Could not copy link",
+        description: "Please copy the link manually.",
+        variant: "destructive"
+      });
+    });
+  };
   const getCategoryColor = (categoryId: string) => {
     switch (categoryId) {
       case "tech":
@@ -276,6 +311,15 @@ export function ArticleCard({
                   </div>
                 </DialogContent>
               </Dialog>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleShare}
+                className="flex items-center gap-1 text-muted-foreground"
+              >
+                <Share2 className="h-4 w-4" />
+                <span>Share</span>
+              </Button>
             </div>
           )}
 

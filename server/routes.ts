@@ -58,6 +58,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get single article by ID for sharing
+  app.get("/api/articles/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const article = await storage.getArticleById(id);
+      if (!article) {
+        return res.status(404).json({ message: "Article not found" });
+      }
+      res.json(article);
+    } catch (error) {
+      console.error("Error fetching article:", error);
+      res.status(500).json({ message: "Failed to fetch article" });
+    }
+  });
+
   // User management endpoints
   app.post("/api/users", async (req, res) => {
     try {

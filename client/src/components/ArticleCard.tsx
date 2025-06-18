@@ -359,7 +359,7 @@ export function ArticleCard({
             <div className="mt-4 pt-3 border-t">
               <h4 className="text-sm font-medium mb-2">Comments ({typedArticleDetails.comments.length})</h4>
               <div className="space-y-2">
-                {typedArticleDetails.comments.slice(0, 3).map((comment: any) => (
+                {typedArticleDetails.comments.slice(0, 2).map((comment: any) => (
                   <div key={comment.id} className="text-xs bg-gray-50 p-2 rounded">
                     <div className="flex items-center gap-1 mb-1">
                       <span className="text-gray-600">{comment.userName || 'Anonymous'}</span>
@@ -369,12 +369,12 @@ export function ArticleCard({
                     <p className="text-gray-700 italic text-sm">{comment.content}</p>
                   </div>
                 ))}
-                {typedArticleDetails.comments.length > 3 && (
+                {typedArticleDetails.comments.length > 2 && (
                   <button 
                     className="text-xs text-blue-600 hover:text-blue-800 font-medium mt-1"
                     onClick={() => setIsAllCommentsDialogOpen(true)}
                   >
-                    See more comments ({typedArticleDetails.comments.length - 3} more)
+                    See more comments ({typedArticleDetails.comments.length - 2} more)
                   </button>
                 )}
               </div>

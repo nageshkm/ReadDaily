@@ -130,10 +130,6 @@ export function ArticleCard({
   } | undefined;
 
   // Utility functions
-  const truncateText = (text: string, maxWidthPercent: number) => {
-    const maxLength = Math.floor((window.innerWidth * maxWidthPercent) / 8); // Rough estimate: 8px per character
-    return text.length > maxLength ? text.substring(0, maxLength - 3) + "..." : text;
-  };
 
   const extractDomain = (url: string) => {
     try {
@@ -253,7 +249,7 @@ export function ArticleCard({
           </div>
           
           <h3 className="text-xl font-semibold mb-2 line-clamp-2">
-            {truncateText(article.title, 0.25)}
+            {article.title}
           </h3>
           
           {/* Source URL as domain */}
@@ -264,7 +260,7 @@ export function ArticleCard({
           {/* User commentary as description */}
           {article.userCommentary && (
             <p className="text-gray-600 mb-4 line-clamp-3">
-              {truncateText(article.userCommentary, 0.4)}
+              {article.userCommentary}
             </p>
           )}
 
@@ -381,6 +377,7 @@ export function ArticleCard({
 
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <span>{article.sourceUrl?.split("/")[2] || "Unknown"}</span>
               <span>•</span>
               <span>Today</span>
             </div>

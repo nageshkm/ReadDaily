@@ -1,5 +1,5 @@
 import { Switch, Route } from "wouter";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -52,10 +52,19 @@ function MobileNavigation() {
 }
 
 function Router() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   
-  // Handle article sharing routes
-  if (location.startsWith("/article/") || location.startsWith("/share/")) {
+  // Handle shared article routes - redirect to home with stored article ID
+  useEffect(() => {
+    if (location.startsWith("/share/")) {
+      const articleId = location.replace("/share/", "");
+      LocalStorage.setSharedArticleId(articleId);
+      setLocation("/");
+    }
+  }, [location, setLocation]);
+  
+  // Handle legacy article routes
+  if (location.startsWith("/article/")) {
     return <ArticleShare />;
   }
   

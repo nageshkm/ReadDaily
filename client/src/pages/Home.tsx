@@ -10,6 +10,7 @@ import { SuccessFeedback } from "@/components/SuccessFeedback";
 
 import { LocalStorage } from "@/lib/storage";
 import { getTodayString } from "@/lib/utils";
+import { decodeHtmlEntities } from "@/lib/html-utils";
 import { User, Article, Category } from "@shared/schema";
 import { Loader2, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -129,8 +130,6 @@ export default function Home() {
   if (!user) {
     return <div>Loading...</div>;
   }
-
-
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from "@/components/ui/textarea";
 import { Article, Category } from "@shared/schema";
 import { formatDate } from "@/lib/utils";
+import { decodeHtmlEntities } from "@/lib/html-utils";
 import { useState } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -243,7 +244,7 @@ export function ArticleCard({
           </div>
           
           <h3 className="text-xl font-semibold mb-2 line-clamp-2">
-            {article.title}
+            {decodeHtmlEntities(article.title)}
           </h3>
           
           {/* Source URL as domain */}

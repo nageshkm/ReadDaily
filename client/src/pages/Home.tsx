@@ -193,11 +193,14 @@ export default function Home() {
                   const category = getCategoryById(article.categoryId);
                   const isRead = isArticleRead(article.id);
                   
-                  return category ? (
+                  // If category not found, use a default category to ensure article still displays
+                  const displayCategory = category || { id: "general", name: "General", description: "General content" };
+                  
+                  return (
                     <ArticleCard
                       key={article.id}
                       article={article}
-                      category={category}
+                      category={displayCategory}
                       isRead={isRead}
                       onReadClick={handleReadArticle}
                       onViewClick={handleViewArticle}
@@ -205,7 +208,7 @@ export default function Home() {
                       showSocialActions={true}
                       recommenderName="Community Member"
                     />
-                  ) : null;
+                  );
                 })}
               </div>
             )}
@@ -229,17 +232,20 @@ export default function Home() {
                   const category = getCategoryById(article.categoryId);
                   const isRead = isArticleRead(article.id);
                   
-                  return category ? (
+                  // If category not found, use a default category to ensure article still displays
+                  const displayCategory = category || { id: "general", name: "General", description: "General content" };
+                  
+                  return (
                     <ArticleCard
                       key={article.id}
                       article={article}
-                      category={category}
+                      category={displayCategory}
                       isRead={isRead}
                       onReadClick={handleReadArticle}
                       onViewClick={handleViewArticle}
                       showSocialActions={false}
                     />
-                  ) : null;
+                  );
                 })}
               </div>
             )}

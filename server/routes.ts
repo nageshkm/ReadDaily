@@ -28,9 +28,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get my articles (shared by user)
-  app.get("/api/articles/my/:userId", async (req, res) => {
+  app.get("/api/articles/my", async (req, res) => {
     try {
-      const { userId } = req.params;
+      const userId = req.headers.authorization || req.query.userId as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
       const myArticles = await storage.getMyArticles(userId);
       res.json(myArticles);
     } catch (error) {
@@ -40,9 +43,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get recommended articles (shared by others)
-  app.get("/api/articles/recommended/:userId", async (req, res) => {
+  app.get("/api/articles/recommended", async (req, res) => {
     try {
-      const { userId } = req.params;
+      const userId = req.headers.authorization || req.query.userId as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
       const recommendedArticles = await storage.getRecommendedArticles(userId);
       res.json(recommendedArticles);
     } catch (error) {

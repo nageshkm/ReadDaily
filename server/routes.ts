@@ -149,8 +149,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await db.insert(articles).values({
         id: articleId,
         title: metadata.title,
-        content: metadata.description,
-        summary: metadata.description.substring(0, 200) + "...",
         sourceUrl: url,
         imageUrl: metadata.image,
         estimatedReadingTime: metadata.estimatedReadTime,

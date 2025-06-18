@@ -215,8 +215,6 @@ export class MemStorage implements IStorage {
       return myArticles.map((article: any) => ({
         id: article.id,
         title: article.title,
-        content: article.content,
-        summary: article.summary,
         categoryId: article.categoryId,
         sourceUrl: article.sourceUrl,
         imageUrl: article.imageUrl,
@@ -244,8 +242,6 @@ export class MemStorage implements IStorage {
         .select({
           id: articles.id,
           title: articles.title,
-          content: articles.content,
-          summary: articles.summary,
           categoryId: articles.categoryId,
           sourceUrl: articles.sourceUrl,
           imageUrl: articles.imageUrl,
@@ -294,8 +290,6 @@ export class MemStorage implements IStorage {
         .select({
           id: articles.id,
           title: articles.title,
-          content: articles.content,
-          summary: articles.summary,
           categoryId: articles.categoryId,
           sourceUrl: articles.sourceUrl,
           imageUrl: articles.imageUrl,
@@ -321,8 +315,6 @@ export class MemStorage implements IStorage {
       return {
         id: article.id,
         title: article.title,
-        content: article.content,
-        summary: article.summary,
         categoryId: article.categoryId,
         sourceUrl: article.sourceUrl,
         imageUrl: article.imageUrl,

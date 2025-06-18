@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Article, Category } from "@shared/schema";
 import { formatDate } from "@/lib/utils";
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 interface ArticleImageProps {
@@ -113,6 +113,27 @@ export function ArticleCard({
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch article comments
+  const { data: articleDetails } = useQuery({
+    queryKey: ['/api/articles', article.id, 'details'],
+    enabled: showSocialActions
+  });
+
+  // Utility functions
+  const truncateText = (text: string, maxWidthPercent: number) => {
+    const maxLength = Math.floor((window.innerWidth * maxWidthPercent) / 8); // Rough estimate: 8px per character
+    return text.length > maxLength ? text.substring(0, maxLength - 3) + "..." : text;
+  };
+
+  const extractDomain = (url: string) => {
+    try {
+      const domain = new URL(url).hostname;
+      return domain.replace('www.', '');
+    } catch {
+      return url;
+    }
+  };
 
   const commentMutation = useMutation({
     mutationFn: async (data: { content: string; userId: string; articleId: string }) => {
@@ -223,17 +244,19 @@ export function ArticleCard({
           </div>
           
           <h3 className="text-xl font-semibold mb-2 line-clamp-2">
-            {article.title}
+            {truncateText(article.title, 0.25)}
           </h3>
-          <p className="text-gray-600 mb-4 line-clamp-3">{article.summary}</p>
           
-          {/* User commentary */}
+          {/* Source URL as domain */}
+          <p className="text-sm text-gray-500 mb-2">
+            {extractDomain(article.sourceUrl)}
+          </p>
+          
+          {/* User commentary as description */}
           {article.userCommentary && (
-            <div className="mb-3 p-3 bg-muted/50 rounded-md">
-              <p className="text-sm italic text-foreground/80">
-                "{article.userCommentary}"
-              </p>
-            </div>
+            <p className="text-gray-600 mb-4 line-clamp-3">
+              {truncateText(article.userCommentary, 0.4)}
+            </p>
           )}
 
           {/* Recommender info */}

@@ -69,7 +69,16 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
       };
 
       // Store user on server
-      const response = await apiRequest('POST', '/api/users', userData);
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create user');
+      }
+      
       const serverUser = await response.json();
 
       // Use server user data for local storage to maintain consistency

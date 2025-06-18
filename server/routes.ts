@@ -106,6 +106,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "URL and userId are required" });
       }
 
+      // Check if user exists
+      const user = await storage.getUser(userId);
+      if (!user) {
+        console.log(`User not found in database: ${userId}`);
+        return res.status(400).json({ message: "User not found" });
+      }
+      console.log(`User found: ${user.name} (${user.id})`);
+
       // Extract metadata from URL
       const metadata = await urlMetadataService.extractMetadata(url);
       if (!metadata) {
@@ -132,9 +140,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userCommentary: commentary || null,
         likesCount: 0
       });
-
-      // Note: articlesShared field doesn't exist in current schema, 
-      // but the article is linked via recommendedBy field
 
       res.json({ message: "Article shared successfully", articleId });
     } catch (error) {

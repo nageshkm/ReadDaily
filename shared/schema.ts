@@ -89,12 +89,32 @@ export const articles = pgTable("articles", {
   publishDate: text("publish_date").notNull(),
   featured: boolean("featured").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
-  // YouTube-specific fields
+  // User sharing fields
+  recommendedBy: text("recommended_by").references(() => users.id),
+  recommendedAt: text("recommended_at"),
+  userCommentary: text("user_commentary"),
+  likesCount: integer("likes_count").default(0),
+  // YouTube-specific fields (keeping for migration)
   youtubeVideoId: text("youtube_video_id"),
   channelName: text("channel_name"),
-  transcript: text("transcript"), // Full transcript
+  transcript: text("transcript"),
   isSummarized: boolean("is_summarized").default(false),
-  processingStatus: text("processing_status").default("pending"), // pending, processing, completed, failed
+  processingStatus: text("processing_status").default("pending"),
+});
+
+export const articleLikes = pgTable("article_likes", {
+  id: text("id").primaryKey(),
+  articleId: text("article_id").notNull().references(() => articles.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  likedAt: text("liked_at").notNull(),
+});
+
+export const articleComments = pgTable("article_comments", {
+  id: text("id").primaryKey(),
+  articleId: text("article_id").notNull().references(() => articles.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  commentedAt: text("commented_at").notNull(),
 });
 
 export const users = pgTable("users", {
@@ -106,13 +126,18 @@ export const users = pgTable("users", {
   preferences: text("preferences").notNull(), // JSON string
   readArticles: text("read_articles").notNull(), // JSON string
   streakData: text("streak_data").notNull(), // JSON string
+  articlesShared: text("articles_shared").notNull().default("[]"), // JSON string array of article IDs
 });
 
 // Database insert schemas
 export const insertCategorySchema = createInsertSchema(categories);
 export const insertArticleSchema = createInsertSchema(articles);
 export const insertUserDbSchema = createInsertSchema(users).omit({ id: true });
+export const insertArticleLikeSchema = createInsertSchema(articleLikes);
+export const insertArticleCommentSchema = createInsertSchema(articleComments);
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type InsertArticle = z.infer<typeof insertArticleSchema>;
 export type InsertUserDb = z.infer<typeof insertUserDbSchema>;
+export type InsertArticleLike = z.infer<typeof insertArticleLikeSchema>;
+export type InsertArticleComment = z.infer<typeof insertArticleCommentSchema>;

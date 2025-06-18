@@ -1,8 +1,12 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserDbSchema } from "@shared/schema";
+import { insertUserDbSchema, insertArticleCommentSchema, insertArticleLikeSchema } from "@shared/schema";
 import { z } from "zod";
+import { urlMetadataService } from "./url-metadata";
+import { db } from "./db";
+import { articles, articleLikes, articleComments, users } from "@shared/schema";
+import { eq, desc, and } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configuration endpoint

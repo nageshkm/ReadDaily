@@ -366,7 +366,7 @@ export function ArticleCard({
                       <span className="text-gray-400">•</span>
                       <span className="text-gray-500">{formatDate(comment.commentedAt)}</span>
                     </div>
-                    <p className="text-gray-700 font-bold italic">{comment.content}</p>
+                    <p className="text-gray-700 italic text-sm">{comment.content}</p>
                   </div>
                 ))}
                 {typedArticleDetails.comments.length > 3 && (
@@ -426,7 +426,7 @@ export function ArticleCard({
                   <span className="text-gray-400">•</span>
                   <span className="text-gray-500 text-xs">{formatDate(comment.commentedAt)}</span>
                 </div>
-                <p className="text-gray-700 text-sm font-bold italic">{comment.content}</p>
+                <p className="text-gray-700 text-sm italic">{comment.content}</p>
               </div>
             ))}
             {(!typedArticleDetails || !('comments' in typedArticleDetails) || typedArticleDetails.comments.length === 0) && (

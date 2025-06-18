@@ -160,13 +160,10 @@ export function ArticleCard({
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Comment added!",
-        description: "Your comment has been posted."
-      });
       setComment("");
       setIsCommentDialogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/articles/recommended'] });
+      // Refresh the specific article details to show new comment immediately
+      queryClient.invalidateQueries({ queryKey: [`/api/articles/${article.id}/details`] });
     },
     onError: (error: any) => {
       toast({
@@ -365,11 +362,11 @@ export function ArticleCard({
                 {typedArticleDetails.comments.slice(0, 3).map((comment: any) => (
                   <div key={comment.id} className="text-xs bg-gray-50 p-2 rounded">
                     <div className="flex items-center gap-1 mb-1">
-                      <span className="font-medium">{comment.userName || 'Anonymous'}</span>
+                      <span className="text-gray-600">{comment.userName || 'Anonymous'}</span>
                       <span className="text-gray-400">•</span>
                       <span className="text-gray-500">{formatDate(comment.commentedAt)}</span>
                     </div>
-                    <p className="text-gray-700">{comment.content}</p>
+                    <p className="text-gray-700 font-bold italic">{comment.content}</p>
                   </div>
                 ))}
                 {typedArticleDetails.comments.length > 3 && (
@@ -425,11 +422,11 @@ export function ArticleCard({
             {typedArticleDetails && 'comments' in typedArticleDetails && typedArticleDetails.comments.map((comment: any) => (
               <div key={comment.id} className="p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="font-medium text-sm">{comment.userName || 'Anonymous'}</span>
+                  <span className="text-gray-600 text-sm">{comment.userName || 'Anonymous'}</span>
                   <span className="text-gray-400">•</span>
                   <span className="text-gray-500 text-xs">{formatDate(comment.commentedAt)}</span>
                 </div>
-                <p className="text-gray-700 text-sm">{comment.content}</p>
+                <p className="text-gray-700 text-sm font-bold italic">{comment.content}</p>
               </div>
             ))}
             {(!typedArticleDetails || !('comments' in typedArticleDetails) || typedArticleDetails.comments.length === 0) && (

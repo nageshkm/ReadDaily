@@ -63,7 +63,7 @@ export default function ArticleShare() {
     );
   }
 
-  if (error || !article) {
+  if (error || !typedArticle) {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-4xl mx-auto text-center">
@@ -78,7 +78,7 @@ export default function ArticleShare() {
     );
   }
 
-  const category = categories.find(cat => cat.id === article.categoryId);
+  const category = categories.find(cat => cat.id === typedArticle.categoryId);
 
   const getCategoryColor = (categoryId: string) => {
     switch (categoryId) {
@@ -124,37 +124,37 @@ export default function ArticleShare() {
           {/* Article Header */}
           <div className="p-6 border-b">
             <div className="flex items-center gap-2 mb-3">
-              <Badge className={getCategoryColor(article.categoryId)}>
+              <Badge className={getCategoryColor(typedArticle.categoryId)}>
                 {category?.name || 'General'}
               </Badge>
               <div className="flex items-center text-sm text-gray-500">
                 <Clock className="h-4 w-4 mr-1" />
-                {article.estimatedReadingTime} min read
+                {typedArticle.estimatedReadingTime} min read
               </div>
             </div>
             
             <h1 className="text-3xl font-bold text-gray-900 mb-4 leading-tight">
-              {article.title}
+              {typedArticle.title}
             </h1>
 
-            {article.summary && (
+            {typedArticle.summary && (
               <p className="text-lg text-gray-600 mb-4 leading-relaxed">
-                {article.summary}
+                {typedArticle.summary}
               </p>
             )}
 
             <div className="flex items-center justify-between text-sm text-gray-500">
               <div className="flex items-center gap-4">
-                {article.recommenderName && (
+                {typedArticle.recommenderName && (
                   <div className="flex items-center gap-1">
                     <User className="h-4 w-4" />
-                    Shared by {article.recommenderName}
+                    Shared by {typedArticle.recommenderName}
                   </div>
                 )}
-                {article.publishDate && (
+                {typedArticle.publishDate && (
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    {formatDate(article.publishDate)}
+                    {formatDate(typedArticle.publishDate)}
                   </div>
                 )}
               </div>
@@ -162,7 +162,7 @@ export default function ArticleShare() {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => window.open(article.sourceUrl, '_blank')}
+                onClick={() => window.open(typedArticle.sourceUrl, '_blank')}
                 className="flex items-center gap-1"
               >
                 <ExternalLink className="h-4 w-4" />
@@ -172,11 +172,11 @@ export default function ArticleShare() {
           </div>
 
           {/* Article Image */}
-          {article.imageUrl && (
+          {typedArticle.imageUrl && (
             <div className="px-6 py-4">
               <img 
-                src={article.imageUrl} 
-                alt={article.title}
+                src={typedArticle.imageUrl} 
+                alt={typedArticle.title}
                 className="w-full h-64 object-cover rounded-lg"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
@@ -187,18 +187,18 @@ export default function ArticleShare() {
 
           {/* Article Content */}
           <div className="p-6">
-            {article.userCommentary && (
+            {typedArticle.userCommentary && (
               <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-                <h3 className="font-semibold text-blue-900 mb-2">Why {article.recommenderName} shared this:</h3>
-                <p className="text-blue-800">{article.userCommentary}</p>
+                <h3 className="font-semibold text-blue-900 mb-2">Why {typedArticle.recommenderName} shared this:</h3>
+                <p className="text-blue-800">{typedArticle.userCommentary}</p>
               </div>
             )}
 
             <div className="prose max-w-none">
-              {article.content ? (
+              {typedArticle.content ? (
                 <div 
                   className="text-gray-700 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: article.content }}
+                  dangerouslySetInnerHTML={{ __html: typedArticle.content }}
                 />
               ) : (
                 <p className="text-gray-600 italic">

@@ -120,6 +120,15 @@ export function ArticleCard({
     enabled: showSocialActions
   });
 
+  const typedArticleDetails = articleDetails as {
+    comments: Array<{
+      id: string;
+      content: string;
+      userName: string;
+      commentedAt: string;
+    }>;
+  } | undefined;
+
   // Utility functions
   const truncateText = (text: string, maxWidthPercent: number) => {
     const maxLength = Math.floor((window.innerWidth * maxWidthPercent) / 8); // Rough estimate: 8px per character
@@ -300,7 +309,7 @@ export function ArticleCard({
                   <div className="space-y-4">
                     <div>
                       <h4 className="text-sm font-medium mb-2">{article.title}</h4>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{article.summary}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{article.userCommentary || "Share your thoughts about this article..."}</p>
                     </div>
                     <Textarea
                       placeholder="Share your thoughts about this article..."
@@ -346,9 +355,32 @@ export function ArticleCard({
             </div>
           )}
 
+          {/* Comments display */}
+          {showSocialActions && typedArticleDetails && 'comments' in typedArticleDetails && typedArticleDetails.comments.length > 0 && (
+            <div className="mt-4 pt-3 border-t">
+              <h4 className="text-sm font-medium mb-2">Comments ({typedArticleDetails.comments.length})</h4>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {typedArticleDetails.comments.slice(0, 3).map((comment: any) => (
+                  <div key={comment.id} className="text-xs bg-gray-50 p-2 rounded">
+                    <div className="flex items-center gap-1 mb-1">
+                      <span className="font-medium">{comment.userName || 'Anonymous'}</span>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-gray-500">{formatDate(comment.commentedAt)}</span>
+                    </div>
+                    <p className="text-gray-700">{comment.content}</p>
+                  </div>
+                ))}
+                {typedArticleDetails.comments.length > 3 && (
+                  <p className="text-xs text-gray-500 italic">
+                    +{typedArticleDetails.comments.length - 3} more comments
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <span>{article.sourceUrl?.split("/")[2] || "Unknown"}</span>
               <span>•</span>
               <span>Today</span>
             </div>

@@ -266,8 +266,6 @@ export class MemStorage implements IStorage {
       return recommendedArticles.map((article: any) => ({
         id: article.id,
         title: article.title,
-        content: article.content,
-        summary: article.summary,
         categoryId: article.categoryId,
         sourceUrl: article.sourceUrl,
         imageUrl: article.imageUrl,

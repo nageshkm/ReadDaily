@@ -15,14 +15,16 @@ export type Category = z.infer<typeof categorySchema>;
 export const articleSchema = z.object({
   id: z.string(),
   title: z.string(),
-  content: z.string(),
-  summary: z.string(),
   sourceUrl: z.string(),
   imageUrl: z.string(),
   estimatedReadingTime: z.number(),
   categoryId: z.string(),
   publishDate: z.string(),
   featured: z.boolean(),
+  userCommentary: z.string().optional(),
+  recommendedBy: z.string().optional(),
+  recommendedAt: z.string().optional(),
+  likesCount: z.number().optional(),
 });
 
 export type Article = z.infer<typeof articleSchema>;
@@ -80,8 +82,6 @@ export const categories = pgTable("categories", {
 export const articles = pgTable("articles", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
-  content: text("content").notNull(),
-  summary: text("summary").notNull(),
   sourceUrl: text("source_url").notNull(),
   imageUrl: text("image_url").notNull(),
   estimatedReadingTime: integer("estimated_reading_time").notNull(),

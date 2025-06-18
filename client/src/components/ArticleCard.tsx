@@ -1,15 +1,24 @@
-import { CheckCircle, ArrowRight, Circle } from "lucide-react";
+import { CheckCircle, ArrowRight, Circle, Heart, MessageCircle, User, ExternalLink } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Article, Category } from "@shared/schema";
+import { formatDate } from "@/lib/utils";
 
 interface ArticleCardProps {
-  article: Article;
+  article: Article & {
+    recommendedBy?: string;
+    recommendedAt?: string;
+    userCommentary?: string;
+    likesCount?: number;
+  };
   category: Category;
   isRead: boolean;
   onReadClick: (article: Article) => void;
   onViewClick: (article: Article) => void;
+  onLikeClick?: (article: Article) => void;
+  showSocialActions?: boolean;
+  recommenderName?: string;
 }
 
 export function ArticleCard({

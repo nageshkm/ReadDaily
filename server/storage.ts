@@ -198,6 +198,44 @@ export class MemStorage implements IStorage {
       processingStatus: article.processingStatus
     }));
   }
+
+  async getMyArticles(userId: string): Promise<any[]> {
+    const { db } = await import("./db");
+    const { articles } = await import("@shared/schema");
+    const { eq, desc } = await import("drizzle-orm");
+    
+    try {
+      const myArticles = await db
+        .select()
+        .from(articles)
+        .where(eq(articles.recommendedBy, userId))
+        .orderBy(desc(articles.recommendedAt));
+      
+      return myArticles;
+    } catch (error) {
+      console.error("Error fetching my articles:", error);
+      return [];
+    }
+  }
+
+  async getRecommendedArticles(userId: string): Promise<any[]> {
+    const { db } = await import("./db");
+    const { articles } = await import("@shared/schema");
+    const { ne, isNotNull, desc } = await import("drizzle-orm");
+    
+    try {
+      const recommendedArticles = await db
+        .select()
+        .from(articles)
+        .where(isNotNull(articles.recommendedBy))
+        .orderBy(desc(articles.recommendedAt));
+      
+      return recommendedArticles;
+    } catch (error) {
+      console.error("Error fetching recommended articles:", error);
+      return [];
+    }
+  }
 }
 
 export const storage = new MemStorage();

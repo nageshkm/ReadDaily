@@ -27,6 +27,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get my articles (shared by user)
+  app.get("/api/articles/my/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const myArticles = await storage.getMyArticles(userId);
+      res.json(myArticles);
+    } catch (error) {
+      console.error("Error fetching my articles:", error);
+      res.status(500).json({ message: "Failed to fetch my articles" });
+    }
+  });
+
+  // Get recommended articles (shared by others)
+  app.get("/api/articles/recommended/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const recommendedArticles = await storage.getRecommendedArticles(userId);
+      res.json(recommendedArticles);
+    } catch (error) {
+      console.error("Error fetching recommended articles:", error);
+      res.status(500).json({ message: "Failed to fetch recommended articles" });
+    }
+  });
+
   // User management endpoints
   app.post("/api/users", async (req, res) => {
     try {

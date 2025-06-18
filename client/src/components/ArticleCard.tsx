@@ -117,18 +117,23 @@ export function ArticleCard({
 
   // Fetch article comments
   const { data: articleDetails } = useQuery({
-    queryKey: ['/api/articles', article.id, 'details'],
+    queryKey: [`/api/articles/${article.id}/details`],
     enabled: true // Always fetch comments for all articles
   });
 
   const typedArticleDetails = articleDetails as {
+    article: any;
     comments: Array<{
       id: string;
       content: string;
       userName: string;
       commentedAt: string;
     }>;
+    likes: Array<any>;
+    recommender: any;
   } | undefined;
+
+  // Comments are fetched and available
 
   // Utility functions
 
@@ -353,7 +358,7 @@ export function ArticleCard({
           )}
 
           {/* Comments display - always show if comments exist */}
-          {typedArticleDetails && 'comments' in typedArticleDetails && typedArticleDetails.comments.length > 0 && (
+          {typedArticleDetails?.comments && typedArticleDetails.comments.length > 0 && (
             <div className="mt-4 pt-3 border-t">
               <h4 className="text-sm font-medium mb-2">Comments ({typedArticleDetails.comments.length})</h4>
               <div className="space-y-2">

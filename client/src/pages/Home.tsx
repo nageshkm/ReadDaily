@@ -26,6 +26,7 @@ export default function Home() {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("recommended");
   const [todayReadCount, setTodayReadCount] = useState(0);
+  const [sharedArticleId, setSharedArticleId] = useState<string | null>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -68,11 +69,17 @@ export default function Home() {
 
   useEffect(() => {
     const existingUser = LocalStorage.getUser();
+    const storedSharedArticleId = LocalStorage.getSharedArticleId();
+    
     if (existingUser) {
       setUser(existingUser);
       setTodayReadCount(LocalStorage.getTodayReadCount(existingUser));
     } else {
       setShowOnboarding(true);
+    }
+
+    if (storedSharedArticleId) {
+      setSharedArticleId(storedSharedArticleId);
     }
   }, []);
 
@@ -175,29 +182,75 @@ export default function Home() {
                 </p>
               </div>
             ) : (
-              <div className="grid gap-6">
-                {(recommendedArticles as any[]).map((article: any) => {
-                  const category = getCategoryById(article.categoryId);
-                  const isRead = isArticleRead(article.id);
-                  
-                  // If category not found, use a default category to ensure article still displays
-                  const displayCategory = category || { id: "general", name: "General", description: "General content" };
+              <div className="space-y-8">
+                {(() => {
+                  const articles = recommendedArticles as any[];
+                  const sharedArticle = sharedArticleId ? articles.find(a => a.id === sharedArticleId) : null;
+                  const otherArticles = articles.filter(a => a.id !== sharedArticleId);
                   
                   return (
-                    <ArticleCard
-                      key={article.id}
-                      article={article}
-                      category={displayCategory}
-                      isRead={isRead}
-                      onReadClick={handleReadArticle}
-                      onViewClick={handleViewArticle}
-                      onLikeClick={handleLikeArticle}
-                      showSocialActions={true}
-                      recommenderName={article.recommenderName}
-                      currentUserId={user?.id}
-                    />
+                    <>
+                      {/* Highlighted shared article */}
+                      {sharedArticle && (
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold text-blue-600">Shared with You</h3>
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg transform -rotate-1"></div>
+                            <div className="relative bg-white rounded-lg shadow-md border-2 border-blue-200">
+                              <ArticleCard
+                                key={sharedArticle.id}
+                                article={sharedArticle}
+                                category={getCategoryById(sharedArticle.categoryId) || { id: "general", name: "General", description: "General content" }}
+                                isRead={isArticleRead(sharedArticle.id)}
+                                onReadClick={(article) => {
+                                  handleReadArticle(article);
+                                  // Clear shared article ID after first interaction
+                                  LocalStorage.clearSharedArticleId();
+                                  setSharedArticleId(null);
+                                }}
+                                onViewClick={handleViewArticle}
+                                onLikeClick={handleLikeArticle}
+                                showSocialActions={true}
+                                recommenderName={sharedArticle.recommenderName}
+                                currentUserId={user?.id}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Other articles */}
+                      {otherArticles.length > 0 && (
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold">Latest Articles</h3>
+                          <div className="grid gap-6">
+                            {otherArticles.map((article: any) => {
+                              const category = getCategoryById(article.categoryId);
+                              const isRead = isArticleRead(article.id);
+                              
+                              const displayCategory = category || { id: "general", name: "General", description: "General content" };
+                              
+                              return (
+                                <ArticleCard
+                                  key={article.id}
+                                  article={article}
+                                  category={displayCategory}
+                                  isRead={isRead}
+                                  onReadClick={handleReadArticle}
+                                  onViewClick={handleViewArticle}
+                                  onLikeClick={handleLikeArticle}
+                                  showSocialActions={true}
+                                  recommenderName={article.recommenderName}
+                                  currentUserId={user?.id}
+                                />
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   );
-                })}
+                })()}
               </div>
             )}
           </TabsContent>

@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, ExternalLink, Clock, User, Calendar } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { LocalStorage } from "@/lib/storage";
+import { useEffect } from "react";
 
 interface Category {
   id: string;
@@ -20,6 +22,13 @@ export default function ArticleShare() {
   const id = location.startsWith('/article/') 
     ? location.replace('/article/', '') 
     : location.replace('/share/', '');
+
+  // Store shared article ID in localStorage for persistence through OAuth
+  useEffect(() => {
+    if (id && location.startsWith('/share/')) {
+      LocalStorage.setSharedArticleId(id);
+    }
+  }, [id, location]);
 
   const { data: article, isLoading, error } = useQuery({
     queryKey: ['/api/articles', id],

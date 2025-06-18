@@ -176,4 +176,29 @@ export class LocalStorage {
     this.saveUser(newUser);
     return newUser;
   }
+
+  // Shared article persistence methods
+  static getSharedArticleId(): string | null {
+    try {
+      return localStorage.getItem('sharedArticleId');
+    } catch {
+      return null;
+    }
+  }
+
+  static setSharedArticleId(articleId: string): void {
+    try {
+      localStorage.setItem('sharedArticleId', articleId);
+    } catch {
+      // Ignore localStorage errors
+    }
+  }
+
+  static clearSharedArticleId(): void {
+    try {
+      localStorage.removeItem('sharedArticleId');
+    } catch {
+      // Ignore localStorage errors
+    }
+  }
 }

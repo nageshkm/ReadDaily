@@ -10,6 +10,8 @@ export interface IStorage {
   createUser(user: InsertUserDb): Promise<User>;
   deleteUser(id: string): Promise<boolean>;
   getArticles(): Promise<any[]>;
+  getMyArticles(userId: string): Promise<any[]>;
+  getRecommendedArticles(userId: string): Promise<any[]>;
 }
 
 export class MemStorage implements IStorage {

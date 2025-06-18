@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { StreakDisplay } from "@/components/StreakDisplay";
 import { ArticleCard } from "@/components/ArticleCard";
-import { ArticleView } from "@/components/ArticleView";
+
 import { UserOnboarding } from "@/components/UserOnboarding";
 import { ShareArticleForm } from "@/components/ShareArticleForm";
 
@@ -19,8 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
-  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
-  const [isArticleViewOpen, setIsArticleViewOpen] = useState(false);
+
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
@@ -89,13 +88,10 @@ export default function Home() {
     const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
     setUser(updatedUser);
     setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
-    setSelectedArticle(article);
-    setIsArticleViewOpen(true);
   };
 
   const handleViewArticle = (article: Article) => {
-    setSelectedArticle(article);
-    setIsArticleViewOpen(true);
+    // Article is already opened by card click
   };
 
   const handleMarkAsRead = (article: Article) => {
@@ -134,11 +130,7 @@ export default function Home() {
     return <div>Loading...</div>;
   }
 
-  const selectedCategory = selectedArticle 
-    ? getCategoryById(selectedArticle.categoryId) || null
-    : null;
 
-  const isSelectedRead = selectedArticle ? isArticleRead(selectedArticle.id) : false;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -251,19 +243,10 @@ export default function Home() {
         </Tabs>
       </main>
 
-      <ArticleView
-        article={selectedArticle}
-        category={selectedCategory}
-        isOpen={isArticleViewOpen}
-        isRead={isSelectedRead}
-        onClose={() => setIsArticleViewOpen(false)}
-        onMarkAsRead={handleMarkAsRead}
-      />
-
       <SuccessFeedback
         isOpen={showSuccessFeedback}
         onClose={() => setShowSuccessFeedback(false)}
-        articleTitle={selectedArticle?.title || ""}
+        articleTitle=""
       />
     </div>
   );

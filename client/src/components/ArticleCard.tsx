@@ -289,18 +289,21 @@ export function ArticleCard({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onViewClick(article)}
+                onClick={() => window.open(article.sourceUrl, '_blank', 'noopener,noreferrer')}
                 className="text-accent hover:text-blue-700 font-medium"
               >
-                View Article <ArrowRight className="ml-1" size={16} />
+                View Article <ExternalLink className="ml-1" size={16} />
               </Button>
             ) : (
               <Button
                 size="sm"
-                onClick={() => onReadClick(article)}
+                onClick={() => {
+                  window.open(article.sourceUrl, '_blank', 'noopener,noreferrer');
+                  onReadClick(article); // Mark as read
+                }}
                 className="bg-accent text-white hover:bg-blue-700 font-medium"
               >
-                Read Now <ArrowRight className="ml-1" size={16} />
+                Read Now <ExternalLink className="ml-1" size={16} />
               </Button>
             )}
           </div>

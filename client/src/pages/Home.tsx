@@ -191,7 +191,7 @@ export default function Home() {
               </div>
             ) : (
               <div className="grid gap-6">
-                {recommendedArticles.map((article: any) => {
+                {(recommendedArticles as any[]).map((article: any) => {
                   const category = getCategoryById(article.categoryId);
                   const isRead = isArticleRead(article.id);
                   
@@ -218,7 +218,7 @@ export default function Home() {
               <div className="flex justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
               </div>
-            ) : myArticles.length === 0 ? (
+            ) : (myArticles as any[]).length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">You haven't shared any articles yet.</p>
                 <p className="text-sm text-muted-foreground mt-2">
@@ -227,7 +227,7 @@ export default function Home() {
               </div>
             ) : (
               <div className="grid gap-6">
-                {myArticles.map((article: any) => {
+                {(myArticles as any[]).map((article: any) => {
                   const category = getCategoryById(article.categoryId);
                   const isRead = isArticleRead(article.id);
                   

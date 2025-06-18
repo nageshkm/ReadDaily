@@ -54,8 +54,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User management endpoints
   app.post("/api/users", async (req, res) => {
     try {
-      const userData = insertUserDbSchema.parse(req.body);
-      const user = await storage.createUser(userData);
+      const now = new Date().toISOString();
+      const userData = {
+        ...req.body,
+        joinDate: now,
+        lastActive: now
+      };
+      const validatedData = insertUserDbSchema.parse(userData);
+      const user = await storage.createUser(validatedData);
       res.json(user);
     } catch (error) {
       console.error("Error creating user:", error);

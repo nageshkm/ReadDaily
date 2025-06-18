@@ -1,12 +1,59 @@
 import OpenAI from "openai";
 
-// Blocked domains for safety
+// Comprehensive blocked domains for safety and content quality
 const BLOCKED_DOMAINS = [
-  'pornhub.com', 'xvideos.com', 'redtube.com', 'youporn.com',
-  'tube8.com', 'spankbang.com', 'xnxx.com', 'beeg.com',
-  'tnaflix.com', 'xhamster.com', 'porn.com', 'sex.com',
-  'adult.com', 'xxx.com', 'gambling.com', 'casino.com',
-  'bet365.com', 'pokerstars.com', 'darkweb.com', 'onion.com'
+  // Adult content
+  'pornhub.com', 'xvideos.com', 'redtube.com', 'youporn.com', 'xnxx.com',
+  'tube8.com', 'spankbang.com', 'beeg.com', 'tnaflix.com', 'xhamster.com',
+  'porn.com', 'sex.com', 'adult.com', 'xxx.com', 'chaturbate.com',
+  'cam4.com', 'livejasmin.com', 'stripchat.com', 'bongacams.com',
+  'onlyfans.com', 'manyvids.com', 'clips4sale.com', 'adultfriendfinder.com',
+  
+  // Gambling and betting
+  'gambling.com', 'casino.com', 'bet365.com', 'pokerstars.com',
+  'partypoker.com', 'draftkings.com', 'fanduel.com', 'caesars.com',
+  'mgmresorts.com', 'bovada.com', 'betonline.com', 'sportsbetting.com',
+  
+  // Violence and weapons
+  'theync.com', 'bestgore.com', 'liveleak.com', 'heavy-r.com',
+  'kaotic.com', 'documenting-reality.com', 'crazyshit.com',
+  
+  // Hate speech and extremism
+  'stormfront.org', '4chan.org', '8kun.top', 'gab.com',
+  'parler.com', 'bitchute.com', 'rumble.com', 'gettr.com',
+  
+  // Dark web and illegal activities
+  'darkweb.com', 'onion.com', 'tor.com', 'silkroad.com',
+  
+  // Malware and phishing (common patterns)
+  'bit.ly', 'tinyurl.com', 'ow.ly', 'short.link', 'tiny.cc',
+  
+  // Low quality content farms
+  'clickbait.com', 'buzzfeed.com', 'upworthy.com', 'viral.com',
+  'shareably.net', 'distractify.com', 'ranker.com'
+];
+
+// Content keywords that indicate inappropriate material
+const BLOCKED_KEYWORDS = [
+  // Adult content
+  'porn', 'sex', 'nude', 'naked', 'xxx', 'adult', 'erotic', 'sexy',
+  'escort', 'hooker', 'prostitute', 'webcam', 'cam girl', 'onlyfans',
+  
+  // Violence
+  'murder', 'kill', 'death', 'gore', 'violence', 'torture', 'blood',
+  'suicide', 'self-harm', 'shooting', 'terrorist', 'bomb',
+  
+  // Hate speech
+  'nazi', 'hitler', 'white supremacy', 'hate speech', 'racist',
+  'terrorism', 'extremist', 'radical', 'supremacist',
+  
+  // Drugs and illegal activities
+  'cocaine', 'heroin', 'meth', 'drug dealer', 'illegal drugs',
+  'darknet', 'dark web', 'piracy', 'torrent', 'crack software',
+  
+  // Gambling
+  'casino', 'poker', 'betting', 'gambling', 'slots', 'lottery',
+  'blackjack', 'roulette', 'sports bet'
 ];
 
 interface UrlMetadata {
@@ -62,6 +109,13 @@ export class UrlMetadataService {
       const html = await response.text();
       const metadata = this.parseHtmlMetadata(html);
 
+      // Safety check - analyze content for inappropriate material
+      const isSafe = await this.isContentSafe(metadata.title, metadata.description, url);
+      if (!isSafe) {
+        console.log(`Content safety check failed for: ${url}`);
+        return null;
+      }
+
       // Use OpenAI to categorize and estimate reading time
       const aiAnalysis = await this.analyzeContent(metadata.title, metadata.description, domain);
 
@@ -80,9 +134,71 @@ export class UrlMetadataService {
   }
 
   private isBlockedDomain(domain: string): boolean {
-    return BLOCKED_DOMAINS.some(blocked => 
-      domain.includes(blocked) || blocked.includes(domain)
+    const cleanDomain = domain.toLowerCase().replace(/^www\./, '');
+    return BLOCKED_DOMAINS.some(blocked => {
+      const cleanBlocked = blocked.toLowerCase().replace(/^www\./, '');
+      return cleanDomain === cleanBlocked || 
+             cleanDomain.endsWith('.' + cleanBlocked) ||
+             cleanBlocked.endsWith('.' + cleanDomain);
+    });
+  }
+
+  private hasBlockedKeywords(text: string): boolean {
+    const lowerText = text.toLowerCase();
+    return BLOCKED_KEYWORDS.some(keyword => 
+      lowerText.includes(keyword.toLowerCase())
     );
+  }
+
+  private async isContentSafe(title: string, description: string, url: string): Promise<boolean> {
+    try {
+      // First check for obvious blocked keywords
+      if (this.hasBlockedKeywords(title) || this.hasBlockedKeywords(description)) {
+        console.log(`Content blocked due to keywords in: ${title}`);
+        return false;
+      }
+
+      // Use AI to analyze content safety
+      const prompt = `Analyze this content for safety and appropriateness for a general audience reading app.
+
+Title: ${title}
+Description: ${description}
+URL: ${url}
+
+Check for:
+- Adult/sexual content
+- Violence or gore
+- Hate speech or extremism
+- Gambling content
+- Illegal activities
+- Scams or phishing
+- Low-quality clickbait
+
+Respond with JSON:
+{
+  "isSafe": true/false,
+  "reason": "brief explanation if not safe"
+}`;
+
+      const response = await this.openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" },
+      });
+
+      const result = JSON.parse(response.choices[0].message.content || '{"isSafe": false}');
+      
+      if (!result.isSafe) {
+        console.log(`Content flagged by AI: ${result.reason} - ${title}`);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error checking content safety:', error);
+      // Default to safe if AI check fails, but log for monitoring
+      return true;
+    }
   }
 
   private parseHtmlMetadata(html: string): { title: string; description: string; image: string } {

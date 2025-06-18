@@ -175,23 +175,8 @@ export function ArticleCard({
   });
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/article/${article.id}`;
-    const shareText = `Check out this article on ReadDaily: ${article.title}`;
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: article.title,
-          text: shareText,
-          url: shareUrl,
-        });
-      } catch (error) {
-        // User cancelled sharing or share failed
-        copyToClipboard(shareUrl);
-      }
-    } else {
-      copyToClipboard(shareUrl);
-    }
+    const shareUrl = `${window.location.origin}/share/${article.id}`;
+    copyToClipboard(shareUrl);
   };
 
   const copyToClipboard = (text: string) => {

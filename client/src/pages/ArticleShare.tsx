@@ -14,8 +14,12 @@ interface Category {
 }
 
 export default function ArticleShare() {
-  const { id } = useParams();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  
+  // Extract ID from both /article/{id} and /share/{id} routes
+  const id = location.startsWith('/article/') 
+    ? location.replace('/article/', '') 
+    : location.replace('/share/', '');
 
   const { data: article, isLoading, error } = useQuery({
     queryKey: ['/api/articles', id],

@@ -55,7 +55,7 @@ function Router() {
   const [location] = useLocation();
   
   // Handle article sharing routes
-  if (location.startsWith("/article/")) {
+  if (location.startsWith("/article/") || location.startsWith("/share/")) {
     return <ArticleShare />;
   }
   

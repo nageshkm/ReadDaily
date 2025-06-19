@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ReadStreak – Trusted Reading List</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#f9f6f1] text-[#3e2c13]">
+  <header class="text-center p-8">
+    <h1 class="text-3xl sm:text-5xl font-bold mb-4">Your Trusted Reading List. Every Day.</h1>
+    <p class="text-lg sm:text-xl text-[#7b5e3b] max-w-xl mx-auto">
+      Curated by people you know. Designed to help you read more.
+    </p>
+  </header>
+
+  <section class="text-center px-6 py-8">
+    <div class="flex flex-col sm:flex-row justify-center gap-6 max-w-4xl mx-auto">
+      <div class="bg-white rounded-xl p-6 shadow-md">
+        <h2 class="text-xl font-semibold mb-2">📚 Curated by your circle</h2>
+        <p class="text-[#5a4630]">No algorithms. Just great links from people you trust.</p>
+      </div>
+      <div class="bg-white rounded-xl p-6 shadow-md">
+        <h2 class="text-xl font-semibold mb-2">🔥 Build your streak</h2>
+        <p class="text-[#5a4630]">Track your reading habit, one link at a time.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="px-6 py-8 text-center">
+    <img src="/preview.png" alt="App Preview" class="mx-auto w-full max-w-md rounded-lg shadow-lg" />
+    <p class="mt-4 text-[#7b5e3b] italic">A sample from your personalized reading feed</p>
+  </section>
+
+  <section class="text-center py-10 px-6 bg-[#fff6e5]">
+    <h2 class="text-2xl font-semibold mb-4">Want to see what your circle is reading?</h2>
+    <p class="text-[#5a4630] mb-6">Sign up to access your private reading list and start your streak today.</p>
+    <form class="flex flex-col sm:flex-row justify-center gap-4 max-w-md mx-auto">
+      <input type="email" placeholder="Enter your email" class="p-3 rounded-lg border border-[#e0d8c3] w-full sm:w-auto flex-1" />
+      <button class="bg-[#7b5e3b] text-white font-bold py-3 px-6 rounded-lg">Sign Up</button>
+    </form>
+  </section>
+
+  <footer class="text-center text-sm text-[#7b5e3b] py-6">
+    &copy; 2025 ReadStreak – Curated Reading Habit Builder
+  </footer>
+</body>
+</html>

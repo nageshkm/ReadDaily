@@ -12,6 +12,7 @@ import History from "@/pages/History";
 import Profile from "@/pages/Profile";
 import Admin from "@/pages/Admin";
 import ArticleShare from "@/pages/ArticleShare";
+import Landing from "@/pages/Landing";
 import NotFound from "@/pages/not-found";
 import { Home as HomeIcon, History as HistoryIcon, User as UserIcon } from "lucide-react";
 import { Link, useLocation } from "wouter";
@@ -70,7 +71,9 @@ function Router() {
   
   switch (location) {
     case "/":
-      return <Home />;
+      // Check if user exists - show landing page to new visitors
+      const existingUser = LocalStorage.getUser();
+      return existingUser ? <Home /> : <Landing />;
     case "/history":
       return <History />;
     case "/profile":

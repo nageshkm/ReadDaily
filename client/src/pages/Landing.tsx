@@ -25,11 +25,35 @@ export default function Landing() {
       
       const userInfo = parseJwt(credentialResponse.credential);
       
+      // First create user locally
       const newUser = LocalStorage.createUser(
         userInfo.name,
         userInfo.email,
         ['technology', 'business', 'health'] // Default categories
       );
+      
+      // Then create user on server
+      try {
+        await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: newUser.id,
+            name: userInfo.name,
+            email: userInfo.email,
+            preferences: { categories: ['technology', 'business', 'health'] },
+            readArticles: [],
+            streakData: {
+              currentStreak: 0,
+              lastReadDate: "",
+              longestStreak: 0
+            }
+          })
+        });
+      } catch (serverError) {
+        console.error('Failed to create user on server:', serverError);
+        // Continue anyway - user will work locally but may have issues with sharing
+      }
       
       // Navigate to Today section
       setLocation('/today');

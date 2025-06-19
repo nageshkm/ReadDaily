@@ -23,7 +23,7 @@ export function ShareArticleForm({ user, onSuccess }: ShareArticleFormProps) {
   const queryClient = useQueryClient();
 
   const shareArticleMutation = useMutation({
-    mutationFn: async (data: { url: string; commentary: string; userId: string }) => {
+    mutationFn: async (data: { url: string; commentary: string; userId: string; userName: string; userEmail: string }) => {
       const response = await fetch("/api/articles/share", {
         method: "POST",
         body: JSON.stringify(data),
@@ -69,7 +69,9 @@ export function ShareArticleForm({ user, onSuccess }: ShareArticleFormProps) {
     shareArticleMutation.mutate({
       url: url.trim(),
       commentary: commentary.trim(),
-      userId: user.id
+      userId: user.id,
+      userName: user.name,
+      userEmail: user.email
     });
   };
 

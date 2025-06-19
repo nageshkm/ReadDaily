@@ -154,7 +154,8 @@ export class LocalStorage {
 
   static createUser(name: string, email: string, categories: string[]): User {
     const today = new Date().toISOString().split('T')[0];
-    const userId = `user-${Date.now()}`;
+    // Use email-based ID for consistency across Google sign-ins
+    const userId = `user-${email.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
     
     const newUser: User = {
       id: userId,

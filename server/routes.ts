@@ -122,19 +122,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Share article endpoint
   app.post("/api/articles/share", async (req, res) => {
     try {
-      const { url, commentary, userId } = req.body;
+      const { url, commentary, userId, userName, userEmail } = req.body;
       
       if (!url || !userId) {
         return res.status(400).json({ message: "URL and userId are required" });
       }
 
-      // Check if user exists
-      const user = await storage.getUser(userId);
-      if (!user) {
-        console.log(`User not found in database: ${userId}`);
-        return res.status(400).json({ message: "User not found" });
+      // Check if user exists by ID first, then by email, create if missing
+      let user = await storage.getUser(userId);
+      if (!user && userEmail) {
+        // Try finding by email in case they have an old random ID
+        user = await storage.getUserByEmail(userEmail);
       }
-      console.log(`User found: ${user.name} (${user.id})`);
+      
+      if (!user && userName && userEmail) {
+        console.log(`User not found, creating new user: ${userId} (${userEmail})`);
+        const today = new Date().toISOString();
+        const userData = {
+          id: userId,
+          name: userName,
+          email: userEmail,
+          joinDate: today,
+          lastActive: today,
+          preferences: JSON.stringify({ categories: ['technology', 'business', 'health'] }),
+          readArticles: JSON.stringify([]),
+          streakData: JSON.stringify({
+            currentStreak: 0,
+            lastReadDate: "",
+            longestStreak: 0
+          })
+        };
+        user = await storage.createUser(userData);
+        console.log(`User created: ${user.name} (${user.id})`);
+      } else if (!user) {
+        console.log(`User not found in database: ${userId} / ${userEmail}`);
+        return res.status(400).json({ message: "User not found. Please try signing in again." });
+      } else {
+        console.log(`User found: ${user.name} (${user.id})`);
+      }
 
       // Extract metadata from URL
       const metadata = await urlMetadataService.extractMetadata(url);

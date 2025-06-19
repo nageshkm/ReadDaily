@@ -25,12 +25,27 @@ export default function Landing() {
       
       const userInfo = parseJwt(credentialResponse.credential);
       
-      // First create user locally
-      const newUser = LocalStorage.createUser(
-        userInfo.name,
-        userInfo.email,
-        ['technology', 'business', 'health'] // Default categories
-      );
+      // Check if user already exists with old random ID
+      const existingUser = LocalStorage.getUser();
+      let newUser;
+      
+      if (existingUser && existingUser.email === userInfo.email) {
+        // User exists but might have old random ID - update to email-based ID
+        const emailBasedId = `user-${userInfo.email.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
+        if (existingUser.id !== emailBasedId) {
+          // Update user with new consistent ID
+          existingUser.id = emailBasedId;
+          LocalStorage.saveUser(existingUser);
+        }
+        newUser = existingUser;
+      } else {
+        // Create new user with email-based ID
+        newUser = LocalStorage.createUser(
+          userInfo.name,
+          userInfo.email,
+          ['technology', 'business', 'health']
+        );
+      }
       
       // Then create user on server
       try {

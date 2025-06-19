@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Settings, Trash2 } from "lucide-react";
+import { User, Settings, Trash2, Activity, BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,12 +8,19 @@ import { User as UserType, Category } from "@shared/schema";
 import { getInitials } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Profile() {
   const [user, setUser] = useState<UserType | null>(null);
   const [, setLocation] = useLocation();
 
   const categories = LocalStorage.getCategories();
+
+  // Fetch user analytics
+  const { data: analytics, isLoading: analyticsLoading } = useQuery({
+    queryKey: ['/api/analytics/user', user?.id],
+    enabled: !!user?.id,
+  });
 
   useEffect(() => {
     const existingUser = LocalStorage.getUser();
@@ -25,18 +32,27 @@ export default function Profile() {
   const handleClearData = async () => {
     if (confirm("Are you sure you want to clear all your data? This action cannot be undone.")) {
       try {
-        // Delete user from server if we have a user ID
+        // Sign out and end sessions on server
         if (user?.id) {
+          await fetch('/api/auth/signout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id })
+          });
+          
+          // Delete user from server
           await apiRequest('DELETE', `/api/users/${user.id}`);
         }
         
-        // Clear local storage
+        // Clear local storage and session
         LocalStorage.clearUser();
+        localStorage.removeItem('sessionId');
         setLocation('/landing');
       } catch (error) {
         console.error("Error deleting user from server:", error);
         // Still clear local storage even if server deletion fails
         LocalStorage.clearUser();
+        localStorage.removeItem('sessionId');
         setLocation('/landing');
       }
     }
@@ -58,8 +74,8 @@ export default function Profile() {
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="grid gap-6 md:grid-cols-2">
+    <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="grid gap-6 lg:grid-cols-3">
         {/* User Info Card */}
         <Card>
           <CardHeader>
@@ -90,7 +106,60 @@ export default function Profile() {
               <p className="text-sm text-gray-600">
                 <strong>Articles read:</strong> {user.readArticles.length}
               </p>
+              <p className="text-sm text-gray-600">
+                <strong>Email:</strong> {user.email}
+              </p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Analytics Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <BarChart3 size={20} />
+              <span>Your Analytics</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {analyticsLoading ? (
+              <div className="text-center py-4">Loading analytics...</div>
+            ) : analytics ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">
+                      {analytics.sessions.total}
+                    </div>
+                    <p className="text-sm text-gray-600">Total Sessions</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">
+                      {Math.round(analytics.sessions.totalTimeMinutes)}m
+                    </div>
+                    <p className="text-sm text-gray-600">Time Spent</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">
+                      {analytics.articles.totalReads}
+                    </div>
+                    <p className="text-sm text-gray-600">Articles Read</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary">
+                      {analytics.articles.uniqueArticles}
+                    </div>
+                    <p className="text-sm text-gray-600">Unique Articles</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500">
+                Analytics data unavailable
+              </div>
+            )}
           </CardContent>
         </Card>
 

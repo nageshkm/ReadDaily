@@ -74,6 +74,12 @@ export default function Home() {
     if (existingUser) {
       setUser(existingUser);
       setTodayReadCount(LocalStorage.getTodayReadCount(existingUser));
+      
+      // Start session tracking if not already started
+      const sessionId = localStorage.getItem('sessionId');
+      if (!sessionId) {
+        startUserSession(existingUser);
+      }
     } else {
       setShowOnboarding(true);
     }
@@ -85,6 +91,47 @@ export default function Home() {
       LocalStorage.markSharedArticleViewed();
     }
   }, []);
+
+  // Session tracking functions
+  const startUserSession = async (user: User) => {
+    try {
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.email,
+          name: user.name,
+          localData: null // No migration needed, just session start
+        })
+      });
+
+      if (response.ok) {
+        const { sessionId } = await response.json();
+        localStorage.setItem('sessionId', sessionId);
+      }
+    } catch (error) {
+      console.error('Failed to start session:', error);
+    }
+  };
+
+  // Track user activity periodically
+  useEffect(() => {
+    if (!user) return;
+
+    const activityInterval = setInterval(async () => {
+      try {
+        await fetch('/api/auth/activity', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id })
+        });
+      } catch (error) {
+        console.error('Failed to update activity:', error);
+      }
+    }, 5 * 60 * 1000); // Every 5 minutes
+
+    return () => clearInterval(activityInterval);
+  }, [user]);
 
   // Clear shared article highlighting when component unmounts or user navigates away
   useEffect(() => {
@@ -102,12 +149,38 @@ export default function Home() {
     setShowOnboarding(false);
   };
 
-  const handleReadArticle = (article: Article) => {
+  const handleReadArticle = async (article: Article) => {
     if (!user) return;
     
-    const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
-    setUser(updatedUser);
-    setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
+    try {
+      // Track on server with analytics
+      const response = await fetch('/api/articles/read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          articleId: article.id
+        })
+      });
+
+      if (response.ok) {
+        const { user: updatedUser } = await response.json();
+        setUser(updatedUser);
+        setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
+        LocalStorage.saveUser(updatedUser);
+      } else {
+        // Fallback to local tracking
+        const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
+        setUser(updatedUser);
+        setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
+      }
+    } catch (error) {
+      console.error('Failed to track article read:', error);
+      // Fallback to local tracking
+      const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
+      setUser(updatedUser);
+      setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
+    }
   };
 
   const handleViewArticle = (article: Article) => {

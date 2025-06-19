@@ -31,6 +31,49 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
   const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleServerAuth = async (userName: string, userEmail: string) => {
+    setIsSubmitting(true);
+    
+    try {
+      // Get existing localStorage data for migration
+      const existingUser = LocalStorage.getUser();
+      
+      // Sign in with server, migrating local data
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: userEmail,
+          name: userName,
+          localData: existingUser
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Authentication failed');
+      }
+
+      const { user, sessionId } = await response.json();
+      
+      // Save synced user data and session info
+      LocalStorage.saveUser(user);
+      localStorage.setItem('sessionId', sessionId);
+      
+      onComplete(user);
+    } catch (error) {
+      console.error('Server authentication failed:', error);
+      // Fallback to local-only creation
+      const localUser = LocalStorage.createUser(
+        userName.trim(),
+        userEmail.trim(),
+        ['general']
+      );
+      onComplete(localUser);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleGoogleSuccess = async (cred: CredentialResponse) => {
     if (cred.credential) {
       const payload = parseJwt(cred.credential);

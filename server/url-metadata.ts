@@ -152,27 +152,28 @@ export class UrlMetadataService {
 
   private async isContentSafe(title: string, description: string, url: string): Promise<boolean> {
     try {
-      // First check for obvious blocked keywords
+      // First check for obvious blocked keywords in content only, not URL
       if (this.hasBlockedKeywords(title) || this.hasBlockedKeywords(description)) {
         console.log(`Content blocked due to keywords in: ${title}`);
         return false;
       }
 
-      // Use AI to analyze content safety
-      const prompt = `Analyze this content for safety and appropriateness for a general audience reading app.
+      // Use AI to analyze content safety with more nuanced prompt
+      const prompt = `Analyze this content for safety and appropriateness for a professional reading app. Be permissive for legitimate business, educational, and informational content.
 
 Title: ${title}
 Description: ${description}
 URL: ${url}
 
-Check for:
-- Adult/sexual content
-- Violence or gore
-- Hate speech or extremism
-- Gambling content
-- Illegal activities
-- Scams or phishing
-- Low-quality clickbait
+Only flag as unsafe if content contains explicit:
+- Pornographic or sexually explicit material
+- Graphic violence or gore
+- Hate speech targeting individuals/groups
+- Instructions for illegal activities
+- Gambling promotions
+- Obvious scams or malware
+
+Business articles, personal development, technology, and educational content should be considered safe even if they use words like "passion", "desire", or "marketing".
 
 Respond with JSON:
 {
@@ -186,7 +187,7 @@ Respond with JSON:
         response_format: { type: "json_object" },
       });
 
-      const result = JSON.parse(response.choices[0].message.content || '{"isSafe": false}');
+      const result = JSON.parse(response.choices[0].message.content || '{"isSafe": true}');
       
       if (!result.isSafe) {
         console.log(`Content flagged by AI: ${result.reason} - ${title}`);

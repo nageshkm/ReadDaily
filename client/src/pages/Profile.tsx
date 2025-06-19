@@ -20,7 +20,7 @@ export default function Profile() {
   const { data: analytics, isLoading: analyticsLoading } = useQuery({
     queryKey: ['/api/analytics/user', user?.id],
     enabled: !!user?.id,
-  });
+  }) as { data: any, isLoading: boolean };
 
   useEffect(() => {
     const existingUser = LocalStorage.getUser();
@@ -124,18 +124,18 @@ export default function Profile() {
           <CardContent>
             {analyticsLoading ? (
               <div className="text-center py-4">Loading analytics...</div>
-            ) : analytics ? (
+            ) : (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary">
-                      {analytics.sessions.total}
+                      {analytics?.sessions?.total || 0}
                     </div>
                     <p className="text-sm text-gray-600">Total Sessions</p>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary">
-                      {Math.round(analytics.sessions.totalTimeMinutes)}m
+                      {Math.round(analytics?.sessions?.totalTimeMinutes || 0)}m
                     </div>
                     <p className="text-sm text-gray-600">Time Spent</p>
                   </div>
@@ -143,21 +143,17 @@ export default function Profile() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary">
-                      {analytics.articles.totalReads}
+                      {analytics?.articles?.totalReads || 0}
                     </div>
                     <p className="text-sm text-gray-600">Articles Read</p>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary">
-                      {analytics.articles.uniqueArticles}
+                      {analytics?.articles?.uniqueArticles || 0}
                     </div>
                     <p className="text-sm text-gray-600">Unique Articles</p>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="text-center py-4 text-gray-500">
-                Analytics data unavailable
               </div>
             )}
           </CardContent>

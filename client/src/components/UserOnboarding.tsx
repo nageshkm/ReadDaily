@@ -31,12 +31,12 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
   const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleGoogleSuccess = (cred: CredentialResponse) => {
+  const handleGoogleSuccess = async (cred: CredentialResponse) => {
     if (cred.credential) {
       const payload = parseJwt(cred.credential);
       if (payload?.name && payload?.email) {
         setName(payload.name);
-        handleSubmit(payload.name, payload.email);
+        await handleServerAuth(payload.name, payload.email);
       }
     }
   };

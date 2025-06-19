@@ -25,50 +25,32 @@ export default function Landing() {
       
       const userInfo = parseJwt(credentialResponse.credential);
       
-      // Check if user already exists with old random ID
+      // Get existing localStorage data for migration
       const existingUser = LocalStorage.getUser();
-      let newUser;
       
-      if (existingUser && existingUser.email === userInfo.email) {
-        // User exists but might have old random ID - update to email-based ID
-        const emailBasedId = `user-${userInfo.email.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
-        if (existingUser.id !== emailBasedId) {
-          // Update user with new consistent ID
-          existingUser.id = emailBasedId;
-          LocalStorage.saveUser(existingUser);
-        }
-        newUser = existingUser;
-      } else {
-        // Create new user with email-based ID
-        newUser = LocalStorage.createUser(
-          userInfo.name,
-          userInfo.email,
-          ['technology', 'business', 'health']
-        );
+      // Sign in with server, migrating local data
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: userInfo.email,
+          name: userInfo.name,
+          localData: existingUser // Send local data for migration
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Authentication failed');
       }
+
+      const { user, sessionId } = await response.json();
       
-      // Then create user on server
-      try {
-        await fetch('/api/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: newUser.id,
-            name: userInfo.name,
-            email: userInfo.email,
-            preferences: { categories: ['technology', 'business', 'health'] },
-            readArticles: [],
-            streakData: {
-              currentStreak: 0,
-              lastReadDate: "",
-              longestStreak: 0
-            }
-          })
-        });
-      } catch (serverError) {
-        console.error('Failed to create user on server:', serverError);
-        // Continue anyway - user will work locally but may have issues with sharing
-      }
+      // Save synced user data and session info to localStorage
+      LocalStorage.saveUser(user);
+      localStorage.setItem('sessionId', sessionId);
+      
+      // Clear any old shared article highlighting since we have fresh synced data
+      LocalStorage.clearSharedArticleId();
       
       // Navigate to Today section
       setLocation('/today');

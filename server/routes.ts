@@ -8,13 +8,129 @@ import { contentExtractor } from "./content-extractor";
 import { db } from "./db";
 import { articles, articleLikes, articleComments, users } from "@shared/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
+import { analyticsService } from "./analytics";
+import { userSyncService } from "./user-sync";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Helper function to get device info from request
+  const getDeviceInfo = (req: any) => {
+    return req.headers['user-agent'] || 'unknown';
+  };
+
+  const getIpAddress = (req: any) => {
+    return req.ip || req.connection.remoteAddress || 'unknown';
+  };
+
   // Configuration endpoint
   app.get("/api/config", (req, res) => {
     res.json({
       googleClientId: process.env.GOOGLE_CLIENT_ID,
     });
+  });
+
+  // Authentication and user sync endpoints
+  app.post("/api/auth/signin", async (req, res) => {
+    try {
+      const { email, name, localData } = req.body;
+      
+      if (!email || !name) {
+        return res.status(400).json({ message: "Email and name are required" });
+      }
+
+      // Find or create user with local data migration
+      const user = await userSyncService.findOrCreateUser(email, name, localData);
+      
+      // Start analytics session
+      const sessionId = await analyticsService.startSession({
+        userId: user.id,
+        deviceInfo: getDeviceInfo(req),
+        ipAddress: getIpAddress(req)
+      });
+
+      res.json({ 
+        user, 
+        sessionId,
+        message: localData ? "User data synced successfully" : "User signed in successfully" 
+      });
+    } catch (error) {
+      console.error("Sign-in error:", error);
+      res.status(500).json({ message: "Failed to sign in" });
+    }
+  });
+
+  app.post("/api/auth/activity", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID required" });
+      }
+
+      await userSyncService.updateUserActivity(userId);
+      res.json({ message: "Activity updated" });
+    } catch (error) {
+      console.error("Activity update error:", error);
+      res.status(500).json({ message: "Failed to update activity" });
+    }
+  });
+
+  app.post("/api/auth/signout", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (userId) {
+        await analyticsService.endUserActiveSessions(userId);
+      }
+      
+      res.json({ message: "Signed out successfully" });
+    } catch (error) {
+      console.error("Sign-out error:", error);
+      res.status(500).json({ message: "Failed to sign out" });
+    }
+  });
+
+  // Analytics endpoints
+  app.get("/api/analytics/user/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const analytics = await analyticsService.getUserAnalytics(userId);
+      res.json(analytics);
+    } catch (error) {
+      console.error("User analytics error:", error);
+      res.status(500).json({ message: "Failed to get user analytics" });
+    }
+  });
+
+  app.get("/api/analytics/all-users", async (req, res) => {
+    try {
+      const analytics = await analyticsService.getAllUsersAnalytics();
+      res.json(analytics);
+    } catch (error) {
+      console.error("All users analytics error:", error);
+      res.status(500).json({ message: "Failed to get analytics" });
+    }
+  });
+
+  // Article read tracking endpoint
+  app.post("/api/articles/read", async (req, res) => {
+    try {
+      const { userId, articleId } = req.body;
+      
+      if (!userId || !articleId) {
+        return res.status(400).json({ message: "User ID and article ID are required" });
+      }
+
+      const user = await userSyncService.addArticleRead(
+        userId, 
+        articleId, 
+        getDeviceInfo(req)
+      );
+      
+      res.json({ user, message: "Article marked as read" });
+    } catch (error) {
+      console.error("Article read tracking error:", error);
+      res.status(500).json({ message: "Failed to track article read" });
+    }
   });
 
   // Get articles endpoint

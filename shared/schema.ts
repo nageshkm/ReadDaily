@@ -120,7 +120,7 @@ export const articleComments = pgTable("article_comments", {
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  email: text("email").notNull(),
+  email: text("email").notNull().unique(),
   joinDate: text("join_date").notNull(),
   lastActive: text("last_active").notNull(),
   preferences: text("preferences").notNull(), // JSON string
@@ -129,15 +129,39 @@ export const users = pgTable("users", {
   articlesShared: text("articles_shared").notNull().default("[]"), // JSON string array of article IDs
 });
 
+// Analytics Tables
+export const userSessions = pgTable("user_sessions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sessionStart: timestamp("session_start").notNull().defaultNow(),
+  sessionEnd: timestamp("session_end"),
+  lastActivity: timestamp("last_activity").notNull().defaultNow(),
+  deviceInfo: text("device_info"), // Browser/device information
+  ipAddress: text("ip_address"),
+});
+
+export const articleReads = pgTable("article_reads", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  articleId: text("article_id").notNull().references(() => articles.id, { onDelete: "cascade" }),
+  readAt: timestamp("read_at").notNull().defaultNow(),
+  sessionId: text("session_id").references(() => userSessions.id, { onDelete: "set null" }),
+  deviceInfo: text("device_info"),
+});
+
 // Database insert schemas
 export const insertCategorySchema = createInsertSchema(categories);
 export const insertArticleSchema = createInsertSchema(articles);
 export const insertUserDbSchema = createInsertSchema(users).omit({ id: true });
 export const insertArticleLikeSchema = createInsertSchema(articleLikes);
 export const insertArticleCommentSchema = createInsertSchema(articleComments);
+export const insertUserSessionSchema = createInsertSchema(userSessions);
+export const insertArticleReadSchema = createInsertSchema(articleReads);
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type InsertArticle = z.infer<typeof insertArticleSchema>;
 export type InsertUserDb = z.infer<typeof insertUserDbSchema>;
 export type InsertArticleLike = z.infer<typeof insertArticleLikeSchema>;
 export type InsertArticleComment = z.infer<typeof insertArticleCommentSchema>;
+export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
+export type InsertArticleRead = z.infer<typeof insertArticleReadSchema>;

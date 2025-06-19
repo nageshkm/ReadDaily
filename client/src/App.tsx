@@ -21,16 +21,16 @@ function MobileNavigation() {
   const [location] = useLocation();
 
   const isActive = (path: string) => {
-    if (path === "/" && location === "/") return true;
-    if (path !== "/" && location.startsWith(path)) return true;
+    if (path === "/today" && (location === "/" || location === "/today")) return true;
+    if (path !== "/today" && location.startsWith(path)) return true;
     return false;
   };
 
   return (
     <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50">
       <div className="flex justify-around">
-        <Link href="/" className={`flex flex-col items-center space-y-1 ${
-          isActive("/") ? "text-accent" : "text-gray-500"
+        <Link href="/today" className={`flex flex-col items-center space-y-1 ${
+          isActive("/today") ? "text-accent" : "text-gray-500"
         }`}>
           <HomeIcon size={20} />
           <span className="text-xs font-medium">Today</span>

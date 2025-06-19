@@ -145,16 +145,48 @@ export class UrlMetadataService {
 
   private hasBlockedKeywords(text: string): boolean {
     const lowerText = text.toLowerCase();
-    return BLOCKED_KEYWORDS.some(keyword => 
-      lowerText.includes(keyword.toLowerCase())
-    );
+    return BLOCKED_KEYWORDS.some(keyword => {
+      const lowerKeyword = keyword.toLowerCase();
+      
+      // For single words, use word boundary matching to avoid false positives
+      if (!lowerKeyword.includes(' ')) {
+        const regex = new RegExp(`\\b${lowerKeyword}\\b`, 'i');
+        return regex.test(lowerText);
+      }
+      
+      // For phrases, use exact matching
+      return lowerText.includes(lowerKeyword);
+    });
   }
 
   private async isContentSafe(title: string, description: string, url: string): Promise<boolean> {
     try {
       // First check for obvious blocked keywords in content only, not URL
-      if (this.hasBlockedKeywords(title) || this.hasBlockedKeywords(description)) {
-        console.log(`Content blocked due to keywords in: ${title}`);
+      const titleBlocked = this.hasBlockedKeywords(title);
+      const descBlocked = this.hasBlockedKeywords(description);
+      
+      if (titleBlocked || descBlocked) {
+        console.log(`Content blocked due to keywords in title: ${titleBlocked}, description: ${descBlocked} - Title: ${title}`);
+        // Debug: Let's see which keyword is triggering
+        BLOCKED_KEYWORDS.forEach(keyword => {
+          const lowerKeyword = keyword.toLowerCase();
+          if (!lowerKeyword.includes(' ')) {
+            const regex = new RegExp(`\\b${lowerKeyword}\\b`, 'i');
+            if (regex.test(title.toLowerCase())) {
+              console.log(`Keyword "${keyword}" matched in title: ${title}`);
+            }
+            if (regex.test(description.toLowerCase())) {
+              console.log(`Keyword "${keyword}" matched in description: ${description}`);
+            }
+          } else {
+            if (title.toLowerCase().includes(lowerKeyword)) {
+              console.log(`Phrase "${keyword}" matched in title: ${title}`);
+            }
+            if (description.toLowerCase().includes(lowerKeyword)) {
+              console.log(`Phrase "${keyword}" matched in description: ${description}`);
+            }
+          }
+        });
         return false;
       }
 

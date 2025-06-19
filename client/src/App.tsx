@@ -74,6 +74,10 @@ function Router() {
       // Check if user exists - show landing page to new visitors
       const existingUser = LocalStorage.getUser();
       return existingUser ? <Home /> : <Landing />;
+    case "/today":
+      return <Home />;
+    case "/landing":
+      return <Landing />;
     case "/history":
       return <History />;
     case "/profile":

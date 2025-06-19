@@ -7,9 +7,11 @@ import { LocalStorage } from "@/lib/storage";
 import { User as UserType, Category } from "@shared/schema";
 import { getInitials } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 export default function Profile() {
   const [user, setUser] = useState<UserType | null>(null);
+  const [, setLocation] = useLocation();
 
   const categories = LocalStorage.getCategories();
 
@@ -30,12 +32,12 @@ export default function Profile() {
         
         // Clear local storage
         LocalStorage.clearUser();
-        window.location.reload();
+        setLocation('/landing');
       } catch (error) {
         console.error("Error deleting user from server:", error);
         // Still clear local storage even if server deletion fails
         LocalStorage.clearUser();
-        window.location.reload();
+        setLocation('/landing');
       }
     }
   };

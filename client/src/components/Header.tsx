@@ -11,8 +11,8 @@ export function Header({ user }: HeaderProps) {
   const [location] = useLocation();
 
   const isActive = (path: string) => {
-    if (path === "/" && location === "/") return true;
-    if (path !== "/" && location.startsWith(path)) return true;
+    if (path === "/today" && (location === "/" || location === "/today")) return true;
+    if (path !== "/today" && location.startsWith(path)) return true;
     return false;
   };
 
@@ -28,9 +28,9 @@ export function Header({ user }: HeaderProps) {
           </div>
           
           <nav className="hidden sm:flex items-center space-x-6">
-            <Link href="/">
+            <Link href="/today">
               <span className={`transition-colors pb-1 ${
-                isActive("/")
+                isActive("/today")
                   ? "text-accent font-medium border-b-2 border-accent"
                   : "text-gray-600 hover:text-primary"
               }`}>

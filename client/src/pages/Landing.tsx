@@ -31,8 +31,8 @@ export default function Landing() {
         ['technology', 'business', 'health'] // Default categories
       );
       
-      // Navigate to main app
-      setLocation('/');
+      // Navigate to Today section
+      setLocation('/today');
     } catch (error) {
       console.error('Authentication failed:', error);
     }

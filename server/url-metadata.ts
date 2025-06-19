@@ -161,32 +161,19 @@ export class UrlMetadataService {
 
   private async isContentSafe(title: string, description: string, url: string): Promise<boolean> {
     try {
-      // First check for obvious blocked keywords in content only, not URL
-      const titleBlocked = this.hasBlockedKeywords(title);
-      const descBlocked = this.hasBlockedKeywords(description);
+      // Skip keyword filtering for business/educational content - rely on AI safety check only
+      // Only block extremely explicit content
+      const explicitPatterns = [
+        /\bporn\b/i, /\bxxx\b/i, /\bnaked pics\b/i, /\bsex videos\b/i, 
+        /\bescort service\b/i, /\bmurder\b/i, /\bterrorist\b/i
+      ];
       
-      if (titleBlocked || descBlocked) {
-        console.log(`Content blocked due to keywords in title: ${titleBlocked}, description: ${descBlocked} - Title: ${title}`);
-        // Debug: Let's see which keyword is triggering
-        BLOCKED_KEYWORDS.forEach(keyword => {
-          const lowerKeyword = keyword.toLowerCase();
-          if (!lowerKeyword.includes(' ')) {
-            const regex = new RegExp(`\\b${lowerKeyword}\\b`, 'i');
-            if (regex.test(title.toLowerCase())) {
-              console.log(`Keyword "${keyword}" matched in title: ${title}`);
-            }
-            if (regex.test(description.toLowerCase())) {
-              console.log(`Keyword "${keyword}" matched in description: ${description}`);
-            }
-          } else {
-            if (title.toLowerCase().includes(lowerKeyword)) {
-              console.log(`Phrase "${keyword}" matched in title: ${title}`);
-            }
-            if (description.toLowerCase().includes(lowerKeyword)) {
-              console.log(`Phrase "${keyword}" matched in description: ${description}`);
-            }
-          }
-        });
+      const hasExplicitContent = explicitPatterns.some(pattern => 
+        pattern.test(title) || pattern.test(description)
+      );
+      
+      if (hasExplicitContent) {
+        console.log(`Content blocked due to explicit content in: ${title}`);
         return false;
       }
 

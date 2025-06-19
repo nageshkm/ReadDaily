@@ -95,13 +95,15 @@ function App() {
     }
   }, []);
 
+  const showNavigation = LocalStorage.getUser() !== null;
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <div className="min-h-screen bg-warm-white pb-16 sm:pb-0">
-          <Header user={user} />
+          {showNavigation && <Header user={user} />}
           <Router />
-          <MobileNavigation />
+          {showNavigation && <MobileNavigation />}
         </div>
         <Toaster />
       </TooltipProvider>

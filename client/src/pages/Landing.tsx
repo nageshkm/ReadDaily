@@ -1,6 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { GoogleOAuthProvider, CredentialResponse } from "@react-oauth/google";
-import { useGoogleLogin } from "@react-oauth/google";
+
+import { GoogleOAuthProvider, CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import { useQuery } from "@tanstack/react-query";
 import { LocalStorage } from "@/lib/storage";
 import { useLocation } from "wouter";
@@ -20,11 +19,11 @@ export default function Landing() {
     queryKey: ['/api/config']
   });
 
-  const handleGoogleSuccess = async (tokenResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
-      // Get user info from Google using the access token
-      const userInfoResponse = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${tokenResponse.access_token}`);
-      const userInfo = await userInfoResponse.json();
+      if (!credentialResponse.credential) return;
+      
+      const userInfo = parseJwt(credentialResponse.credential);
       
       const newUser = LocalStorage.createUser(
         userInfo.name,
@@ -38,11 +37,6 @@ export default function Landing() {
       console.error('Authentication failed:', error);
     }
   };
-
-  const googleLogin = useGoogleLogin({
-    onSuccess: handleGoogleSuccess,
-    onError: () => console.error('Login Failed'),
-  });
 
   if (!config || !(config as any).googleClientId) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -74,12 +68,15 @@ export default function Landing() {
             <div className="text-center">
               <h2 className="text-2xl font-semibold mb-4">Want to see what your circle is reading?</h2>
               <p className="text-[#5a4630] mb-8">Sign up to access your private reading list and start your streak today.</p>
-              <Button 
-                onClick={() => googleLogin()}
-                className="bg-[#7b5e3b] hover:bg-[#6b4e2b] text-white font-bold py-4 px-12 rounded-lg text-xl"
-              >
-                Sign Up with Google
-              </Button>
+              <div className="flex justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => console.error('Login Failed')}
+                  theme="filled_blue"
+                  size="large"
+                  text="signup_with"
+                />
+              </div>
             </div>
           </div>
         </section>

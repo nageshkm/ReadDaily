@@ -58,36 +58,29 @@ export default function Landing() {
           </p>
         </header>
 
-        <section className="text-center px-6 py-8">
-          <div className="flex flex-col sm:flex-row justify-center gap-6 max-w-4xl mx-auto">
-            <div className="bg-white rounded-xl p-6 shadow-md">
-              <h2 className="text-xl font-semibold mb-2">📚 Curated by your circle</h2>
-              <p className="text-[#5a4630]">No algorithms. Just great links from people you trust.</p>
+        <section className="text-center px-6 py-12 bg-[#fff6e5]">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex flex-col sm:flex-row justify-center gap-8 mb-12">
+              <div className="bg-white rounded-xl p-6 shadow-md">
+                <h2 className="text-xl font-semibold mb-2">📚 Curated by your circle</h2>
+                <p className="text-[#5a4630]">No algorithms. Just great links from people you trust.</p>
+              </div>
+              <div className="bg-white rounded-xl p-6 shadow-md">
+                <h2 className="text-xl font-semibold mb-2">🔥 Build your streak</h2>
+                <p className="text-[#5a4630]">Track your reading habit, one link at a time.</p>
+              </div>
             </div>
-            <div className="bg-white rounded-xl p-6 shadow-md">
-              <h2 className="text-xl font-semibold mb-2">🔥 Build your streak</h2>
-              <p className="text-[#5a4630]">Track your reading habit, one link at a time.</p>
+
+            <div className="text-center">
+              <h2 className="text-2xl font-semibold mb-4">Want to see what your circle is reading?</h2>
+              <p className="text-[#5a4630] mb-8">Sign up to access your private reading list and start your streak today.</p>
+              <Button 
+                onClick={() => googleLogin()}
+                className="bg-[#7b5e3b] hover:bg-[#6b4e2b] text-white font-bold py-4 px-12 rounded-lg text-xl"
+              >
+                Sign Up with Google
+              </Button>
             </div>
-          </div>
-        </section>
-
-        <section className="px-6 py-8 text-center">
-          <div className="mx-auto w-full max-w-md h-96 bg-gray-200 rounded-lg shadow-lg flex items-center justify-center">
-            <span className="text-gray-500 text-lg">App Preview Screenshot</span>
-          </div>
-          <p className="mt-4 text-[#7b5e3b] italic">A sample from your personalized reading feed</p>
-        </section>
-
-        <section className="text-center py-10 px-6 bg-[#fff6e5]">
-          <h2 className="text-2xl font-semibold mb-4">Want to see what your circle is reading?</h2>
-          <p className="text-[#5a4630] mb-6">Sign up to access your private reading list and start your streak today.</p>
-          <div className="flex justify-center">
-            <Button 
-              onClick={() => googleLogin()}
-              className="bg-[#7b5e3b] hover:bg-[#6b4e2b] text-white font-bold py-3 px-8 rounded-lg text-lg"
-            >
-              Sign Up with Google
-            </Button>
           </div>
         </section>
 

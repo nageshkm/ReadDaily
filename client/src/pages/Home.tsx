@@ -78,10 +78,22 @@ export default function Home() {
       setShowOnboarding(true);
     }
 
-    if (storedSharedArticleId) {
+    // Only show shared article if it's the first view
+    if (storedSharedArticleId && LocalStorage.isFirstViewOfSharedArticle()) {
       setSharedArticleId(storedSharedArticleId);
+      // Mark as viewed after setting it, so it won't show on subsequent visits
+      LocalStorage.markSharedArticleViewed();
     }
   }, []);
+
+  // Clear shared article highlighting when component unmounts or user navigates away
+  useEffect(() => {
+    return () => {
+      if (sharedArticleId) {
+        LocalStorage.clearSharedArticleId();
+      }
+    };
+  }, [sharedArticleId]);
 
   const handleOnboardingComplete = (newUser: User) => {
     LocalStorage.saveUser(newUser);
@@ -202,12 +214,7 @@ export default function Home() {
                                 article={sharedArticle}
                                 category={getCategoryById(sharedArticle.categoryId) || { id: "general", name: "General", description: "General content" }}
                                 isRead={isArticleRead(sharedArticle.id)}
-                                onReadClick={(article) => {
-                                  handleReadArticle(article);
-                                  // Clear shared article ID after first interaction
-                                  LocalStorage.clearSharedArticleId();
-                                  setSharedArticleId(null);
-                                }}
+                                onReadClick={handleReadArticle}
                                 onViewClick={handleViewArticle}
                                 onLikeClick={handleLikeArticle}
                                 showSocialActions={true}

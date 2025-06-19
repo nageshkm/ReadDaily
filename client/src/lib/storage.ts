@@ -189,6 +189,8 @@ export class LocalStorage {
   static setSharedArticleId(articleId: string): void {
     try {
       localStorage.setItem('sharedArticleId', articleId);
+      // Set a flag to track if this is the first time viewing this shared article
+      localStorage.setItem('sharedArticleFirstView', 'true');
     } catch {
       // Ignore localStorage errors
     }
@@ -197,6 +199,23 @@ export class LocalStorage {
   static clearSharedArticleId(): void {
     try {
       localStorage.removeItem('sharedArticleId');
+      localStorage.removeItem('sharedArticleFirstView');
+    } catch {
+      // Ignore localStorage errors
+    }
+  }
+
+  static isFirstViewOfSharedArticle(): boolean {
+    try {
+      return localStorage.getItem('sharedArticleFirstView') === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  static markSharedArticleViewed(): void {
+    try {
+      localStorage.removeItem('sharedArticleFirstView');
     } catch {
       // Ignore localStorage errors
     }

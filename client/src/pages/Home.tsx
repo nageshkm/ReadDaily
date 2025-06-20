@@ -35,7 +35,7 @@ export default function Home() {
   });
 
   const { data: featuredArticles = [], isLoading: isLoadingFeatured } = useQuery({
-    queryKey: ['/api/articles/featured'],
+    queryKey: ['/api/featured'],
     enabled: !!user,
   });
 
@@ -65,7 +65,7 @@ export default function Home() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/articles/featured'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/featured'] });
       toast({ title: "Article featured successfully!" });
     }
   });
@@ -81,7 +81,7 @@ export default function Home() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/articles/featured'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/featured'] });
       toast({ title: "Article removed from featured!" });
     }
   });
@@ -97,7 +97,7 @@ export default function Home() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/articles/featured'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/featured'] });
       toast({ title: "Featured articles reset!" });
     }
   });
@@ -109,6 +109,14 @@ export default function Home() {
   const isArticleRead = (articleId: string): boolean => {
     if (!user) return false;
     return LocalStorage.isArticleRead(user, articleId);
+  };
+
+  const isAdmin = (): boolean => {
+    return user?.email === "readdailyco@gmail.com";
+  };
+
+  const isFeatured = (articleId: string): boolean => {
+    return (featuredArticles as any[]).some(article => article.id === articleId);
   };
 
   useEffect(() => {
@@ -202,6 +210,21 @@ export default function Home() {
     likeArticleMutation.mutate(article.id);
   };
 
+  const handleFeatureArticle = (article: Article) => {
+    if (!user || !isAdmin()) return;
+    featureArticleMutation.mutate(article.id);
+  };
+
+  const handleUnfeatureArticle = (article: Article) => {
+    if (!user || !isAdmin()) return;
+    unfeatureArticleMutation.mutate(article.id);
+  };
+
+  const handleResetFeatured = () => {
+    if (!user || !isAdmin()) return;
+    resetFeaturedMutation.mutate();
+  };
+
   if (showOnboarding) {
     return <UserOnboarding isOpen={true} onComplete={handleOnboardingComplete} />;
   }
@@ -218,7 +241,10 @@ export default function Home() {
     <div className="max-w-4xl mx-auto px-4 py-6">
       <main className="space-y-8">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">Shared Articles</h2>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">ReadDaily</h1>
+            <p className="text-sm text-gray-600 mt-1">Discover what's worth reading today</p>
+          </div>
           <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2">
@@ -235,84 +261,210 @@ export default function Home() {
           </Dialog>
         </div>
 
-        <div className="space-y-6">
-          {isLoadingRecommended ? (
-            <div className="flex justify-center">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          ) : (recommendedArticles as any[]).length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No recommended articles yet.</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Articles shared by other users will appear here.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-8">
-              {(() => {
-                const articles = recommendedArticles as any[];
-                const sharedArticle = sharedArticleId ? articles.find(a => a.id === sharedArticleId) : null;
-                const otherArticles = articles.filter(a => a.id !== sharedArticleId);
-                
-                return (
-                  <>
-                    {/* Highlighted shared article */}
-                    {sharedArticle && (
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-blue-600">Shared with You</h3>
-                        <div className="relative">
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg transform -rotate-1"></div>
-                          <div className="relative bg-white rounded-lg shadow-md border-2 border-blue-200">
-                            <ArticleCard
-                              key={sharedArticle.id}
-                              article={sharedArticle}
-                              category={getCategoryById(sharedArticle.categoryId) || { id: "general", name: "General", description: "General content" }}
-                              isRead={isArticleRead(sharedArticle.id)}
-                              onReadClick={handleReadArticle}
-                              onViewClick={handleViewArticle}
-                              onLikeClick={handleLikeArticle}
-                              showSocialActions={true}
-                              recommenderName={sharedArticle.recommenderName}
-                              currentUserId={user?.id}
-                            />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="flex justify-between items-center">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="featured">Featured Today</TabsTrigger>
+              <TabsTrigger value="shared">Shared Articles</TabsTrigger>
+            </TabsList>
+            
+            {isAdmin() && activeTab === "featured" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetFeatured}
+                className="flex items-center gap-2 text-red-600 hover:text-red-700"
+              >
+                <RotateCcw size={14} />
+                Reset Featured
+              </Button>
+            )}
+          </div>
+
+          <TabsContent value="featured" className="space-y-6">
+            {isLoadingFeatured ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : (featuredArticles as any[]).length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <h3 className="text-lg font-semibold mb-2">No Featured Articles Yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    {isAdmin() 
+                      ? "Add articles to the featured section to showcase the best content." 
+                      : "Check back soon for today's handpicked articles!"
+                    }
+                  </p>
+                  {!isAdmin() && (
+                    <p className="text-sm text-gray-500">
+                      In the meantime, share something interesting with the community! 📚
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h2 className="text-lg font-semibold text-gray-800">Today's Featured Reads</h2>
+                  <p className="text-sm text-gray-600">Handpicked articles worth your time</p>
+                </div>
+                <div className="grid gap-6">
+                  {(featuredArticles as any[]).map((article: any) => {
+                    const category = getCategoryById(article.categoryId);
+                    const displayCategory = category || { id: "general", name: "General", description: "General content" };
+                    
+                    return (
+                      <div key={article.id} className="relative">
+                        <div className="absolute -top-2 -right-2 z-10">
+                          <div className="bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                            <Star size={12} fill="currentColor" />
+                            Featured
                           </div>
                         </div>
+                        <ArticleCard
+                          article={article}
+                          category={displayCategory}
+                          isRead={isArticleRead(article.id)}
+                          onReadClick={handleReadArticle}
+                          onViewClick={handleViewArticle}
+                          onLikeClick={handleLikeArticle}
+                          showSocialActions={true}
+                          recommenderName={article.recommenderName}
+                          currentUserId={user?.id}
+                        />
+                        {isAdmin() && (
+                          <div className="absolute top-2 right-2 z-10">
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleUnfeatureArticle(article)}
+                              className="opacity-80 hover:opacity-100"
+                            >
+                              <Trash2 size={14} />
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </TabsContent>
 
-                    {/* Other recommended articles */}
-                    {otherArticles.length > 0 && (
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-gray-800">Recommended for You</h3>
-                        <div className="grid gap-6">
-                          {otherArticles.map((article: any) => {
-                            const category = getCategoryById(article.categoryId);
-                            const displayCategory = category || { id: "general", name: "General", description: "General content" };
-                            
-                            return (
+          <TabsContent value="shared" className="space-y-6">
+            {isLoadingRecommended ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : (recommendedArticles as any[]).length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <h3 className="text-lg font-semibold mb-2">Be the First to Share!</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Found something fascinating? Don't keep it to yourself! 
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    The best discoveries happen when curious minds share their finds ✨
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-8">
+                {(() => {
+                  const articles = recommendedArticles as any[];
+                  const sharedArticle = sharedArticleId ? articles.find(a => a.id === sharedArticleId) : null;
+                  const otherArticles = articles.filter(a => a.id !== sharedArticleId);
+                  
+                  return (
+                    <>
+                      {/* Highlighted shared article */}
+                      {sharedArticle && (
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold text-blue-600">Shared with You</h3>
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg transform -rotate-1"></div>
+                            <div className="relative bg-white rounded-lg shadow-md border-2 border-blue-200">
                               <ArticleCard
-                                key={article.id}
-                                article={article}
-                                category={displayCategory}
-                                isRead={isArticleRead(article.id)}
+                                key={sharedArticle.id}
+                                article={sharedArticle}
+                                category={getCategoryById(sharedArticle.categoryId) || { id: "general", name: "General", description: "General content" }}
+                                isRead={isArticleRead(sharedArticle.id)}
                                 onReadClick={handleReadArticle}
                                 onViewClick={handleViewArticle}
                                 onLikeClick={handleLikeArticle}
                                 showSocialActions={true}
-                                recommenderName={article.recommenderName}
+                                recommenderName={sharedArticle.recommenderName}
                                 currentUserId={user?.id}
                               />
-                            );
-                          })}
+                              {isAdmin() && !isFeatured(sharedArticle.id) && (
+                                <div className="absolute top-2 right-2 z-10">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleFeatureArticle(sharedArticle)}
+                                    className="opacity-80 hover:opacity-100"
+                                  >
+                                    <Star size={14} />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
-          )}
-        </div>
+                      )}
+
+                      {/* Other shared articles */}
+                      {otherArticles.length > 0 && (
+                        <div className="space-y-4">
+                          <div className="text-center">
+                            <h3 className="text-lg font-semibold text-gray-800">Community Shares</h3>
+                            <p className="text-sm text-gray-600">Articles discovered and shared by readers like you</p>
+                          </div>
+                          <div className="grid gap-6">
+                            {otherArticles.map((article: any) => {
+                              const category = getCategoryById(article.categoryId);
+                              const displayCategory = category || { id: "general", name: "General", description: "General content" };
+                              
+                              return (
+                                <div key={article.id} className="relative">
+                                  <ArticleCard
+                                    article={article}
+                                    category={displayCategory}
+                                    isRead={isArticleRead(article.id)}
+                                    onReadClick={handleReadArticle}
+                                    onViewClick={handleViewArticle}
+                                    onLikeClick={handleLikeArticle}
+                                    showSocialActions={true}
+                                    recommenderName={article.recommenderName}
+                                    currentUserId={user?.id}
+                                  />
+                                  {isAdmin() && !isFeatured(article.id) && (
+                                    <div className="absolute top-2 right-2 z-10">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleFeatureArticle(article)}
+                                        className="opacity-80 hover:opacity-100"
+                                      >
+                                        <Star size={14} />
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
 
       <SuccessFeedback

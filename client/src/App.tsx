@@ -5,6 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Header } from "@/components/Header";
+import { StreakProgressBar } from "@/components/StreakProgressBar";
 import { LocalStorage } from "@/lib/storage";
 import { User } from "@shared/schema";
 import Home from "@/pages/Home";
@@ -101,6 +102,7 @@ function App() {
           {showNavigation && <Header user={user} />}
           <Router />
           {showNavigation && <MobileNavigation />}
+          {showNavigation && user && <StreakProgressBar user={user} />}
         </div>
         <Toaster />
       </TooltipProvider>

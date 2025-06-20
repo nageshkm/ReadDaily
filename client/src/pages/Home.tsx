@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { StreakDisplay } from "@/components/StreakDisplay";
+import { StreakProgressBar } from "@/components/StreakProgressBar";
 import { ArticleCard } from "@/components/ArticleCard";
 
 import { UserOnboarding } from "@/components/UserOnboarding";
@@ -226,9 +226,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <StreakDisplay user={user} todayReadCount={todayReadCount} />
-        </div>
+
 
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">Articles</h2>

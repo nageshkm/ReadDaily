@@ -297,12 +297,26 @@ export class UrlMetadataService {
       const oembedData = await response.json();
       
       if (oembedData.html) {
-        // Extract tweet text from the oEmbed HTML
+        // Extract tweet text from the oEmbed HTML - it's in a <p> tag within the blockquote
         let tweetText = this.extractFromHtml(oembedData.html, [
           /<p[^>]*dir="ltr"[^>]*>([^<]*)<\/p>/i,
-          /<p[^>]*>([^<]*)<\/p>/i,
-          />([^<]+)</
+          /<p[^>]*lang="[^"]*"[^>]*>([^<]*)<\/p>/i,
+          /<p[^>]*>([^<]*)<\/p>/i
         ]) || '';
+
+        // If no text found, try decoding the entire HTML and extracting differently
+        if (!tweetText) {
+          const decodedHtml = oembedData.html
+            .replace(/\\u003C/g, '<')
+            .replace(/\\u003E/g, '>')
+            .replace(/\\/g, '');
+          
+          tweetText = this.extractFromHtml(decodedHtml, [
+            /<p[^>]*dir="ltr"[^>]*>([^<]*)<\/p>/i,
+            /<p[^>]*lang="[^"]*"[^>]*>([^<]*)<\/p>/i,
+            /<p[^>]*>([^<]*)<\/p>/i
+          ]) || '';
+        }
 
         // Clean up tweet text
         tweetText = tweetText
@@ -313,6 +327,7 @@ export class UrlMetadataService {
           .replace(/&gt;/g, '>')
           .replace(/&#39;/g, "'")
           .replace(/&nbsp;/g, ' ')
+          .replace(/&mdash;/g, '—')
           .replace(/https:\/\/t\.co\/\w+/g, '') // Remove t.co links
           .trim();
 

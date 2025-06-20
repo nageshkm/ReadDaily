@@ -29,15 +29,7 @@ export function Header({ user }: HeaderProps) {
           </div>
           
           <nav className="hidden sm:flex items-center space-x-6">
-            <Link href="/today">
-              <span className={`transition-colors pb-1 ${
-                isActive("/today")
-                  ? "text-accent font-medium border-b-2 border-accent"
-                  : "text-gray-600 hover:text-primary"
-              }`}>
-                Today
-              </span>
-            </Link>
+            {/* Navigation items removed - access via profile */}
           </nav>
           
           {user && (

@@ -160,10 +160,6 @@ export default function Home() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
-      <div className="mb-6">
-        <StreakDisplay user={user} todayReadCount={todayReadCount} />
-      </div>
-
       <main className="space-y-8">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-900">Daily Articles</h2>

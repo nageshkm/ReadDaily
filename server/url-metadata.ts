@@ -45,7 +45,16 @@ export class UrlMetadataService {
         return null;
       }
 
-      // Fetch the webpage
+      // Handle Twitter/X and YouTube specially
+      if (domain.includes('twitter.com') || domain.includes('x.com')) {
+        return await this.extractTwitterMetadata(url, parsedUrl);
+      }
+      
+      if (domain.includes('youtube.com') || domain.includes('youtu.be')) {
+        return await this.extractYouTubeMetadata(url, parsedUrl);
+      }
+
+      // Standard extraction for other platforms
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
@@ -88,6 +97,162 @@ export class UrlMetadataService {
       console.error('Error extracting metadata:', error);
       return null;
     }
+  }
+
+
+
+  private async extractTwitterMetadata(url: string, parsedUrl: URL): Promise<UrlMetadata | null> {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        console.log(`Failed to fetch Twitter URL: ${response.status}`);
+        return null;
+      }
+
+      const html = await response.text();
+      
+      // Extract tweet text as title
+      let tweetText = this.extractFromHtml(html, [
+        /<meta property="og:description" content="([^"]*)"[^>]*>/i,
+        /<meta name="twitter:description" content="([^"]*)"[^>]*>/i,
+        /<meta name="description" content="([^"]*)"[^>]*>/i
+      ]) || '';
+
+      // Clean up the tweet text and remove "See new posts" etc.
+      tweetText = tweetText.replace(/See new posts.*$/, '').trim();
+      if (!tweetText) {
+        tweetText = 'Twitter Post';
+      }
+
+      // Extract images with priority: tweet images -> user profile pic -> X logo
+      let image = '';
+      
+      // First try to get tweet images
+      image = this.extractFromHtml(html, [
+        /<meta property="og:image" content="([^"]*)"[^>]*>/i,
+        /<meta name="twitter:image" content="([^"]*)"[^>]*>/i,
+        /<meta name="twitter:image:src" content="([^"]*)"[^>]*>/i
+      ]) || '';
+
+      // If no tweet image, try to get user profile picture
+      if (!image) {
+        image = this.extractFromHtml(html, [
+          /<img[^>]*class="[^"]*profile[^"]*"[^>]*src="([^"]*)"[^>]*>/i,
+          /<img[^>]*src="([^"]*)"[^>]*class="[^"]*profile[^"]*"[^>]*>/i
+        ]) || '';
+      }
+
+      // Fallback to X logo (using a public X logo URL)
+      if (!image) {
+        image = 'https://abs.twimg.com/icons/apple-touch-icon-192x192.png';
+      }
+
+      return {
+        title: this.cleanText(tweetText),
+        description: 'Twitter/X Post',
+        image: this.normalizeImageUrl(image),
+        domain: parsedUrl.hostname.toLowerCase(),
+        isValid: true,
+        category: 'general',
+        estimatedReadTime: 1
+      };
+
+    } catch (error) {
+      console.error('Error extracting Twitter metadata:', error);
+      return null;
+    }
+  }
+
+  private async extractYouTubeMetadata(url: string, parsedUrl: URL): Promise<UrlMetadata | null> {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        console.log(`Failed to fetch YouTube URL: ${response.status}`);
+        return null;
+      }
+
+      const html = await response.text();
+      
+      // Extract video title
+      const videoTitle = this.extractFromHtml(html, [
+        /<meta property="og:title" content="([^"]*)"[^>]*>/i,
+        /<meta name="twitter:title" content="([^"]*)"[^>]*>/i,
+        /<title[^>]*>([^<]*)<\/title>/i
+      ]) || 'YouTube Video';
+
+      // Extract video thumbnail
+      let thumbnail = this.extractFromHtml(html, [
+        /<meta property="og:image" content="([^"]*)"[^>]*>/i,
+        /<meta name="twitter:image" content="([^"]*)"[^>]*>/i
+      ]) || '';
+
+      // If no thumbnail found, try to construct it from video ID
+      if (!thumbnail) {
+        const videoId = this.extractYouTubeVideoId(url);
+        if (videoId) {
+          thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        }
+      }
+
+      // Extract description
+      const description = this.extractFromHtml(html, [
+        /<meta property="og:description" content="([^"]*)"[^>]*>/i,
+        /<meta name="twitter:description" content="([^"]*)"[^>]*>/i,
+        /<meta name="description" content="([^"]*)"[^>]*>/i
+      ]) || 'YouTube Video';
+
+      return {
+        title: this.cleanText(videoTitle),
+        description: this.cleanText(description),
+        image: this.normalizeImageUrl(thumbnail),
+        domain: parsedUrl.hostname.toLowerCase(),
+        isValid: true,
+        category: 'technology',
+        estimatedReadTime: 5
+      };
+
+    } catch (error) {
+      console.error('Error extracting YouTube metadata:', error);
+      return null;
+    }
+  }
+
+  private extractYouTubeVideoId(url: string): string | null {
+    const patterns = [
+      /[?&]v=([^&]+)/,  // youtube.com/watch?v=ID
+      /youtu\.be\/([^?&]+)/,  // youtu.be/ID
+      /embed\/([^?&]+)/  // youtube.com/embed/ID
+    ];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    return null;
   }
 
   private isBlockedDomain(domain: string): boolean {

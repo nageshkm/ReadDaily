@@ -103,6 +103,13 @@ export class UrlMetadataService {
 
   private async extractTwitterMetadata(url: string, parsedUrl: URL): Promise<UrlMetadata | null> {
     try {
+      // First try Twitter's oEmbed API to get actual tweet content
+      const tweetData = await this.fetchTwitterOEmbed(url);
+      if (tweetData) {
+        return tweetData;
+      }
+
+      // Fallback to HTML scraping if oEmbed fails
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
@@ -122,53 +129,12 @@ export class UrlMetadataService {
 
       const html = await response.text();
       
-      // Extract the actual tweet text as title
-      let tweetText = '';
-      
-      // Try multiple strategies to get the actual tweet content
-      // 1. Look for JSON-LD structured data with tweet content
-      const jsonLdMatch = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi);
-      if (jsonLdMatch) {
-        for (const script of jsonLdMatch) {
-          try {
-            const jsonContent = script.replace(/<script[^>]*>/i, '').replace(/<\/script>/i, '');
-            const data = JSON.parse(jsonContent);
-            if (data.articleBody || data.text || data.description) {
-              tweetText = data.articleBody || data.text || data.description;
-              break;
-            }
-          } catch (e) {
-            // Continue to next script
-          }
-        }
-      }
-      
-      // 2. Try Open Graph and Twitter Card descriptions which often contain tweet text
-      if (!tweetText) {
-        tweetText = this.extractFromHtml(html, [
-          /<meta property="og:description" content="([^"]*)"[^>]*>/i,
-          /<meta name="twitter:description" content="([^"]*)"[^>]*>/i,
-          /<meta name="description" content="([^"]*)"[^>]*>/i
-        ]) || '';
-      }
-      
-      // 3. Look for tweet content in data attributes or spans
-      if (!tweetText) {
-        tweetText = this.extractFromHtml(html, [
-          /<span[^>]*data-testid="tweetText"[^>]*>([^<]*)<\/span>/i,
-          /<div[^>]*data-testid="tweetText"[^>]*>([^<]*)<\/div>/i,
-          /<p[^>]*class="[^"]*tweet[^"]*"[^>]*>([^<]*)<\/p>/i
-        ]) || '';
-      }
-      
-      // 4. Try title tags as last resort
-      if (!tweetText) {
-        tweetText = this.extractFromHtml(html, [
-          /<meta property="og:title" content="([^"]*)"[^>]*>/i,
-          /<meta name="twitter:title" content="([^"]*)"[^>]*>/i,
-          /<title[^>]*>([^<]*)<\/title>/i
-        ]) || '';
-      }
+      // Extract tweet text from Open Graph description
+      let tweetText = this.extractFromHtml(html, [
+        /<meta property="og:description" content="([^"]*)"[^>]*>/i,
+        /<meta name="twitter:description" content="([^"]*)"[^>]*>/i,
+        /<meta name="description" content="([^"]*)"[^>]*>/i
+      ]) || '';
 
       // Clean up the extracted text
       tweetText = tweetText
@@ -307,6 +273,71 @@ export class UrlMetadataService {
       }
     }
     return null;
+  }
+
+  private async fetchTwitterOEmbed(url: string): Promise<UrlMetadata | null> {
+    try {
+      // Use Twitter's oEmbed API to get tweet content
+      const oembedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}&omit_script=1`;
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch(oembedUrl, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        console.log(`Twitter oEmbed failed: ${response.status}`);
+        return null;
+      }
+
+      const oembedData = await response.json();
+      
+      if (oembedData.html) {
+        // Extract tweet text from the oEmbed HTML
+        let tweetText = this.extractFromHtml(oembedData.html, [
+          /<p[^>]*dir="ltr"[^>]*>([^<]*)<\/p>/i,
+          /<p[^>]*>([^<]*)<\/p>/i,
+          />([^<]+)</
+        ]) || '';
+
+        // Clean up tweet text
+        tweetText = tweetText
+          .replace(/<[^>]*>/g, '') // Remove any remaining HTML tags
+          .replace(/&quot;/g, '"')
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&#39;/g, "'")
+          .replace(/&nbsp;/g, ' ')
+          .replace(/https:\/\/t\.co\/\w+/g, '') // Remove t.co links
+          .trim();
+
+        // Extract author name from oEmbed data
+        const authorName = oembedData.author_name || '';
+        
+        // If we got meaningful tweet text, use it as title
+        if (tweetText && tweetText.length > 3) {
+          return {
+            title: this.cleanText(tweetText),
+            description: `Tweet by ${authorName}`,
+            image: 'https://abs.twimg.com/icons/apple-touch-icon-192x192.png',
+            domain: new URL(url).hostname.toLowerCase(),
+            isValid: true,
+            category: 'general',
+            estimatedReadTime: 1
+          };
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error fetching Twitter oEmbed:', error);
+      return null;
+    }
   }
 
   private isBlockedDomain(domain: string): boolean {

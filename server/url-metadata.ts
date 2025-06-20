@@ -297,29 +297,30 @@ export class UrlMetadataService {
       const oembedData = await response.json();
       
       if (oembedData.html) {
-        // Extract tweet text from the oEmbed HTML - it's in a <p> tag within the blockquote
-        let tweetText = this.extractFromHtml(oembedData.html, [
-          /<p[^>]*dir="ltr"[^>]*>([^<]*)<\/p>/i,
-          /<p[^>]*lang="[^"]*"[^>]*>([^<]*)<\/p>/i,
-          /<p[^>]*>([^<]*)<\/p>/i
-        ]) || '';
-
-        // If no text found, try decoding the entire HTML and extracting differently
-        if (!tweetText) {
-          const decodedHtml = oembedData.html
-            .replace(/\\u003C/g, '<')
-            .replace(/\\u003E/g, '>')
-            .replace(/\\/g, '');
-          
-          tweetText = this.extractFromHtml(decodedHtml, [
-            /<p[^>]*dir="ltr"[^>]*>([^<]*)<\/p>/i,
-            /<p[^>]*lang="[^"]*"[^>]*>([^<]*)<\/p>/i,
-            /<p[^>]*>([^<]*)<\/p>/i
-          ]) || '';
+        // First decode the escaped HTML from the JSON response
+        let decodedHtml = oembedData.html
+          .replace(/\\u003C/g, '<')
+          .replace(/\\u003E/g, '>')
+          .replace(/\\/g, '');
+        
+        // Extract tweet text using a more direct approach
+        const pTagMatch = decodedHtml.match(/<p[^>]*>(.*?)<\/p>/);
+        let tweetText = '';
+        
+        if (pTagMatch && pTagMatch[1]) {
+          tweetText = pTagMatch[1];
+        } else {
+          // Fallback to original HTML parsing
+          const originalMatch = oembedData.html.match(/<p[^>]*>(.*?)<\/p>/);
+          if (originalMatch && originalMatch[1]) {
+            tweetText = originalMatch[1];
+          }
         }
 
-        // Clean up tweet text
+        // Clean up tweet text - handle HTML entities and tags
         tweetText = tweetText
+          .replace(/<br\s*\/?>/gi, ' ') // Replace <br> with space
+          .replace(/<a[^>]*>.*?<\/a>/gi, '') // Remove links but keep text content
           .replace(/<[^>]*>/g, '') // Remove any remaining HTML tags
           .replace(/&quot;/g, '"')
           .replace(/&amp;/g, '&')
@@ -328,7 +329,17 @@ export class UrlMetadataService {
           .replace(/&#39;/g, "'")
           .replace(/&nbsp;/g, ' ')
           .replace(/&mdash;/g, '—')
+          .replace(/\\u[\dA-F]{4}/gi, (match) => {
+            // Decode Unicode escape sequences like \uD83C\uDF89 for emojis
+            try {
+              return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
+            } catch {
+              return match;
+            }
+          })
           .replace(/https:\/\/t\.co\/\w+/g, '') // Remove t.co links
+          .replace(/pic\.twitter\.com\/\w+/g, '') // Remove pic.twitter.com links
+          .replace(/\s+/g, ' ') // Normalize whitespace
           .trim();
 
         // Extract author name from oEmbed data

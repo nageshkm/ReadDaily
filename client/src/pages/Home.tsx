@@ -51,9 +51,20 @@ export default function Home() {
       if (!response.ok) throw new Error("Failed to like article");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: ["/api/articles/recommended"],
+      });
+      toast({
+        title: data.action === "liked" ? "Article liked!" : "Article unliked!",
+        description: `${data.likesCount} total likes`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to like article",
+        variant: "destructive",
       });
     },
   });

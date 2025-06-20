@@ -423,33 +423,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "userId is required" });
       }
 
-      // Check if already liked and toggle in a single transaction
-      const existingLike = await db
-        .select()
-        .from(articleLikes)
+      // Try to delete the like first (if it exists)
+      const deleteResult = await db
+        .delete(articleLikes)
         .where(and(eq(articleLikes.articleId, articleId), eq(articleLikes.userId, userId)))
-        .limit(1);
+        .returning({ id: articleLikes.id });
 
       let action = "";
       let likesCount = 0;
       
-      if (existingLike.length > 0) {
-        // Unlike: Remove existing like
-        await db
-          .delete(articleLikes)
-          .where(and(eq(articleLikes.articleId, articleId), eq(articleLikes.userId, userId)));
+      if (deleteResult.length > 0) {
+        // Unlike: Like was removed
         action = "unliked";
-        
-        // Decrement likes count directly
         const result = await db
           .update(articles)
-          .set({ likesCount: sql`${articles.likesCount} - 1` })
+          .set({ likesCount: sql`GREATEST(${articles.likesCount} - 1, 0)` })
           .where(eq(articles.id, articleId))
           .returning({ likesCount: articles.likesCount });
-        
         likesCount = result[0]?.likesCount || 0;
       } else {
-        // Like: Add new like
+        // Like: No existing like found, add new one
         const likeId = `like-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         await db.insert(articleLikes).values({
           id: likeId,
@@ -459,13 +452,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         action = "liked";
         
-        // Increment likes count directly
         const result = await db
           .update(articles)
           .set({ likesCount: sql`${articles.likesCount} + 1` })
           .where(eq(articles.id, articleId))
           .returning({ likesCount: articles.likesCount });
-        
         likesCount = result[0]?.likesCount || 1;
       }
 

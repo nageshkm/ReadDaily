@@ -17,6 +17,9 @@ export interface IStorage {
   addFeaturedArticle(articleId: string, userId: string): Promise<boolean>;
   removeFeaturedArticle(articleId: string): Promise<boolean>;
   resetFeaturedArticles(): Promise<boolean>;
+  getUserReadArticles(userName: string): Promise<any[]>;
+  getUserLikedArticles(userName: string): Promise<any[]>;
+  getAllUsers(): Promise<User[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -426,6 +429,131 @@ export class MemStorage implements IStorage {
     } catch (error) {
       console.error("Error resetting featured articles:", error);
       return false;
+    }
+  }
+
+  async getUserReadArticles(userName: string): Promise<any[]> {
+    const { db } = await import("./db");
+    const { users, articles, articleReads } = await import("@shared/schema");
+    const { eq, desc } = await import("drizzle-orm");
+    
+    try {
+      // First find the user by name
+      const user = await db.select().from(users).where(eq(users.name, userName)).limit(1);
+      if (user.length === 0) return [];
+      
+      const userId = user[0].id;
+      
+      // Get articles read by this user from articleReads table
+      const readArticles = await db
+        .select({
+          id: articles.id,
+          title: articles.title,
+          categoryId: articles.categoryId,
+          sourceUrl: articles.sourceUrl,
+          imageUrl: articles.imageUrl,
+          estimatedReadingTime: articles.estimatedReadingTime,
+          publishDate: articles.publishDate,
+          readAt: articleReads.readAt,
+          recommendedBy: articles.recommendedBy,
+          userCommentary: articles.userCommentary,
+          likesCount: articles.likesCount
+        })
+        .from(articleReads)
+        .innerJoin(articles, eq(articleReads.articleId, articles.id))
+        .where(eq(articleReads.userId, userId))
+        .orderBy(desc(articleReads.readAt));
+      
+      return readArticles.map((article: any) => ({
+        id: article.id,
+        title: article.title,
+        categoryId: article.categoryId,
+        sourceUrl: article.sourceUrl,
+        imageUrl: article.imageUrl,
+        estimatedReadingTime: article.estimatedReadingTime,
+        publishDate: article.publishDate,
+        readAt: article.readAt,
+        recommendedBy: article.recommendedBy,
+        userCommentary: article.userCommentary,
+        likesCount: article.likesCount || 0
+      }));
+    } catch (error) {
+      console.error("Error fetching user read articles:", error);
+      return [];
+    }
+  }
+
+  async getUserLikedArticles(userName: string): Promise<any[]> {
+    const { db } = await import("./db");
+    const { users, articles, articleLikes } = await import("@shared/schema");
+    const { eq, desc } = await import("drizzle-orm");
+    
+    try {
+      // First find the user by name
+      const user = await db.select().from(users).where(eq(users.name, userName)).limit(1);
+      if (user.length === 0) return [];
+      
+      const userId = user[0].id;
+      
+      // Get articles liked by this user
+      const likedArticles = await db
+        .select({
+          id: articles.id,
+          title: articles.title,
+          categoryId: articles.categoryId,
+          sourceUrl: articles.sourceUrl,
+          imageUrl: articles.imageUrl,
+          estimatedReadingTime: articles.estimatedReadingTime,
+          publishDate: articles.publishDate,
+          likedAt: articleLikes.likedAt,
+          recommendedBy: articles.recommendedBy,
+          userCommentary: articles.userCommentary,
+          likesCount: articles.likesCount
+        })
+        .from(articleLikes)
+        .innerJoin(articles, eq(articleLikes.articleId, articles.id))
+        .where(eq(articleLikes.userId, userId))
+        .orderBy(desc(articleLikes.likedAt));
+      
+      return likedArticles.map((article: any) => ({
+        id: article.id,
+        title: article.title,
+        categoryId: article.categoryId,
+        sourceUrl: article.sourceUrl,
+        imageUrl: article.imageUrl,
+        estimatedReadingTime: article.estimatedReadingTime,
+        publishDate: article.publishDate,
+        likedAt: article.likedAt,
+        recommendedBy: article.recommendedBy,
+        userCommentary: article.userCommentary,
+        likesCount: article.likesCount || 0
+      }));
+    } catch (error) {
+      console.error("Error fetching user liked articles:", error);
+      return [];
+    }
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    const { db } = await import("./db");
+    const { users } = await import("@shared/schema");
+    
+    try {
+      const allUsers = await db.select().from(users);
+      return allUsers.map((dbUser: any) => ({
+        id: dbUser.id,
+        name: dbUser.name,
+        email: dbUser.email,
+        joinDate: dbUser.joinDate,
+        lastActive: dbUser.lastActive,
+        preferences: JSON.parse(dbUser.preferences || '{"categories":["technology","business","health"]}'),
+        readArticles: JSON.parse(dbUser.readArticles || '[]'),
+        streakData: JSON.parse(dbUser.streakData || '{"currentStreak":0,"lastReadDate":"","longestStreak":0}'),
+        articlesShared: JSON.parse(dbUser.articlesShared || '[]')
+      }));
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+      return [];
     }
   }
 }

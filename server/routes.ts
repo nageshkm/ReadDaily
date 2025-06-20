@@ -578,6 +578,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get articles read by a specific user
+  app.get("/api/users/:userName/read-articles", async (req, res) => {
+    try {
+      const { userName } = req.params;
+      const readArticles = await storage.getUserReadArticles(userName);
+      res.json(readArticles);
+    } catch (error) {
+      console.error("Error fetching user read articles:", error);
+      res.status(500).json({ message: "Failed to fetch user read articles" });
+    }
+  });
+
+  // Get articles liked by a specific user
+  app.get("/api/users/:userName/liked-articles", async (req, res) => {
+    try {
+      const { userName } = req.params;
+      const likedArticles = await storage.getUserLikedArticles(userName);
+      res.json(likedArticles);
+    } catch (error) {
+      console.error("Error fetching user liked articles:", error);
+      res.status(500).json({ message: "Failed to fetch user liked articles" });
+    }
+  });
+
+  // Get all users
+  app.get("/api/users", async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
   // Manual content automation trigger (for testing)
   app.post("/api/automation/run", async (req, res) => {
     try {

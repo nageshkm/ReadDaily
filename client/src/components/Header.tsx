@@ -38,15 +38,6 @@ export function Header({ user }: HeaderProps) {
                 Today
               </span>
             </Link>
-            <Link href="/history">
-              <span className={`transition-colors pb-1 ${
-                isActive("/history")
-                  ? "text-accent font-medium border-b-2 border-accent"
-                  : "text-gray-600 hover:text-primary"
-              }`}>
-                History
-              </span>
-            </Link>
           </nav>
           
           {user && (

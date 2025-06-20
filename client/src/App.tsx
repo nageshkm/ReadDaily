@@ -28,18 +28,12 @@ function MobileNavigation() {
 
   return (
     <nav className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50">
-      <div className="flex justify-around">
+      <div className="flex justify-center">
         <Link href="/today" className={`flex flex-col items-center space-y-1 ${
           isActive("/today") ? "text-accent" : "text-gray-500"
         }`}>
           <HomeIcon size={20} />
           <span className="text-xs font-medium">Today</span>
-        </Link>
-        <Link href="/history" className={`flex flex-col items-center space-y-1 ${
-          isActive("/history") ? "text-accent" : "text-gray-500"
-        }`}>
-          <HistoryIcon size={20} />
-          <span className="text-xs">History</span>
         </Link>
       </div>
     </nav>

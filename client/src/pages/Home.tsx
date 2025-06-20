@@ -242,8 +242,7 @@ export default function Home() {
       <main className="space-y-8">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">ReadDaily</h1>
-            <p className="text-sm text-gray-600 mt-1">Discover what's worth reading today</p>
+            <p className="text-sm text-gray-600">Discover what's worth reading today</p>
           </div>
           <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
             <DialogTrigger asChild>

@@ -91,15 +91,14 @@ function Router() {
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
+  const [location] = useLocation();
 
   useEffect(() => {
     const existingUser = LocalStorage.getUser();
-    if (existingUser) {
-      setUser(existingUser);
-    }
-  }, []);
+    setUser(existingUser);
+  }, [location]); // React to location changes
 
-  const showNavigation = LocalStorage.getUser() !== null;
+  const showNavigation = user !== null;
 
   return (
     <QueryClientProvider client={queryClient}>

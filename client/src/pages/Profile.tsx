@@ -24,37 +24,36 @@ export default function Profile() {
 
   useEffect(() => {
     const existingUser = LocalStorage.getUser();
-    if (existingUser) {
-      setUser(existingUser);
-    }
+    setUser(existingUser);
   }, []);
 
-  const handleClearData = async () => {
-    if (confirm("Are you sure you want to clear all your data? This action cannot be undone.")) {
-      try {
-        // Sign out and end sessions on server
-        if (user?.id) {
-          await fetch('/api/auth/signout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.id })
-          });
-          
-          // Delete user from server
-          await apiRequest('DELETE', `/api/users/${user.id}`);
-        }
-        
-        // Clear local storage and session
-        LocalStorage.clearUser();
-        localStorage.removeItem('sessionId');
-        setLocation('/landing');
-      } catch (error) {
-        console.error("Error deleting user from server:", error);
-        // Still clear local storage even if server deletion fails
-        LocalStorage.clearUser();
-        localStorage.removeItem('sessionId');
-        setLocation('/landing');
+  const handleSignOut = async () => {
+    try {
+      // Sign out and end sessions on server
+      if (user?.id) {
+        await fetch('/api/auth/signout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id })
+        });
       }
+      
+      // Clear local storage and session
+      LocalStorage.clearUser();
+      localStorage.removeItem('sessionId');
+      
+      // Clear local state
+      setUser(null);
+      
+      // Navigate to landing page
+      setLocation('/landing');
+    } catch (error) {
+      console.error("Error signing out:", error);
+      // Still clear local storage even if server signout fails
+      LocalStorage.clearUser();
+      localStorage.removeItem('sessionId');
+      setUser(null);
+      setLocation('/landing');
     }
   };
 
@@ -218,23 +217,23 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        {/* Data Management Card */}
+        {/* Account Management Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Data Management</CardTitle>
+            <CardTitle>Account</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <p className="text-sm text-gray-600">
-                Your reading data is stored locally in your browser. You can clear all data if needed.
+                Sign out of your account. Your reading data will be saved and available when you sign back in.
               </p>
               <Button
-                variant="destructive"
-                onClick={handleClearData}
+                variant="outline"
+                onClick={handleSignOut}
                 className="w-full"
               >
-                <Trash2 className="mr-2" size={16} />
-                Clear All Data
+                <User className="mr-2" size={16} />
+                Sign Out
               </Button>
             </div>
           </CardContent>

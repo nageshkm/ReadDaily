@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Settings, Activity } from "lucide-react";
+import { User, Settings, Activity, History, BookOpen, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,16 +7,22 @@ import { LocalStorage } from "@/lib/storage";
 import { User as UserType, Category } from "@shared/schema";
 import { getInitials } from "@/lib/utils";
 import { useLocation } from "wouter";
+import { Link } from "wouter";
+import { StreakDisplay } from "@/components/StreakDisplay";
 
 export default function Profile() {
   const [user, setUser] = useState<UserType | null>(null);
+  const [todayReadCount, setTodayReadCount] = useState(0);
   const [, setLocation] = useLocation();
 
   const categories = LocalStorage.getCategories();
 
   useEffect(() => {
     const existingUser = LocalStorage.getUser();
-    setUser(existingUser);
+    if (existingUser) {
+      setUser(existingUser);
+      setTodayReadCount(LocalStorage.getTodayReadCount(existingUser));
+    }
   }, []);
 
   const handleSignOut = async () => {
@@ -104,40 +110,40 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-
-
-        {/* Reading Stats Card */}
+        {/* Streaks Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Reading Statistics</CardTitle>
+            <CardTitle className="flex items-center space-x-2">
+              <TrendingUp size={20} />
+              <span>Reading Streaks</span>
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
-                  {user.streakData.currentStreak}
-                </div>
-                <p className="text-sm text-gray-600">Current Streak</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
-                  {user.streakData.longestStreak}
-                </div>
-                <p className="text-sm text-gray-600">Longest Streak</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
-                  {user.readArticles.length}
-                </div>
-                <p className="text-sm text-gray-600">Total Articles</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
-                  {Math.round(user.readArticles.length * 5)} {/* Assuming 5min avg */}
-                </div>
-                <p className="text-sm text-gray-600">Minutes Read</p>
-              </div>
-            </div>
+            <StreakDisplay user={user} todayReadCount={todayReadCount} />
+          </CardContent>
+        </Card>
+
+        {/* Quick Navigation Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Activity size={20} />
+              <span>My Reading</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Link href="/history">
+              <Button variant="outline" className="w-full flex items-center justify-start gap-3">
+                <History size={16} />
+                Reading History
+              </Button>
+            </Link>
+            <Link href="/myarticles">
+              <Button variant="outline" className="w-full flex items-center justify-start gap-3">
+                <BookOpen size={16} />
+                My Articles
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 

@@ -10,6 +10,7 @@ import { User } from "@shared/schema";
 import Home from "@/pages/Home";
 import History from "@/pages/History";
 import Profile from "@/pages/Profile";
+import MyArticles from "@/pages/MyArticles";
 import Admin from "@/pages/Admin";
 import ArticleShare from "@/pages/ArticleShare";
 import Landing from "@/pages/Landing";
@@ -70,6 +71,8 @@ function Router() {
       return <History />;
     case "/profile":
       return <Profile />;
+    case "/myarticles":
+      return <MyArticles />;
     case "/admin":
       return <Admin />;
     default:

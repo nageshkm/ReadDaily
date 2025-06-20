@@ -94,12 +94,7 @@ export const articles = pgTable("articles", {
   recommendedAt: text("recommended_at"),
   userCommentary: text("user_commentary"),
   likesCount: integer("likes_count").default(0),
-  // YouTube-specific fields (keeping for migration)
-  youtubeVideoId: text("youtube_video_id"),
-  channelName: text("channel_name"),
-  transcript: text("transcript"),
-  isSummarized: boolean("is_summarized").default(false),
-  processingStatus: text("processing_status").default("pending"),
+  // Removed YouTube-specific fields
 });
 
 export const articleLikes = pgTable("article_likes", {

@@ -297,56 +297,85 @@ export class UrlMetadataService {
       const oembedData = await response.json();
       
       if (oembedData.html) {
-        // First decode the escaped HTML from the JSON response
-        let decodedHtml = oembedData.html
-          .replace(/\\u003C/g, '<')
-          .replace(/\\u003E/g, '>')
-          .replace(/\\/g, '');
+        // Properly decode the JSON-escaped HTML
+        let decodedHtml = '';
+        try {
+          // Parse the HTML as JSON string to handle proper unescaping
+          decodedHtml = JSON.parse('"' + oembedData.html.replace(/"/g, '\\"') + '"');
+        } catch {
+          // Fallback to manual replacement if JSON parsing fails
+          decodedHtml = oembedData.html
+            .replace(/\\u003C/g, '<')
+            .replace(/\\u003E/g, '>')
+            .replace(/\\"/g, '"')
+            .replace(/\\\\/g, '\\');
+        }
         
-        // Extract tweet text using a more direct approach
-        const pTagMatch = decodedHtml.match(/<p[^>]*>(.*?)<\/p>/);
+        // Extract tweet text from the <p> tag - use both greedy and non-greedy matches
         let tweetText = '';
+        const patterns = [
+          /<p[^>]*lang="[^"]*"[^>]*>(.*?)<\/p>/,
+          /<p[^>]*dir="[^"]*"[^>]*>(.*?)<\/p>/,
+          /<p[^>]*>(.*?)<\/p>/,
+          /<p[^>]*>([^<]*)</
+        ];
         
-        if (pTagMatch && pTagMatch[1]) {
-          tweetText = pTagMatch[1];
-        } else {
-          // Fallback to original HTML parsing
-          const originalMatch = oembedData.html.match(/<p[^>]*>(.*?)<\/p>/);
-          if (originalMatch && originalMatch[1]) {
-            tweetText = originalMatch[1];
+        for (const pattern of patterns) {
+          const match = decodedHtml.match(pattern);
+          if (match && match[1] && match[1].trim()) {
+            tweetText = match[1];
+            break;
           }
         }
 
-        // Clean up tweet text - handle HTML entities and tags
-        tweetText = tweetText
-          .replace(/<br\s*\/?>/gi, ' ') // Replace <br> with space
-          .replace(/<a[^>]*>.*?<\/a>/gi, '') // Remove links but keep text content
-          .replace(/<[^>]*>/g, '') // Remove any remaining HTML tags
-          .replace(/&quot;/g, '"')
-          .replace(/&amp;/g, '&')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .replace(/&#39;/g, "'")
-          .replace(/&nbsp;/g, ' ')
-          .replace(/&mdash;/g, '—')
-          .replace(/\\u[\dA-F]{4}/gi, (match) => {
-            // Decode Unicode escape sequences like \uD83C\uDF89 for emojis
-            try {
-              return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
-            } catch {
-              return match;
-            }
-          })
-          .replace(/https:\/\/t\.co\/\w+/g, '') // Remove t.co links
-          .replace(/pic\.twitter\.com\/\w+/g, '') // Remove pic.twitter.com links
-          .replace(/\s+/g, ' ') // Normalize whitespace
-          .trim();
+        // Clean up the extracted text comprehensively
+        if (tweetText) {
+          tweetText = tweetText
+            // Handle break tags and spacing
+            .replace(/<br\s*\/?>/gi, ' ')
+            .replace(/\s*<\/p>\s*<p[^>]*>\s*/gi, ' ')
+            
+            // Remove links but keep their text content for context
+            .replace(/<a[^>]*href="[^"]*"[^>]*>([^<]*)<\/a>/gi, '$1')
+            .replace(/<a[^>]*>([^<]*)<\/a>/gi, '$1')
+            
+            // Remove all other HTML tags
+            .replace(/<[^>]*>/g, '')
+            
+            // Decode HTML entities
+            .replace(/&quot;/g, '"')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&#39;/g, "'")
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&mdash;/g, '—')
+            .replace(/&hellip;/g, '…')
+            
+            // Handle Unicode escape sequences for emojis
+            .replace(/\\u([\dA-Fa-f]{4})/g, (match, hex) => {
+              try {
+                return String.fromCharCode(parseInt(hex, 16));
+              } catch {
+                return match;
+              }
+            })
+            
+            // Clean up URLs and trailing elements
+            .replace(/https:\/\/t\.co\/\w+/g, '')
+            .replace(/pic\.twitter\.com\/\w+/g, '')
+            .replace(/twitter\.com\/\w+/g, '')
+            
+            // Normalize whitespace
+            .replace(/\s+/g, ' ')
+            .trim();
+        }
 
         // Extract author name from oEmbed data
         const authorName = oembedData.author_name || '';
         
-        // If we got meaningful tweet text, use it as title
-        if (tweetText && tweetText.length > 3) {
+        // Use actual tweet text if we successfully extracted it
+        if (tweetText && tweetText.length > 5) {
           return {
             title: this.cleanText(tweetText),
             description: `Tweet by ${authorName}`,

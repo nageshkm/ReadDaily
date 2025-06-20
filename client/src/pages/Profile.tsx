@@ -1,26 +1,18 @@
 import { useState, useEffect } from "react";
-import { User, Settings, Trash2, Activity, BarChart3 } from "lucide-react";
+import { User, Settings, Activity } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LocalStorage } from "@/lib/storage";
 import { User as UserType, Category } from "@shared/schema";
 import { getInitials } from "@/lib/utils";
-import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
 
 export default function Profile() {
   const [user, setUser] = useState<UserType | null>(null);
   const [, setLocation] = useLocation();
 
   const categories = LocalStorage.getCategories();
-
-  // Fetch user analytics
-  const { data: analytics, isLoading: analyticsLoading } = useQuery({
-    queryKey: ['/api/analytics/user', user?.id],
-    enabled: !!user?.id,
-  }) as { data: any, isLoading: boolean };
 
   useEffect(() => {
     const existingUser = LocalStorage.getUser();
@@ -112,51 +104,7 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        {/* Analytics Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <BarChart3 size={20} />
-              <span>Your Analytics</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {analyticsLoading ? (
-              <div className="text-center py-4">Loading analytics...</div>
-            ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">
-                      {analytics?.sessions?.total || 0}
-                    </div>
-                    <p className="text-sm text-gray-600">Total Sessions</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">
-                      {Math.round(analytics?.sessions?.totalTimeMinutes || 0)}m
-                    </div>
-                    <p className="text-sm text-gray-600">Time Spent</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">
-                      {analytics?.articles?.totalReads || 0}
-                    </div>
-                    <p className="text-sm text-gray-600">Articles Read</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">
-                      {analytics?.articles?.uniqueArticles || 0}
-                    </div>
-                    <p className="text-sm text-gray-600">Unique Articles</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+
 
         {/* Reading Stats Card */}
         <Card>

@@ -9,9 +9,11 @@ import { LocalStorage } from "@/lib/storage";
 import { getTodayString } from "@/lib/utils";
 import { decodeHtmlEntities } from "@/lib/html-utils";
 import { User, Article, Category } from "@shared/schema";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Star, Trash2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
@@ -21,6 +23,7 @@ export default function Home() {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [todayReadCount, setTodayReadCount] = useState(0);
   const [sharedArticleId, setSharedArticleId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("featured");
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -28,6 +31,11 @@ export default function Home() {
 
   const { data: recommendedArticles = [], isLoading: isLoadingRecommended } = useQuery({
     queryKey: ['/api/articles/recommended', user?.id],
+    enabled: !!user,
+  });
+
+  const { data: featuredArticles = [], isLoading: isLoadingFeatured } = useQuery({
+    queryKey: ['/api/articles/featured'],
     enabled: !!user,
   });
 
@@ -43,6 +51,54 @@ export default function Home() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/articles/recommended'] });
+    }
+  });
+
+  const featureArticleMutation = useMutation({
+    mutationFn: async (articleId: string) => {
+      const response = await fetch(`/api/articles/${articleId}/feature`, {
+        method: "POST",
+        body: JSON.stringify({ userId: user?.id }),
+        headers: { "Content-Type": "application/json" }
+      });
+      if (!response.ok) throw new Error('Failed to feature article');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/articles/featured'] });
+      toast({ title: "Article featured successfully!" });
+    }
+  });
+
+  const unfeatureArticleMutation = useMutation({
+    mutationFn: async (articleId: string) => {
+      const response = await fetch(`/api/articles/${articleId}/feature`, {
+        method: "DELETE",
+        body: JSON.stringify({ userId: user?.id }),
+        headers: { "Content-Type": "application/json" }
+      });
+      if (!response.ok) throw new Error('Failed to unfeature article');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/articles/featured'] });
+      toast({ title: "Article removed from featured!" });
+    }
+  });
+
+  const resetFeaturedMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/articles/featured/reset', {
+        method: "POST",
+        body: JSON.stringify({ userId: user?.id }),
+        headers: { "Content-Type": "application/json" }
+      });
+      if (!response.ok) throw new Error('Failed to reset featured articles');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/articles/featured'] });
+      toast({ title: "Featured articles reset!" });
     }
   });
 

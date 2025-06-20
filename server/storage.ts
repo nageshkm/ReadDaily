@@ -336,6 +336,98 @@ export class MemStorage implements IStorage {
       return undefined;
     }
   }
+
+  async getFeaturedArticles(): Promise<any[]> {
+    const { db } = await import("./db");
+    const { featuredArticles, articles, users } = await import("@shared/schema");
+    const { eq, asc } = await import("drizzle-orm");
+    
+    try {
+      const featured = await db
+        .select({
+          id: articles.id,
+          title: articles.title,
+          categoryId: articles.categoryId,
+          sourceUrl: articles.sourceUrl,
+          imageUrl: articles.imageUrl,
+          estimatedReadingTime: articles.estimatedReadingTime,
+          publishDate: articles.publishDate,
+          featured: articles.featured,
+          createdAt: articles.createdAt,
+          recommendedBy: articles.recommendedBy,
+          recommendedAt: articles.recommendedAt,
+          userCommentary: articles.userCommentary,
+          likesCount: articles.likesCount,
+          recommenderName: users.name,
+          featuredAt: featuredArticles.featuredAt,
+          position: featuredArticles.position
+        })
+        .from(featuredArticles)
+        .innerJoin(articles, eq(featuredArticles.articleId, articles.id))
+        .leftJoin(users, eq(articles.recommendedBy, users.id))
+        .orderBy(asc(featuredArticles.position));
+      
+      return featured;
+    } catch (error) {
+      console.error("Error fetching featured articles:", error);
+      return [];
+    }
+  }
+
+  async addFeaturedArticle(articleId: string, userId: string): Promise<boolean> {
+    const { db } = await import("./db");
+    const { featuredArticles } = await import("@shared/schema");
+    
+    try {
+      // Get current max position
+      const maxPosition = await db
+        .select({ maxPos: featuredArticles.position })
+        .from(featuredArticles)
+        .orderBy(featuredArticles.position)
+        .limit(1);
+      
+      const newPosition = (maxPosition[0]?.maxPos || 0) + 1;
+      
+      await db.insert(featuredArticles).values({
+        id: `featured-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        articleId,
+        featuredBy: userId,
+        position: newPosition
+      });
+      
+      return true;
+    } catch (error) {
+      console.error("Error adding featured article:", error);
+      return false;
+    }
+  }
+
+  async removeFeaturedArticle(articleId: string): Promise<boolean> {
+    const { db } = await import("./db");
+    const { featuredArticles } = await import("@shared/schema");
+    const { eq } = await import("drizzle-orm");
+    
+    try {
+      await db.delete(featuredArticles).where(eq(featuredArticles.articleId, articleId));
+      return true;
+    } catch (error) {
+      console.error("Error removing featured article:", error);
+      return false;
+    }
+  }
+
+  async resetFeaturedArticles(): Promise<boolean> {
+    const { db } = await import("./db");
+    const { featuredArticles } = await import("@shared/schema");
+    
+    try {
+      await db.delete(featuredArticles);
+      return true;
+    } catch (error) {
+      console.error("Error resetting featured articles:", error);
+      return false;
+    }
+  }
 }
 
 export const storage = new MemStorage();

@@ -174,6 +174,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get featured articles
+  app.get("/api/featured", async (req, res) => {
+    try {
+      const featuredArticles = await storage.getFeaturedArticles();
+      res.json(featuredArticles);
+    } catch (error) {
+      console.error("Error fetching featured articles:", error);
+      res.status(500).json({ message: "Failed to fetch featured articles" });
+    }
+  });
+
+  // Add article to featured (admin only)
+  app.post("/api/articles/:id/feature", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { userId } = req.body;
+      
+      // Check if user is admin
+      const user = await storage.getUser(userId);
+      if (!user || user.email !== "readdailyco@gmail.com") {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const success = await storage.addFeaturedArticle(id, userId);
+      if (success) {
+        res.json({ message: "Article featured successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to feature article" });
+      }
+    } catch (error) {
+      console.error("Error featuring article:", error);
+      res.status(500).json({ message: "Failed to feature article" });
+    }
+  });
+
+  // Remove article from featured (admin only)
+  app.delete("/api/articles/:id/feature", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { userId } = req.body;
+      
+      // Check if user is admin
+      const user = await storage.getUser(userId);
+      if (!user || user.email !== "readdailyco@gmail.com") {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const success = await storage.removeFeaturedArticle(id);
+      if (success) {
+        res.json({ message: "Article unfeatured successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to unfeature article" });
+      }
+    } catch (error) {
+      console.error("Error unfeaturing article:", error);
+      res.status(500).json({ message: "Failed to unfeature article" });
+    }
+  });
+
+  // Reset featured articles (admin only)
+  app.post("/api/articles/featured/reset", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      // Check if user is admin
+      const user = await storage.getUser(userId);
+      if (!user || user.email !== "readdailyco@gmail.com") {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const success = await storage.resetFeaturedArticles();
+      if (success) {
+        res.json({ message: "Featured articles reset successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to reset featured articles" });
+      }
+    } catch (error) {
+      console.error("Error resetting featured articles:", error);
+      res.status(500).json({ message: "Failed to reset featured articles" });
+    }
+  });
+
   // Get single article by ID for sharing
   app.get("/api/articles/:id", async (req, res) => {
     try {

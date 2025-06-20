@@ -13,6 +13,10 @@ export interface IStorage {
   getMyArticles(userId: string): Promise<any[]>;
   getRecommendedArticles(userId: string): Promise<any[]>;
   getArticleById(id: string): Promise<any | undefined>;
+  getFeaturedArticles(): Promise<any[]>;
+  addFeaturedArticle(articleId: string, userId: string): Promise<boolean>;
+  removeFeaturedArticle(articleId: string): Promise<boolean>;
+  resetFeaturedArticles(): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {

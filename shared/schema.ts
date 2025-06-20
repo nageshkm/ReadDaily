@@ -144,6 +144,14 @@ export const articleReads = pgTable("article_reads", {
   deviceInfo: text("device_info"),
 });
 
+export const featuredArticles = pgTable("featured_articles", {
+  id: text("id").primaryKey(),
+  articleId: text("article_id").notNull().references(() => articles.id, { onDelete: "cascade" }),
+  featuredAt: timestamp("featured_at").notNull().defaultNow(),
+  featuredBy: text("featured_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  position: integer("position").notNull().default(0), // For ordering
+});
+
 // Database insert schemas
 export const insertCategorySchema = createInsertSchema(categories);
 export const insertArticleSchema = createInsertSchema(articles);
@@ -152,6 +160,7 @@ export const insertArticleLikeSchema = createInsertSchema(articleLikes);
 export const insertArticleCommentSchema = createInsertSchema(articleComments);
 export const insertUserSessionSchema = createInsertSchema(userSessions);
 export const insertArticleReadSchema = createInsertSchema(articleReads);
+export const insertFeaturedArticleSchema = createInsertSchema(featuredArticles);
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type InsertArticle = z.infer<typeof insertArticleSchema>;
@@ -160,3 +169,4 @@ export type InsertArticleLike = z.infer<typeof insertArticleLikeSchema>;
 export type InsertArticleComment = z.infer<typeof insertArticleCommentSchema>;
 export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
 export type InsertArticleRead = z.infer<typeof insertArticleReadSchema>;
+export type InsertFeaturedArticle = z.infer<typeof insertFeaturedArticleSchema>;

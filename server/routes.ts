@@ -133,6 +133,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics article read endpoint (matches client expectation)
+  app.post("/api/analytics/article-read", async (req, res) => {
+    try {
+      const { userId, articleId, deviceInfo } = req.body;
+      
+      if (!userId || !articleId) {
+        return res.status(400).json({ message: "User ID and article ID are required" });
+      }
+
+      // Record in analytics table
+      await analyticsService.recordArticleRead(userId, articleId, deviceInfo);
+      
+      // Also update user's read articles for streak tracking
+      const user = await userSyncService.addArticleRead(userId, articleId, deviceInfo);
+      
+      res.json({ user, message: "Article read tracked successfully" });
+    } catch (error) {
+      console.error("Analytics article read tracking error:", error);
+      res.status(500).json({ message: "Failed to track article read" });
+    }
+  });
+
   // Get articles endpoint
   app.get("/api/articles", async (req, res) => {
     try {
@@ -401,7 +423,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "userId is required" });
       }
 
-      // Check if already liked
+      // Check if already liked and toggle in a single transaction
       const existingLike = await db
         .select()
         .from(articleLikes)
@@ -409,12 +431,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .limit(1);
 
       let action = "";
+      let likesCount = 0;
+      
       if (existingLike.length > 0) {
         // Unlike: Remove existing like
         await db
           .delete(articleLikes)
           .where(and(eq(articleLikes.articleId, articleId), eq(articleLikes.userId, userId)));
         action = "unliked";
+        
+        // Decrement likes count directly
+        const result = await db
+          .update(articles)
+          .set({ likesCount: sql`${articles.likesCount} - 1` })
+          .where(eq(articles.id, articleId))
+          .returning({ likesCount: articles.likesCount });
+        
+        likesCount = result[0]?.likesCount || 0;
       } else {
         // Like: Add new like
         const likeId = `like-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -425,20 +458,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           likedAt: new Date().toISOString()
         });
         action = "liked";
+        
+        // Increment likes count directly
+        const result = await db
+          .update(articles)
+          .set({ likesCount: sql`${articles.likesCount} + 1` })
+          .where(eq(articles.id, articleId))
+          .returning({ likesCount: articles.likesCount });
+        
+        likesCount = result[0]?.likesCount || 1;
       }
 
-      // Update likes count
-      const likesCountResult = await db
-        .select()
-        .from(articleLikes)
-        .where(eq(articleLikes.articleId, articleId));
-      
-      await db
-        .update(articles)
-        .set({ likesCount: likesCountResult.length })
-        .where(eq(articles.id, articleId));
-
-      res.json({ message: `Article ${action} successfully`, action, likesCount: likesCountResult.length });
+      res.json({ message: `Article ${action} successfully`, action, likesCount });
     } catch (error) {
       console.error("Error liking article:", error);
       res.status(500).json({ message: "Failed to like article" });

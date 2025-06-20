@@ -264,7 +264,7 @@ export default function Home() {
           <div className="flex justify-between items-center">
             <TabsList className="grid w-full max-w-md grid-cols-2">
               <TabsTrigger value="featured">Featured Today</TabsTrigger>
-              <TabsTrigger value="shared">Shared Articles</TabsTrigger>
+              <TabsTrigger value="shared">Community Shares</TabsTrigger>
             </TabsList>
             
             {isAdmin() && activeTab === "featured" && (
@@ -417,10 +417,6 @@ export default function Home() {
                       {/* Other shared articles */}
                       {otherArticles.length > 0 && (
                         <div className="space-y-4">
-                          <div className="text-center">
-                            <h3 className="text-lg font-semibold text-gray-800">Community Shares</h3>
-                            <p className="text-sm text-gray-600">Articles discovered and shared by readers like you</p>
-                          </div>
                           <div className="grid gap-6">
                             {otherArticles.map((article: any) => {
                               const category = getCategoryById(article.categoryId);

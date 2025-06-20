@@ -41,12 +41,6 @@ function MobileNavigation() {
           <HistoryIcon size={20} />
           <span className="text-xs">History</span>
         </Link>
-        <Link href="/profile" className={`flex flex-col items-center space-y-1 ${
-          isActive("/profile") ? "text-accent" : "text-gray-500"
-        }`}>
-          <UserIcon size={20} />
-          <span className="text-xs">Profile</span>
-        </Link>
       </div>
     </nav>
   );

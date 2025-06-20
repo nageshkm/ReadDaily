@@ -122,28 +122,68 @@ export class UrlMetadataService {
 
       const html = await response.text();
       
-      // Extract tweet text as title
-      let tweetText = this.extractFromHtml(html, [
-        /<meta property="og:title" content="([^"]*)"[^>]*>/i,
-        /<meta name="twitter:title" content="([^"]*)"[^>]*>/i,
-        /<meta property="og:description" content="([^"]*)"[^>]*>/i,
-        /<meta name="twitter:description" content="([^"]*)"[^>]*>/i,
-        /<meta name="description" content="([^"]*)"[^>]*>/i,
-        /<title[^>]*>([^<]*)<\/title>/i
-      ]) || '';
+      // Extract the actual tweet text as title
+      let tweetText = '';
+      
+      // Try multiple strategies to get the actual tweet content
+      // 1. Look for JSON-LD structured data with tweet content
+      const jsonLdMatch = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi);
+      if (jsonLdMatch) {
+        for (const script of jsonLdMatch) {
+          try {
+            const jsonContent = script.replace(/<script[^>]*>/i, '').replace(/<\/script>/i, '');
+            const data = JSON.parse(jsonContent);
+            if (data.articleBody || data.text || data.description) {
+              tweetText = data.articleBody || data.text || data.description;
+              break;
+            }
+          } catch (e) {
+            // Continue to next script
+          }
+        }
+      }
+      
+      // 2. Try Open Graph and Twitter Card descriptions which often contain tweet text
+      if (!tweetText) {
+        tweetText = this.extractFromHtml(html, [
+          /<meta property="og:description" content="([^"]*)"[^>]*>/i,
+          /<meta name="twitter:description" content="([^"]*)"[^>]*>/i,
+          /<meta name="description" content="([^"]*)"[^>]*>/i
+        ]) || '';
+      }
+      
+      // 3. Look for tweet content in data attributes or spans
+      if (!tweetText) {
+        tweetText = this.extractFromHtml(html, [
+          /<span[^>]*data-testid="tweetText"[^>]*>([^<]*)<\/span>/i,
+          /<div[^>]*data-testid="tweetText"[^>]*>([^<]*)<\/div>/i,
+          /<p[^>]*class="[^"]*tweet[^"]*"[^>]*>([^<]*)<\/p>/i
+        ]) || '';
+      }
+      
+      // 4. Try title tags as last resort
+      if (!tweetText) {
+        tweetText = this.extractFromHtml(html, [
+          /<meta property="og:title" content="([^"]*)"[^>]*>/i,
+          /<meta name="twitter:title" content="([^"]*)"[^>]*>/i,
+          /<title[^>]*>([^<]*)<\/title>/i
+        ]) || '';
+      }
 
-      // Clean up the tweet text and remove common Twitter suffixes
+      // Clean up the extracted text
       tweetText = tweetText
         .replace(/See new posts.*$/, '')
         .replace(/\s*on X$/, '')
         .replace(/\s*\| X$/, '')
         .replace(/\s*- X \(formerly Twitter\)$/, '')
         .replace(/\s*on Twitter$/, '')
+        .replace(/\s*\.\.\.$/, '')
+        .replace(/^"/, '')
+        .replace(/"$/, '')
         .trim();
 
-      // If still empty or too short, create a descriptive title with username
-      if (!tweetText || tweetText.length < 10) {
-        // Try to extract username from URL
+      // Only fall back to username if absolutely no content was found
+      if (!tweetText) {
         const usernameMatch = url.match(/(?:twitter\.com|x\.com)\/([^\/\?]+)/i);
         const username = usernameMatch ? usernameMatch[1] : 'User';
         tweetText = `Post by @${username}`;

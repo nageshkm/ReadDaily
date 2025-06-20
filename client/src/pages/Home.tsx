@@ -417,6 +417,9 @@ export default function Home() {
                       {/* Other shared articles */}
                       {otherArticles.length > 0 && (
                         <div className="space-y-4">
+                          <div className="text-center">
+                            <p className="text-sm text-gray-600">Articles discovered and shared by readers like you</p>
+                          </div>
                           <div className="grid gap-6">
                             {otherArticles.map((article: any) => {
                               const category = getCategoryById(article.categoryId);

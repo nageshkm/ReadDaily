@@ -162,7 +162,7 @@ export default function Home() {
     <div className="max-w-4xl mx-auto px-4 py-6">
       <main className="space-y-8">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">Daily Articles</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Shared Articles</h2>
           <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2">

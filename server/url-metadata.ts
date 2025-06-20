@@ -1,60 +1,17 @@
 import OpenAI from "openai";
 
-// Comprehensive blocked domains for safety and content quality
+// Only block explicit pornographic domains
 const BLOCKED_DOMAINS = [
-  // Adult content
+  // Adult content - only explicit pornographic sites
   'pornhub.com', 'xvideos.com', 'redtube.com', 'youporn.com', 'xnxx.com',
   'tube8.com', 'spankbang.com', 'beeg.com', 'tnaflix.com', 'xhamster.com',
   'porn.com', 'sex.com', 'adult.com', 'xxx.com', 'chaturbate.com',
   'cam4.com', 'livejasmin.com', 'stripchat.com', 'bongacams.com',
   'onlyfans.com', 'manyvids.com', 'clips4sale.com', 'adultfriendfinder.com',
-  
-  // Gambling and betting
-  'gambling.com', 'casino.com', 'bet365.com', 'pokerstars.com',
-  'partypoker.com', 'draftkings.com', 'fanduel.com', 'caesars.com',
-  'mgmresorts.com', 'bovada.com', 'betonline.com', 'sportsbetting.com',
-  
-  // Violence and weapons
-  'theync.com', 'bestgore.com', 'liveleak.com', 'heavy-r.com',
-  'kaotic.com', 'documenting-reality.com', 'crazyshit.com',
-  
-  // Hate speech and extremism
-  'stormfront.org', '4chan.org', '8kun.top', 'gab.com',
-  'parler.com', 'bitchute.com', 'rumble.com', 'gettr.com',
-  
-  // Dark web and illegal activities
-  'darkweb.com', 'onion.com', 'tor.com', 'silkroad.com',
-  
-  // Malware and phishing (common patterns)
-  'bit.ly', 'tinyurl.com', 'ow.ly', 'short.link', 'tiny.cc',
-  
-  // Low quality content farms
-  'clickbait.com', 'buzzfeed.com', 'upworthy.com', 'viral.com',
-  'shareably.net', 'distractify.com', 'ranker.com'
+  'brazzers.com', 'realitykings.com', 'bangbros.com', 'naughtyamerica.com'
 ];
 
-// Content keywords that indicate inappropriate material
-const BLOCKED_KEYWORDS = [
-  // Adult content
-  'porn', 'sex', 'nude', 'naked', 'xxx', 'adult', 'erotic', 'sexy',
-  'escort', 'hooker', 'prostitute', 'webcam', 'cam girl', 'onlyfans',
-  
-  // Violence
-  'murder', 'kill', 'death', 'gore', 'violence', 'torture', 'blood',
-  'suicide', 'self-harm', 'shooting', 'terrorist', 'bomb',
-  
-  // Hate speech
-  'nazi', 'hitler', 'white supremacy', 'hate speech', 'racist',
-  'terrorism', 'extremist', 'radical', 'supremacist',
-  
-  // Drugs and illegal activities
-  'cocaine', 'heroin', 'meth', 'drug dealer', 'illegal drugs',
-  'darknet', 'dark web', 'piracy', 'torrent', 'crack software',
-  
-  // Gambling
-  'casino', 'poker', 'betting', 'gambling', 'slots', 'lottery',
-  'blackjack', 'roulette', 'sports bet'
-];
+// Removed keyword filtering - rely only on domain blocking and AI safety check
 
 interface UrlMetadata {
   title: string;
@@ -143,76 +100,12 @@ export class UrlMetadataService {
     });
   }
 
-  private hasBlockedKeywords(text: string): boolean {
-    const lowerText = text.toLowerCase();
-    return BLOCKED_KEYWORDS.some(keyword => {
-      const lowerKeyword = keyword.toLowerCase();
-      
-      // For single words, use word boundary matching to avoid false positives
-      if (!lowerKeyword.includes(' ')) {
-        const regex = new RegExp(`\\b${lowerKeyword}\\b`, 'i');
-        return regex.test(lowerText);
-      }
-      
-      // For phrases, use exact matching
-      return lowerText.includes(lowerKeyword);
-    });
-  }
+  // Removed keyword filtering function - now only using domain blocking
 
   private async isContentSafe(title: string, description: string, url: string): Promise<boolean> {
     try {
-      // Skip keyword filtering for business/educational content - rely on AI safety check only
-      // Only block extremely explicit content
-      const explicitPatterns = [
-        /\bporn\b/i, /\bxxx\b/i, /\bnaked pics\b/i, /\bsex videos\b/i, 
-        /\bescort service\b/i, /\bmurder\b/i, /\bterrorist\b/i
-      ];
-      
-      const hasExplicitContent = explicitPatterns.some(pattern => 
-        pattern.test(title) || pattern.test(description)
-      );
-      
-      if (hasExplicitContent) {
-        console.log(`Content blocked due to explicit content in: ${title}`);
-        return false;
-      }
-
-      // Use AI to analyze content safety with more nuanced prompt
-      const prompt = `Analyze this content for safety and appropriateness for a professional reading app. Be permissive for legitimate business, educational, and informational content.
-
-Title: ${title}
-Description: ${description}
-URL: ${url}
-
-Only flag as unsafe if content contains explicit:
-- Pornographic or sexually explicit material
-- Graphic violence or gore
-- Hate speech targeting individuals/groups
-- Instructions for illegal activities
-- Gambling promotions
-- Obvious scams or malware
-
-Business articles, personal development, technology, and educational content should be considered safe even if they use words like "passion", "desire", or "marketing".
-
-Respond with JSON:
-{
-  "isSafe": true/false,
-  "reason": "brief explanation if not safe"
-}`;
-
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" },
-      });
-
-      const result = JSON.parse(response.choices[0].message.content || '{"isSafe": true}');
-      
-      if (!result.isSafe) {
-        console.log(`Content flagged by AI: ${result.reason} - ${title}`);
-        return false;
-      }
-
+      // Minimal content filtering - allow all content except what's blocked by domain
+      // Most content filtering now handled by domain blocking only
       return true;
     } catch (error) {
       console.error('Error checking content safety:', error);

@@ -124,15 +124,29 @@ export class UrlMetadataService {
       
       // Extract tweet text as title
       let tweetText = this.extractFromHtml(html, [
+        /<meta property="og:title" content="([^"]*)"[^>]*>/i,
+        /<meta name="twitter:title" content="([^"]*)"[^>]*>/i,
         /<meta property="og:description" content="([^"]*)"[^>]*>/i,
         /<meta name="twitter:description" content="([^"]*)"[^>]*>/i,
-        /<meta name="description" content="([^"]*)"[^>]*>/i
+        /<meta name="description" content="([^"]*)"[^>]*>/i,
+        /<title[^>]*>([^<]*)<\/title>/i
       ]) || '';
 
-      // Clean up the tweet text and remove "See new posts" etc.
-      tweetText = tweetText.replace(/See new posts.*$/, '').trim();
-      if (!tweetText) {
-        tweetText = 'Twitter Post';
+      // Clean up the tweet text and remove common Twitter suffixes
+      tweetText = tweetText
+        .replace(/See new posts.*$/, '')
+        .replace(/\s*on X$/, '')
+        .replace(/\s*\| X$/, '')
+        .replace(/\s*- X \(formerly Twitter\)$/, '')
+        .replace(/\s*on Twitter$/, '')
+        .trim();
+
+      // If still empty or too short, create a descriptive title with username
+      if (!tweetText || tweetText.length < 10) {
+        // Try to extract username from URL
+        const usernameMatch = url.match(/(?:twitter\.com|x\.com)\/([^\/\?]+)/i);
+        const username = usernameMatch ? usernameMatch[1] : 'User';
+        tweetText = `Post by @${username}`;
       }
 
       // Extract images with priority: tweet images -> user profile pic -> X logo

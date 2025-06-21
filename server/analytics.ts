@@ -85,19 +85,31 @@ export class AnalyticsService {
     articleId: string,
     deviceInfo?: string
   ): Promise<void> {
-    const activeSession = this.activeSessions.get(userId);
-    const sessionId = activeSession?.sessionId || null;
+    try {
+      const activeSession = this.activeSessions.get(userId);
+      const sessionId = activeSession?.sessionId || null;
 
-    const readId = `read-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
-    await db.insert(articleReads).values({
-      id: readId,
-      userId,
-      articleId,
-      readAt: new Date(),
-      sessionId,
-      deviceInfo,
-    });
+      const readId = `read-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      await db.insert(articleReads).values({
+        id: readId,
+        userId,
+        articleId,
+        readAt: new Date(),
+        sessionId,
+        deviceInfo,
+      });
+
+      console.log(`Article read recorded: ${userId} read ${articleId}`);
+    } catch (error: any) {
+      // If duplicate key error (user already read this article), ignore silently
+      if (error.code === '23505') {
+        console.log(`Article already read: ${userId} already read ${articleId}`);
+        return;
+      }
+      console.error("Error recording article read:", error);
+      throw error;
+    }
 
     // Update session activity
     if (activeSession) {

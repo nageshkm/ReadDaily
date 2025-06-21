@@ -138,16 +138,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { userId, articleId, deviceInfo } = req.body;
       
+      console.log("Article read request:", { userId, articleId, deviceInfo });
+      
       if (!userId || !articleId) {
+        console.error("Missing userId or articleId:", { userId, articleId });
         return res.status(400).json({ message: "User ID and article ID are required" });
       }
 
       // Record in analytics table
+      console.log("Recording article read in analytics...");
       await analyticsService.recordArticleRead(userId, articleId, deviceInfo);
       
       // Also update user's read articles for streak tracking
+      console.log("Updating user streak data...");
       const user = await userSyncService.addArticleRead(userId, articleId, deviceInfo);
       
+      console.log("Article read tracking completed successfully");
       res.json({ user, message: "Article read tracked successfully" });
     } catch (error) {
       console.error("Analytics article read tracking error:", error);

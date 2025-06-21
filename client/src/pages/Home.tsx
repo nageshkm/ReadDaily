@@ -204,7 +204,7 @@ export default function Home() {
       setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
       setShowSuccessFeedback(true);
 
-      await fetch("/api/analytics/article-read", {
+      const response = await fetch("/api/analytics/article-read", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -213,6 +213,12 @@ export default function Home() {
           deviceInfo: navigator.userAgent,
         }),
       });
+      
+      if (!response.ok) {
+        console.error("Failed to track article read:", response.status, response.statusText);
+      } else {
+        console.log("Article read tracked successfully:", article.title);
+      }
 
       if (
         sharedArticleId === article.id &&

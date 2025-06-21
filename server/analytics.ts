@@ -101,6 +101,11 @@ export class AnalyticsService {
       });
 
       console.log(`Article read recorded: ${userId} read ${articleId}`);
+      
+      // Update session activity if session exists
+      if (activeSession) {
+        await this.updateSessionActivity(userId);
+      }
     } catch (error: any) {
       // If duplicate key error (user already read this article), ignore silently
       if (error.code === '23505') {
@@ -109,11 +114,6 @@ export class AnalyticsService {
       }
       console.error("Error recording article read:", error);
       throw error;
-    }
-
-    // Update session activity
-    if (activeSession) {
-      await this.updateSessionActivity(userId);
     }
   }
 

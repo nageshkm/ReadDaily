@@ -52,21 +52,34 @@ export default function Home() {
       const data = await response.json();
       return { articleId, ...data };
     },
-    onSuccess: (data) => {
-      // Optimistically update the cache immediately
-      queryClient.setQueryData(["/api/articles/recommended"], (oldData: any) => {
-        if (!oldData) return oldData;
-        return oldData.map((article: any) => 
-          article.id === data.articleId 
-            ? { ...article, likesCount: data.likesCount }
+    onMutate: async (articleId: string) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/articles/recommended"] });
+      
+      // Snapshot the previous value
+      const previousData = queryClient.getQueryData(["/api/articles/recommended"]);
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData(["/api/articles/recommended"], (old: any) => {
+        if (!old) return old;
+        return old.map((article: any) => 
+          article.id === articleId 
+            ? { ...article, likesCount: (article.likesCount || 0) + 1 }
             : article
         );
       });
       
-      // Also invalidate to get fresh data
-      queryClient.invalidateQueries({
-        queryKey: ["/api/articles/recommended"],
-      });
+      return { previousData };
+    },
+    onError: (err, articleId, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        queryClient.setQueryData(["/api/articles/recommended"], context.previousData);
+      }
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ["/api/articles/recommended"] });
     },
   });
 

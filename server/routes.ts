@@ -423,47 +423,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "userId is required" });
       }
 
-      // Check if already liked - if so, do nothing
-      const existingLike = await db
-        .select({ id: articleLikes.id })
-        .from(articleLikes)
-        .where(and(eq(articleLikes.articleId, articleId), eq(articleLikes.userId, userId)))
-        .limit(1);
-
-      if (existingLike.length > 0) {
-        // Already liked, return current count
-        const article = await db
-          .select({ likesCount: articles.likesCount })
-          .from(articles)
-          .where(eq(articles.id, articleId))
-          .limit(1);
-        
-        return res.json({ 
-          message: "Already liked", 
-          action: "already_liked", 
-          likesCount: article[0]?.likesCount || 0 
-        });
-      }
-
-      // Add new like and increment count in single operation
+      // Simply add like and increment count - let database handle duplicates
       const likeId = `like-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
-      await db.insert(articleLikes).values({
-        id: likeId,
-        articleId,
-        userId,
-        likedAt: new Date().toISOString()
-      });
-      
-      const result = await db
-        .update(articles)
-        .set({ likesCount: sql`${articles.likesCount} + 1` })
-        .where(eq(articles.id, articleId))
-        .returning({ likesCount: articles.likesCount });
+      try {
+        await db.insert(articleLikes).values({
+          id: likeId,
+          articleId,
+          userId,
+          likedAt: new Date().toISOString()
+        });
+        
+        const result = await db
+          .update(articles)
+          .set({ likesCount: sql`${articles.likesCount} + 1` })
+          .where(eq(articles.id, articleId))
+          .returning({ likesCount: articles.likesCount });
 
-      const likesCount = result[0]?.likesCount || 1;
-
-      res.json({ message: "Article liked successfully", action: "liked", likesCount });
+        const likesCount = result[0]?.likesCount || 1;
+        res.json({ message: "Article liked successfully", action: "liked", likesCount });
+      } catch (dbError: any) {
+        // If duplicate key error (user already liked), just return current count
+        if (dbError.code === '23505') {
+          const article = await db
+            .select({ likesCount: articles.likesCount })
+            .from(articles)
+            .where(eq(articles.id, articleId))
+            .limit(1);
+          
+          res.json({ 
+            message: "Already liked", 
+            action: "already_liked", 
+            likesCount: article[0]?.likesCount || 0 
+          });
+        } else {
+          throw dbError;
+        }
+      }
     } catch (error) {
       console.error("Error liking article:", error);
       res.status(500).json({ message: "Failed to like article" });

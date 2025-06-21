@@ -49,22 +49,23 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
       });
       if (!response.ok) throw new Error("Failed to like article");
-      return response.json();
+      const data = await response.json();
+      return { articleId, ...data };
     },
     onSuccess: (data) => {
+      // Optimistically update the cache immediately
+      queryClient.setQueryData(["/api/articles/recommended"], (oldData: any) => {
+        if (!oldData) return oldData;
+        return oldData.map((article: any) => 
+          article.id === data.articleId 
+            ? { ...article, likesCount: data.likesCount }
+            : article
+        );
+      });
+      
+      // Also invalidate to get fresh data
       queryClient.invalidateQueries({
         queryKey: ["/api/articles/recommended"],
-      });
-      toast({
-        title: data.action === "liked" ? "Article liked!" : "Article unliked!",
-        description: `${data.likesCount} total likes`,
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to like article",
-        variant: "destructive",
       });
     },
   });

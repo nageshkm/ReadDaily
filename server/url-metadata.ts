@@ -78,7 +78,52 @@ export class UrlMetadataService {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        console.log(`Failed to fetch URL: ${response.status}`);
+        console.log(`Failed to fetch URL: ${response.status} - ${url}`);
+        
+        // For 403 errors, try a different approach with minimal headers
+        if (response.status === 403) {
+          console.log(`Retrying with minimal headers for: ${url}`);
+          
+          const retryController = new AbortController();
+          const retryTimeoutId = setTimeout(() => retryController.abort(), 10000);
+          
+          try {
+            const retryResponse = await fetch(url, {
+              headers: {
+                'User-Agent': 'ReadDaily Bot 1.0',
+                'Accept': 'text/html,application/xhtml+xml'
+              },
+              signal: retryController.signal
+            });
+            
+            clearTimeout(retryTimeoutId);
+            
+            if (retryResponse.ok) {
+              console.log(`Retry successful for: ${url}`);
+              const html = await retryResponse.text();
+              const metadata = this.parseHtmlMetadata(html);
+              
+              const isSafe = await this.isContentSafe(metadata.title, metadata.description, url);
+              if (!isSafe) {
+                console.log(`Content safety check failed for: ${url}`);
+                return null;
+              }
+              
+              const aiAnalysis = await this.analyzeContent(metadata.title, metadata.description, domain);
+              
+              return {
+                ...metadata,
+                domain,
+                isValid: true,
+                category: aiAnalysis.category,
+                estimatedReadTime: aiAnalysis.estimatedReadTime
+              };
+            }
+          } catch (retryError) {
+            console.log(`Retry failed for: ${url}`, retryError.message);
+          }
+        }
+        
         return null;
       }
 

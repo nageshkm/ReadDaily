@@ -53,13 +53,15 @@ export default function Home() {
       return { articleId, ...data };
     },
     onMutate: async (articleId: string) => {
-      // Cancel any outgoing refetches
+      // Cancel any outgoing refetches for both recommended and featured
       await queryClient.cancelQueries({ queryKey: ["/api/articles/recommended"] });
+      await queryClient.cancelQueries({ queryKey: ["/api/featured"] });
       
-      // Snapshot the previous value
-      const previousData = queryClient.getQueryData(["/api/articles/recommended"]);
+      // Snapshot the previous values
+      const previousRecommendedData = queryClient.getQueryData(["/api/articles/recommended"]);
+      const previousFeaturedData = queryClient.getQueryData(["/api/featured"]);
       
-      // Optimistically update to the new value
+      // Optimistically update recommended articles
       queryClient.setQueryData(["/api/articles/recommended"], (old: any) => {
         if (!old) return old;
         return old.map((article: any) => 
@@ -69,17 +71,31 @@ export default function Home() {
         );
       });
       
-      return { previousData };
+      // Optimistically update featured articles
+      queryClient.setQueryData(["/api/featured"], (old: any) => {
+        if (!old) return old;
+        return old.map((article: any) => 
+          article.id === articleId 
+            ? { ...article, likesCount: (article.likesCount || 0) + 1 }
+            : article
+        );
+      });
+      
+      return { previousRecommendedData, previousFeaturedData };
     },
     onError: (err, articleId, context) => {
       // Rollback on error
-      if (context?.previousData) {
-        queryClient.setQueryData(["/api/articles/recommended"], context.previousData);
+      if (context?.previousRecommendedData) {
+        queryClient.setQueryData(["/api/articles/recommended"], context.previousRecommendedData);
+      }
+      if (context?.previousFeaturedData) {
+        queryClient.setQueryData(["/api/featured"], context.previousFeaturedData);
       }
     },
     onSettled: () => {
       // Always refetch after error or success
       queryClient.invalidateQueries({ queryKey: ["/api/articles/recommended"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/featured"] });
     },
   });
 

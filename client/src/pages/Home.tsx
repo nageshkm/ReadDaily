@@ -17,11 +17,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { PWANotifications } from "@/components/PWANotifications";
 import { ShareButton } from "@/components/ShareButton";
+import { SharePromptToast } from "@/components/SharePromptToast";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showWhatsAppInvite, setShowWhatsAppInvite] = useState(false);
+  const [showSharePrompt, setShowSharePrompt] = useState(false);
+  const [hasReadArticle, setHasReadArticle] = useState(false);
 
   const [todayReadCount, setTodayReadCount] = useState(0);
   const [sharedArticleId, setSharedArticleId] = useState<string | null>(null);
@@ -232,6 +235,34 @@ export default function Home() {
     localStorage.setItem('whatsapp-invite-shown', 'true');
   };
 
+  const handleSharePromptDismiss = () => {
+    setShowSharePrompt(false);
+    const today = new Date().toDateString();
+    localStorage.setItem('share-prompt-shown', today);
+  };
+
+  // Check if share prompt should be shown today
+  const shouldShowSharePrompt = () => {
+    const today = new Date().toDateString();
+    const lastShown = localStorage.getItem('share-prompt-shown');
+    return lastShown !== today;
+  };
+
+  // Handle scroll detection for share prompt
+  useEffect(() => {
+    if (!hasReadArticle || !shouldShowSharePrompt() || showSharePrompt) return;
+
+    const handleScroll = () => {
+      if (window.scrollY > 100) { // Show after minimal scroll
+        setShowSharePrompt(true);
+        window.removeEventListener('scroll', handleScroll);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasReadArticle, showSharePrompt]);
+
   const handleReadArticle = async (article: Article) => {
     if (!user) return;
 
@@ -239,6 +270,10 @@ export default function Home() {
       const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
       setUser(updatedUser);
       setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
+      
+      // Mark that user has read an article for share prompt logic
+      setHasReadArticle(true);
+      
       // Success feedback removed per user request
 
       const response = await fetch("/api/analytics/article-read", {
@@ -361,6 +396,11 @@ export default function Home() {
           </Button>
         </div>
       )}
+      
+      <SharePromptToast 
+        isVisible={showSharePrompt}
+        onDismiss={handleSharePromptDismiss}
+      />
       
       <main className="space-y-8">
 

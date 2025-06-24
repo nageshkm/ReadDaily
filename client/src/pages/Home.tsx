@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { StreakDisplay } from "@/components/StreakDisplay";
 import { ArticleCard } from "@/components/ArticleCard";
 import { UserOnboarding } from "@/components/UserOnboarding";
-
 
 import { LocalStorage } from "@/lib/storage";
 import { getTodayString } from "@/lib/utils";
@@ -11,7 +11,6 @@ import { decodeHtmlEntities } from "@/lib/html-utils";
 import { User, Article, Category } from "@shared/schema";
 import { Loader2, Star, Trash2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
 
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";

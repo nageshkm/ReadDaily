@@ -256,15 +256,11 @@ export default function Home() {
     setShowOnboarding(false);
     startUserSession(newUser);
     
-    // Check if there's a shared article from URL after completing onboarding
-    const urlParams = new URLSearchParams(window.location.search);
-    const sharedFromQuery = urlParams.get("shared");
-    const sharedFromRoute = location.startsWith("/share/") ? location.replace("/share/", "") : null;
-    const shared = sharedFromRoute || sharedFromQuery;
-    
-    if (shared) {
-      console.log("Setting shared article after onboarding:", shared);
-      setSharedArticleId(shared);
+    // Check if there's a stored shared article and restore it
+    const storedShared = localStorage.getItem('currentSharedArticle');
+    if (storedShared) {
+      console.log("Restoring shared article after onboarding:", storedShared);
+      setSharedArticleId(storedShared);
     }
     
     // Show WhatsApp invite for new users

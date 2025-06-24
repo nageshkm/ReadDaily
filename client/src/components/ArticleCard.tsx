@@ -254,7 +254,9 @@ export function ArticleCard({
 
   return (
     <Card
-      className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+      className={`overflow-hidden hover:shadow-md transition-all cursor-pointer ${
+        isRead ? "opacity-75 bg-gray-50" : ""
+      }`}
       onClick={() => {
         window.open(article.sourceUrl, "_blank", "noopener,noreferrer");
         onReadClick(article); // Mark as read
@@ -278,6 +280,9 @@ export function ArticleCard({
             </span>
             {isRead ? (
               <div className="flex items-center space-x-1">
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
+                <span className="text-xs text-green-600 font-medium">Read</span>
+              </div>
                 <CheckCircle className="text-success text-sm" size={12} />
                 <span className="text-xs text-success font-medium hidden sm:inline">Read</span>
               </div>

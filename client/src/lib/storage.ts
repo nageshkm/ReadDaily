@@ -86,31 +86,24 @@ export class LocalStorage {
   static markArticleAsRead(user: User, articleId: string): User {
     const today = new Date().toISOString().split('T')[0];
     
-    console.log("LocalStorage.markArticleAsRead - INPUT user:", user);
-    console.log("LocalStorage.markArticleAsRead - articleId:", articleId);
-    console.log("LocalStorage.markArticleAsRead - user.readArticles before:", user.readArticles);
-    
     // Create a new user object to avoid mutation issues
     const updatedUser = { ...user };
     updatedUser.readArticles = [...user.readArticles];
     
     // Add to read articles if not already read
     const alreadyRead = updatedUser.readArticles.some(ra => ra.articleId === articleId);
-    console.log("LocalStorage.markArticleAsRead - alreadyRead:", alreadyRead);
     
     if (!alreadyRead) {
       updatedUser.readArticles.push({
         articleId,
         readDate: today
       });
-      console.log("LocalStorage.markArticleAsRead - added article, new count:", updatedUser.readArticles.length);
     }
 
     // Update streak
     const userWithStreak = this.updateStreak(updatedUser);
     userWithStreak.lastActive = today;
 
-    console.log("LocalStorage.markArticleAsRead - FINAL user:", userWithStreak);
     this.saveUser(userWithStreak);
     return userWithStreak;
   }

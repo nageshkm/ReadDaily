@@ -20,6 +20,7 @@ import { ShareButton } from "@/components/ShareButton";
 import { SharePromptToast } from "@/components/SharePromptToast";
 
 export default function Home() {
+  const params = useParams();
   const [user, setUser] = useState<User | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showWhatsAppInvite, setShowWhatsAppInvite] = useState(false);
@@ -189,9 +190,11 @@ export default function Home() {
   useEffect(() => {
     const storedUser = LocalStorage.getUser();
     
-    // Check for shared article in URL first
+    // Check for shared article from URL route parameter or query parameter
     const urlParams = new URLSearchParams(window.location.search);
-    const shared = urlParams.get("shared");
+    const sharedFromQuery = urlParams.get("shared");
+    const sharedFromRoute = params.articleId; // from /share/:articleId route
+    const shared = sharedFromRoute || sharedFromQuery;
     
     if (shared) {
       // If there's a shared article but no user, require signup first
@@ -222,7 +225,7 @@ export default function Home() {
     } else if (!shared) {
       setShowOnboarding(true);
     }
-  }, []);
+  }, [params.articleId]);
 
   const startUserSession = async (user: User) => {
     try {

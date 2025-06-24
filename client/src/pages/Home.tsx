@@ -332,7 +332,14 @@ export default function Home() {
     if (!user) return;
 
     try {
+      console.log("BEFORE marking as read - user readArticles count:", user.readArticles?.length || 0);
+      console.log("Article ID being marked:", article.id);
+      console.log("Is already read?", LocalStorage.isArticleRead(user, article.id));
+      
       const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
+      console.log("AFTER marking as read - user readArticles count:", updatedUser.readArticles?.length || 0);
+      console.log("Updated user object:", updatedUser);
+      
       setUser(updatedUser);
       setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
       

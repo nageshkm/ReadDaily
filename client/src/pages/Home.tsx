@@ -464,18 +464,21 @@ export default function Home() {
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Shared Article Priority Section */}
-              {sharedArticleDetails?.article && sharedArticleId && (
-                <div className="space-y-4">
+              {/* SHARED ARTICLE PRIORITY SECTION - ALWAYS SHOW IF EXISTS */}
+              {sharedArticleId && console.log("RENDERING SHARED SECTION - ID:", sharedArticleId)}
+              {sharedArticleId && sharedArticleDetails?.article && (
+                <div className="space-y-4 border-2 border-blue-200 p-4 rounded-lg bg-blue-50">
+                  <div className="text-center">
+                    <Badge 
+                      variant="secondary" 
+                      className="mb-4 bg-blue-600 text-white border-blue-600 flex items-center gap-1 w-fit mx-auto"
+                    >
+                      <Share2 size={14} />
+                      🎯 SHARED WITH YOU 🎯
+                    </Badge>
+                  </div>
                   <div className="grid gap-2 sm:gap-4">
                     <div className="relative">
-                      <Badge 
-                        variant="secondary" 
-                        className="mb-2 bg-blue-100 text-blue-800 border-blue-200 flex items-center gap-1 w-fit"
-                      >
-                        <Share2 size={12} />
-                        Shared with you
-                      </Badge>
                       <ArticleCard
                         article={{
                           ...sharedArticleDetails.article,
@@ -496,8 +499,15 @@ export default function Home() {
                       />
                     </div>
                   </div>
+                  <div className="text-center">
+                    <p className="text-blue-700 text-sm font-medium">👆 This article was specifically shared with you!</p>
+                  </div>
                 </div>
               )}
+              
+              {/* DEBUG INFO */}
+              {console.log("DEBUG - sharedArticleId:", sharedArticleId)}
+              {console.log("DEBUG - sharedArticleDetails:", sharedArticleDetails)}
               
               {/* Featured Articles Section */}
               {(featuredArticles as any[]).filter(a => a.id !== sharedArticleId).length > 0 && (

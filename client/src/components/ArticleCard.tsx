@@ -227,14 +227,14 @@ export function ArticleCard({
       }}
     >
       <div className="flex flex-col sm:flex-row">
-        <div className="sm:w-48 h-48 sm:h-auto">
+        <div className="sm:w-44 h-44 sm:h-auto">
           <ArticleImage 
             src={article.imageUrl} 
             alt={article.title}
             categoryId={article.categoryId}
           />
         </div>
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-5">
           <div className="flex items-center space-x-2 mb-2">
             <Badge className={getCategoryColor(article.categoryId)}>
               {category.name}
@@ -252,7 +252,7 @@ export function ArticleCard({
             )}
           </div>
           
-          <h3 className="text-xl font-semibold mb-2 line-clamp-2">
+          <h3 className="text-lg font-semibold mb-2 line-clamp-2">
             {decodeHtmlEntities(article.title)}
           </h3>
           
@@ -263,14 +263,14 @@ export function ArticleCard({
           
           {/* User commentary as description */}
           {article.userCommentary && (
-            <p className="text-gray-600 mb-4 line-clamp-3">
+            <p className="text-gray-600 mb-3 line-clamp-2 text-sm">
               {article.userCommentary}
             </p>
           )}
 
           {/* Recommender info */}
           {recommenderName && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
               <User className="h-3 w-3" />
               <span>Shared by {recommenderName}</span>
               {article.recommendedAt && (
@@ -281,7 +281,7 @@ export function ArticleCard({
 
           {/* Social actions */}
           {showSocialActions && (
-            <div className="flex items-center gap-4 mb-3 pb-3 border-b" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-4 mb-2 pb-2 border-b" onClick={(e) => e.stopPropagation()}>
               <Button
                 variant="ghost"
                 size="sm"

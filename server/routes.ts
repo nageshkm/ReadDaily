@@ -186,16 +186,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "User ID and article ID are required" });
       }
 
-      // Record in analytics table
+      // Record in analytics table (this should always work)
       console.log("Recording article read in analytics...");
       await analyticsService.recordArticleRead(userId, articleId, deviceInfo);
       
-      // Also update user's read articles for streak tracking
+      // Try to update user's read articles for streak tracking, but don't fail if user doesn't exist
       console.log("Updating user streak data...");
-      const user = await userSyncService.addArticleRead(userId, articleId, deviceInfo);
-      
-      console.log("Article read tracking completed successfully");
-      res.json({ user, message: "Article read tracked successfully" });
+      try {
+        const user = await userSyncService.addArticleRead(userId, articleId, deviceInfo);
+        console.log("Article read tracking completed successfully");
+        res.json({ user, message: "Article read tracked successfully" });
+      } catch (userError) {
+        console.log("User streak update failed (user may not exist in DB yet), but analytics recorded:", userError.message);
+        res.json({ message: "Article read tracked successfully" });
+      }
     } catch (error) {
       console.error("Analytics article read tracking error:", error);
       res.status(500).json({ message: "Failed to track article read" });

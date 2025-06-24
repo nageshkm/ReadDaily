@@ -155,3 +155,7 @@ No success feedback popup after reading articles - completely removed per user r
   - Hidden user commentary on mobile for cleaner view
   - Smaller social action buttons on mobile
   - Better proportion fitting 3-3.5 articles per mobile screen
+- Moved Share Article button from home page to profile page under My Reading section
+- Added tagline "Read interesting articles everyday" to header below ReadDaily logo
+- Updated article images to use object-contain instead of object-cover for proper scaling
+- Added quotation marks around user commentary display for better visual distinction

@@ -261,7 +261,7 @@ export function ArticleCard({
       }}
     >
       <div className="flex flex-row">
-        <div className="w-24 h-16 sm:w-44 sm:h-32 flex-shrink-0">
+        <div className="w-24 sm:w-44 flex-shrink-0">
           <ArticleImage
             src={article.imageUrl}
             alt={article.title}

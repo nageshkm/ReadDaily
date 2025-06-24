@@ -159,3 +159,5 @@ No success feedback popup after reading articles - completely removed per user r
 - Added tagline "Read interesting articles everyday" to header below ReadDaily logo
 - Updated article images to use object-contain instead of object-cover for proper scaling
 - Added quotation marks around user commentary display for better visual distinction
+- Updated image containers to span full height of article cards for better visual balance
+- Added WhatsApp group invitation for new users in onboarding flow to build community engagement

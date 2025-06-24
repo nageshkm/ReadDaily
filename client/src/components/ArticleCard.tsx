@@ -260,36 +260,36 @@ export function ArticleCard({
         onReadClick(article); // Mark as read
       }}
     >
-      <div className="flex flex-col sm:flex-row">
-        <div className="sm:w-44 h-44 sm:h-auto">
+      <div className="flex flex-row">
+        <div className="w-24 h-16 sm:w-44 sm:h-32 flex-shrink-0">
           <ArticleImage
             src={article.imageUrl}
             alt={article.title}
             categoryId={article.categoryId}
           />
         </div>
-        <div className="flex-1 p-5 pb-2">
-          <div className="flex items-center space-x-2 mb-2">
-            <Badge className={getCategoryColor(article.categoryId)}>
+        <div className="flex-1 p-3 sm:p-5 pb-2">
+          <div className="flex items-center space-x-2 mb-1 sm:mb-2">
+            <Badge className={`${getCategoryColor(article.categoryId)} text-xs px-1 py-0.5 sm:px-2 sm:py-1`}>
               {category.name}
             </Badge>
             <span className="text-xs text-gray-500">
-              {article.estimatedReadingTime} min read
+              {article.estimatedReadingTime} min
             </span>
             {isRead ? (
               <div className="flex items-center space-x-1">
-                <CheckCircle className="text-success text-sm" size={16} />
-                <span className="text-xs text-success font-medium">Read</span>
+                <CheckCircle className="text-success text-sm" size={12} />
+                <span className="text-xs text-success font-medium hidden sm:inline">Read</span>
               </div>
             ) : (
               <Circle
                 className="text-accent fill-accent animate-pulse"
-                size={8}
+                size={6}
               />
             )}
           </div>
 
-          <h3 className="text-lg font-semibold mb-2 line-clamp-2">
+          <h3 className="text-sm sm:text-lg font-semibold mb-1 sm:mb-2 line-clamp-2">
             {decodeHtmlEntities(article.title)}
           </h3>
 

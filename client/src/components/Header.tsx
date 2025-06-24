@@ -20,12 +20,15 @@ export function Header({ user }: HeaderProps) {
   return (
     <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-4">
+        <div className="flex justify-between items-center min-h-16 py-3">
+          <div className="flex flex-col space-y-1">
             <Link href="/" className="flex items-center space-x-2">
               <BookOpen className="text-accent text-xl" size={24} />
               <h1 className="text-xl font-semibold">ReadDaily</h1>
             </Link>
+            <p className="text-sm text-gray-600 ml-8">
+              Read interesting articles everyday
+            </p>
           </div>
           
           <nav className="hidden sm:flex items-center space-x-6">

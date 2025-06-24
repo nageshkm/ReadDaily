@@ -306,21 +306,10 @@ export default function Home() {
     <div className="max-w-4xl mx-auto px-4 py-6">
       <PWANotifications user={user} onFCMTokenUpdate={handleFCMTokenUpdate} />
       <main className="space-y-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="text-sm text-gray-600">
-              Read interesting articles everyday
-            </p>
-          </div>
-        </div>
+
 
         <div className="space-y-8">
           <div className="flex justify-between items-center">
-            <div>
-              <p className="text-sm text-gray-600">
-                Read interesting articles everyday
-              </p>
-            </div>
             {isAdmin() && (
               <Button
                 variant="outline"

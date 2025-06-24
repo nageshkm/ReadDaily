@@ -9,7 +9,7 @@ import { LocalStorage } from "@/lib/storage";
 import { getTodayString } from "@/lib/utils";
 import { decodeHtmlEntities } from "@/lib/html-utils";
 import { User, Article, Category } from "@shared/schema";
-import { Loader2, Star, Trash2, RotateCcw } from "lucide-react";
+import { Loader2, Star, Trash2, RotateCcw, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -459,9 +459,10 @@ export default function Home() {
                     <div className="relative">
                       <Badge 
                         variant="secondary" 
-                        className="mb-2 bg-blue-100 text-blue-800 border-blue-200"
+                        className="mb-2 bg-blue-100 text-blue-800 border-blue-200 flex items-center gap-1 w-fit"
                       >
-                        📤 Shared with you
+                        <Share2 size={12} />
+                        Shared with you
                       </Badge>
                       <ArticleCard
                         article={{

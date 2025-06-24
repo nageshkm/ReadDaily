@@ -20,7 +20,7 @@ import { ShareButton } from "@/components/ShareButton";
 import { SharePromptToast } from "@/components/SharePromptToast";
 
 export default function Home() {
-  const params = useParams();
+  const [location] = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showWhatsAppInvite, setShowWhatsAppInvite] = useState(false);
@@ -193,7 +193,7 @@ export default function Home() {
     // Check for shared article from URL route parameter or query parameter
     const urlParams = new URLSearchParams(window.location.search);
     const sharedFromQuery = urlParams.get("shared");
-    const sharedFromRoute = params.articleId; // from /share/:articleId route
+    const sharedFromRoute = location.startsWith("/share/") ? location.replace("/share/", "") : null;
     const shared = sharedFromRoute || sharedFromQuery;
     
     if (shared) {
@@ -225,7 +225,7 @@ export default function Home() {
     } else if (!shared) {
       setShowOnboarding(true);
     }
-  }, [params.articleId]);
+  }, [location]);
 
   const startUserSession = async (user: User) => {
     try {

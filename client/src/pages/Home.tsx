@@ -67,21 +67,40 @@ export default function Home() {
       const data = await response.json();
       return { articleId, ...data };
     },
-    onSuccess: (data) => {
-      // Invalidate article details to refresh like status immediately
-      queryClient.invalidateQueries({ queryKey: [`/api/articles/${data.articleId}/details`] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to process like",
-        description: error.message || "Please try again.",
-        variant: "destructive"
+    onMutate: async (articleId: string) => {
+      // Cancel outgoing queries to prevent race conditions
+      await queryClient.cancelQueries({ queryKey: [`/api/articles/${articleId}/details`] });
+      
+      // Optimistically update the article details
+      const previousData = queryClient.getQueryData([`/api/articles/${articleId}/details`]);
+      
+      queryClient.setQueryData([`/api/articles/${articleId}/details`], (old: any) => {
+        if (!old || !old.likes) return old;
+        
+        const userLiked = old.likes.some((like: any) => like.userId === user?.id);
+        
+        return {
+          ...old,
+          likes: userLiked 
+            ? old.likes.filter((like: any) => like.userId !== user?.id)
+            : [...old.likes, { userId: user?.id, userName: user?.name }],
+          likesCount: userLiked ? old.likesCount - 1 : old.likesCount + 1
+        };
       });
+      
+      return { previousData };
     },
-    onSettled: () => {
-      // Refresh all article lists
-      queryClient.invalidateQueries({ queryKey: ["/api/articles/recommended"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/featured"] });
+    onError: (error: any, articleId: string, context: any) => {
+      // Revert optimistic update on error
+      if (context?.previousData) {
+        queryClient.setQueryData([`/api/articles/${articleId}/details`], context.previousData);
+      }
+    },
+    onSettled: (data) => {
+      // Only refresh the specific article details, not all lists
+      if (data?.articleId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/articles/${data.articleId}/details`] });
+      }
     },
   });
 

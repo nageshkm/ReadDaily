@@ -464,9 +464,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "userId is required" });
       }
 
-      // Check if user already liked this article
+      // Check if user already liked this article (faster query)
       const existingLike = await db
-        .select()
+        .select({ id: articleLikes.id })
         .from(articleLikes)
         .where(and(eq(articleLikes.articleId, articleId), eq(articleLikes.userId, userId)))
         .limit(1);
@@ -504,21 +504,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const likesCount = result[0]?.likesCount || 1;
 
-        // Get article and user info for notification (async, don't wait)
-        setImmediate(async () => {
+        // Send notification asynchronously without blocking response
+        process.nextTick(async () => {
           try {
-            const [article] = await db.select().from(articles).where(eq(articles.id, articleId));
-            const [liker] = await db.select().from(users).where(eq(users.id, userId));
-            const [author] = await db.select().from(users).where(eq(users.id, article?.recommendedBy || ''));
-
-            // Send notification to article author
-            if (article && author && author.fcmToken && author.id !== userId && liker) {
-              await sendNotificationForLike(
-                author.fcmToken,
-                liker.name,
-                article.title,
-                article.id
-              );
+            const [article] = await db.select({ title: articles.title, recommendedBy: articles.recommendedBy }).from(articles).where(eq(articles.id, articleId));
+            if (article?.recommendedBy && article.recommendedBy !== userId) {
+              const [liker] = await db.select({ name: users.name }).from(users).where(eq(users.id, userId));
+              const [author] = await db.select({ fcmToken: users.fcmToken }).from(users).where(eq(users.id, article.recommendedBy));
+              
+              if (article && author?.fcmToken && liker) {
+                await sendNotificationForLike(author.fcmToken, liker.name, article.title, articleId);
+              }
             }
           } catch (notificationError) {
             console.error("Failed to send like notification:", notificationError);

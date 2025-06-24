@@ -228,14 +228,11 @@ export default function Home() {
       setTodayReadCount(LocalStorage.getTodayReadCount(storedUser));
       startUserSession(storedUser);
       
-      // Check if this is a new user's first session for WhatsApp invite
+      // Show WhatsApp community invite for all users after sign in
       const whatsAppInviteShown = localStorage.getItem('whatsapp-invite-shown');
-      const userJoinDate = new Date(storedUser.joinDate);
-      const now = new Date();
-      const daysSinceJoin = Math.floor((now.getTime() - userJoinDate.getTime()) / (1000 * 60 * 60 * 24));
       
-      // Show WhatsApp invite if user joined today and hasn't seen it before
-      if (daysSinceJoin === 0 && !whatsAppInviteShown) {
+      // Show WhatsApp invite if user hasn't seen it before (regardless of join date)
+      if (!whatsAppInviteShown) {
         setShowWhatsAppInvite(true);
       }
     } else if (!shared) {
@@ -416,7 +413,7 @@ export default function Home() {
             <h3 className="text-sm font-medium">Join WhatsApp Community</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
-            Connect with other readers and share feedback in our community group.
+            Welcome! Connect with other readers and share your thoughts in our community group.
           </p>
           <Button
             variant="outline"

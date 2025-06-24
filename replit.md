@@ -162,6 +162,7 @@ No success feedback popup after reading articles - completely removed per user r
 - Updated image containers to span full height of article cards for better visual balance
 - Added WhatsApp group invitation for new users in onboarding flow to build community engagement
 - Added WhatsApp community join option to profile page for all users to access anytime
+- Updated WhatsApp community invitation to show for all users after sign-in, not just new users
 - Implemented bottom toast prompt encouraging users to share articles after reading and scrolling
   - Appears once per day maximum per user
   - Triggers when user reads an article and then scrolls on the page

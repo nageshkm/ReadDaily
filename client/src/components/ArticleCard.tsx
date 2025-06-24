@@ -397,16 +397,7 @@ export function ArticleCard({
             </div>
           )}
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <span>{article.sourceUrl?.split("/")[2] || "Unknown"}</span>
-              <span>•</span>
-              <span>Today</span>
-            </div>
-            <div className="text-xs text-gray-500">
-              {isRead ? "✓ Read" : "Click to read"}
-            </div>
-          </div>
+
         </div>
       </div>
 

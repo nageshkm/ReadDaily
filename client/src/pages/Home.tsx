@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { requestNotificationPermission, shareContent, onForegroundMessage } from "@/lib/firebase";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);

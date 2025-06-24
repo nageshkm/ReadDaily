@@ -3,6 +3,7 @@ import App from "./App";
 import "./index.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useEffect, useState } from "react";
+import { registerServiceWorker } from "./lib/firebase";
 
 function AppWithAuth() {
   const [googleClientId, setGoogleClientId] = useState<string>("");
@@ -35,5 +36,8 @@ function AppWithAuth() {
     </GoogleOAuthProvider>
   );
 }
+
+// Register service worker for PWA
+registerServiceWorker();
 
 createRoot(document.getElementById("root")!).render(<AppWithAuth />);

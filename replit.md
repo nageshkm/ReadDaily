@@ -161,3 +161,4 @@ No success feedback popup after reading articles - completely removed per user r
 - Added quotation marks around user commentary display for better visual distinction
 - Updated image containers to span full height of article cards for better visual balance
 - Added WhatsApp group invitation for new users in onboarding flow to build community engagement
+- Added WhatsApp community join option to profile page for all users to access anytime

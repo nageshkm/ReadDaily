@@ -83,7 +83,7 @@ function ArticleImage({ src, alt, categoryId }: ArticleImageProps) {
   }
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full bg-gray-50">
       {isLoading && (
         <div
           className={`absolute inset-0 bg-gradient-to-br ${getCategoryGradient(categoryId)} flex items-center justify-center animate-pulse`}
@@ -94,7 +94,7 @@ function ArticleImage({ src, alt, categoryId }: ArticleImageProps) {
       <img
         src={src}
         alt={alt}
-        className={`w-full h-full object-cover transition-opacity duration-300 ${
+        className={`w-full h-full object-contain transition-opacity duration-300 ${
           isLoading ? "opacity-0" : "opacity-100"
         }`}
         onLoad={() => setIsLoading(false)}

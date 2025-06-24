@@ -40,6 +40,7 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
       
       // Check for shared article in localStorage
       const sharedArticleId = localStorage.getItem('pendingSharedArticle');
+      console.log('AUTH: Sending sharedArticleId to server:', sharedArticleId);
       
       // Sign in with server, migrating local data and shared article
       const response = await fetch('/api/auth/signin', {

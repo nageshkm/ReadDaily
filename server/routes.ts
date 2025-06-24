@@ -63,9 +63,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Store shared article in session if provided
+      console.log('AUTH: Received sharedArticleId:', sharedArticleId);
+      console.log('AUTH: Session exists:', !!req.session);
       if (sharedArticleId && req.session) {
         req.session.sharedArticleId = sharedArticleId;
-        console.log('Stored shared article in session:', sharedArticleId);
+        console.log('AUTH: Stored shared article in session:', sharedArticleId);
+      } else {
+        console.log('AUTH: Not storing shared article - missing ID or session');
       }
 
       res.json({ 
@@ -98,11 +102,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Get shared article from session
   app.get('/api/auth/shared-article', (req, res) => {
+    console.log('SESSION: Checking for shared article in session');
+    console.log('SESSION: Session exists:', !!req.session);
+    console.log('SESSION: Session data:', req.session);
     const sharedArticleId = req.session?.sharedArticleId || null;
+    console.log('SESSION: Found sharedArticleId:', sharedArticleId);
     if (sharedArticleId) {
       // Clear it after retrieving to prevent reuse
       delete req.session.sharedArticleId;
-      console.log('Retrieved and cleared shared article from session:', sharedArticleId);
+      console.log('SESSION: Retrieved and cleared shared article from session:', sharedArticleId);
     }
     res.json({ sharedArticleId });
   });

@@ -216,6 +216,7 @@ export default function Home() {
     console.log("Final shared:", shared);
     
     if (shared) {
+      console.log('HOME: Processing shared article:', shared);
       // Store for authentication flow
       localStorage.setItem('pendingSharedArticle', shared);
       
@@ -227,6 +228,16 @@ export default function Home() {
       }
       // If user exists, set the shared article for priority display
       setSharedArticleId(shared);
+    } else {
+      // Check for pending shared article in localStorage (for navigation after redirect)
+      const pendingShared = localStorage.getItem('pendingSharedArticle');
+      console.log('HOME: Checking pendingSharedArticle:', pendingShared);
+      if (pendingShared && storedUser) {
+        console.log('HOME: Found pendingSharedArticle, setting as priority:', pendingShared);
+        setSharedArticleId(pendingShared);
+        // Clear it after setting to prevent reuse
+        localStorage.removeItem('pendingSharedArticle');
+      }
     }
     
     if (storedUser) {

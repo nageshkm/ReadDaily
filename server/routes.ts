@@ -484,6 +484,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .returning({ likesCount: articles.likesCount });
 
         const likesCount = result[0]?.likesCount || 0;
+
         res.json({ message: "Article unliked successfully", action: "unliked", likesCount });
       } else {
         // Like: Add like and increment count
@@ -503,6 +504,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .returning({ likesCount: articles.likesCount });
 
         const likesCount = result[0]?.likesCount || 1;
+
 
         // Send notification asynchronously without blocking response
         process.nextTick(async () => {
@@ -612,14 +614,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      res.json({
+      const response = {
         article: article[0],
         recommender,
         likes,
         comments,
-        likesCount: likes.length,
+        likesCount: article[0].likesCount || likes.length, // Use actual count from article table
         likesDisplay: formatLikesDisplay(likes)
-      });
+      };
+      
+
+      res.json(response);
     } catch (error) {
       console.error("Error fetching article details:", error);
       res.status(500).json({ message: "Failed to fetch article details" });

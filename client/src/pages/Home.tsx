@@ -65,31 +65,17 @@ export default function Home() {
       });
       if (!response.ok) throw new Error("Failed to process like/unlike");
       const data = await response.json();
+
       return { articleId, ...data };
     },
     onMutate: async (articleId: string) => {
       // Cancel outgoing queries to prevent race conditions
       await queryClient.cancelQueries({ queryKey: [`/api/articles/${articleId}/details`] });
       
-      // Optimistically update the article details
+      // Get current data for rollback
       const previousData = queryClient.getQueryData([`/api/articles/${articleId}/details`]);
       
-      queryClient.setQueryData([`/api/articles/${articleId}/details`], (old: any) => {
-        if (!old || !old.likes) return old;
-        
-        const userLiked = old.likes.some((like: any) => like.userId === user?.id);
-        
-        const newLikesCount = userLiked ? Math.max(0, old.likesCount - 1) : old.likesCount + 1;
-        
-        return {
-          ...old,
-          likes: userLiked 
-            ? old.likes.filter((like: any) => like.userId !== user?.id)
-            : [...old.likes, { userId: user?.id, userName: user?.name }],
-          likesCount: newLikesCount
-        };
-      });
-      
+      // Don't do optimistic updates - let server response handle the update
       return { previousData };
     },
     onError: (error: any, articleId: string, context: any) => {
@@ -99,21 +85,9 @@ export default function Home() {
       }
     },
     onSuccess: (data) => {
-      // Update the cache with server response to ensure consistency
-      queryClient.setQueryData([`/api/articles/${data.articleId}/details`], (old: any) => {
-        if (!old) return old;
-        
-        // Update both likes array and count based on server response
-        const updatedLikes = data.action === "liked" 
-          ? [...(old.likes || []).filter((like: any) => like.userId !== user?.id), { userId: user?.id, userName: user?.name }]
-          : (old.likes || []).filter((like: any) => like.userId !== user?.id);
-        
-        return {
-          ...old,
-          likes: updatedLikes,
-          likesCount: data.likesCount
-        };
-      });
+
+      // Just invalidate to force a fresh fetch from server
+      queryClient.invalidateQueries({ queryKey: [`/api/articles/${data.articleId}/details`] });
     },
     onSettled: (data) => {
       // Refresh to ensure we have the latest data

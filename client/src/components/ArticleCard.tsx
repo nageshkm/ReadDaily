@@ -136,9 +136,12 @@ export function ArticleCard({
       userName: string;
       likedAt: string;
     }>;
+    likesCount: number;
     likesDisplay: string;
     recommender: any;
   } | undefined;
+
+
 
   // Comments are fetched and available
 

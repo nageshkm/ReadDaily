@@ -144,3 +144,14 @@ No success feedback popup after reading articles - completely removed per user r
 - Added database constraint to prevent duplicate likes
 - Fixed server response to return actual likesCount from database
 - Hidden likes display feature (who liked the article) per user request
+- Changed layout from 2 tabs to single infinite scroll:
+  - Removed Featured/Community tabs
+  - Featured articles now appear at top with star indicator
+  - Community shares follow below with visual separator
+  - Single continuous scroll experience
+- Updated mobile UI for better mobile experience:
+  - Compact article cards with image on left, content on right
+  - Reduced text sizes and spacing on mobile
+  - Hidden user commentary on mobile for cleaner view
+  - Smaller social action buttons on mobile
+  - Better proportion fitting 3-3.5 articles per mobile screen

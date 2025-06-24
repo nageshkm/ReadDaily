@@ -294,24 +294,24 @@ export function ArticleCard({
           </h3>
 
           {/* Source URL as domain */}
-          <p className="text-sm text-gray-500 mb-2">
+          <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
             {extractDomain(article.sourceUrl)}
           </p>
 
-          {/* User commentary as description */}
+          {/* User commentary as description - hidden on mobile for more compact view */}
           {article.userCommentary && (
-            <p className="text-gray-600 mb-3 line-clamp-2 text-sm">
+            <p className="hidden sm:block text-gray-600 mb-3 line-clamp-2 text-sm">
               {article.userCommentary}
             </p>
           )}
 
           {/* Recommender info */}
           {recommenderName && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1 sm:mb-2">
               <User className="h-3 w-3" />
-              <span>Shared by {recommenderName}</span>
+              <span className="truncate">Shared by {recommenderName}</span>
               {article.recommendedAt && (
-                <span>• {formatDate(article.recommendedAt)}</span>
+                <span className="hidden sm:inline">• {formatDate(article.recommendedAt)}</span>
               )}
             </div>
           )}
@@ -319,14 +319,14 @@ export function ArticleCard({
           {/* Social actions */}
           {showSocialActions && (
             <div
-              className="flex items-center gap-4 mb-2 pb-2 border-b"
+              className="flex items-center gap-2 sm:gap-4 mb-1 sm:mb-2 pb-1 sm:pb-2 border-b"
               onClick={(e) => e.stopPropagation()}
             >
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onLikeClick?.(article)}
-                className={`flex items-center gap-1 hover:text-red-500 ${
+                className={`flex items-center gap-1 hover:text-red-500 p-1 sm:px-3 sm:py-2 h-auto ${
                   typedArticleDetails?.likes?.some(
                     (like) => like.userId === currentUserId,
                   )
@@ -335,7 +335,7 @@ export function ArticleCard({
                 }`}
               >
                 <Heart
-                  className={`h-4 w-4 ${
+                  className={`h-3 w-3 sm:h-4 sm:w-4 ${
                     typedArticleDetails?.likes?.some(
                       (like) => like.userId === currentUserId,
                     )
@@ -343,7 +343,7 @@ export function ArticleCard({
                       : ""
                   }`}
                 />
-                <span>
+                <span className="text-xs sm:text-sm">
                   {typedArticleDetails?.likesCount || article.likesCount || 0}
                 </span>
               </Button>
@@ -355,10 +355,10 @@ export function ArticleCard({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="flex items-center gap-1 text-muted-foreground"
+                    className="flex items-center gap-1 text-muted-foreground p-1 sm:px-3 sm:py-2 h-auto"
                   >
-                    <MessageCircle className="h-4 w-4" />
-                    <span>Comment</span>
+                    <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline text-xs sm:text-sm">Comment</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
@@ -413,10 +413,10 @@ export function ArticleCard({
                 variant="ghost"
                 size="sm"
                 onClick={handleShare}
-                className="flex items-center gap-1 text-muted-foreground"
+                className="flex items-center gap-1 text-muted-foreground p-1 sm:px-3 sm:py-2 h-auto"
               >
-                <Share2 className="h-4 w-4" />
-                <span>Share</span>
+                <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline text-xs sm:text-sm">Share</span>
               </Button>
             </div>
           )}

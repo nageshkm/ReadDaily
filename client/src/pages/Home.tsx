@@ -362,7 +362,7 @@ export default function Home() {
                     <Star size={16} className="text-yellow-500" fill="currentColor" />
                     <h3 className="text-md font-medium text-gray-800">Featured Today</h3>
                   </div>
-                  <div className="grid gap-4">
+                  <div className="grid gap-2 sm:gap-4">
                     {(featuredArticles as any[]).map((article: any) => {
                       const category = getCategoryById(article.categoryId);
                       const displayCategory = category || {
@@ -434,7 +434,7 @@ export default function Home() {
                       <h3 className="text-md font-medium text-gray-800">Community Shares</h3>
                     </div>
                   )}
-                  <div className="grid gap-4">
+                  <div className="grid gap-2 sm:gap-4">
                     {(() => {
                       const articles = recommendedArticles as any[];
                       const sharedArticle = sharedArticleId

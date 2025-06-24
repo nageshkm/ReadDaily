@@ -283,9 +283,6 @@ export function ArticleCard({
                 <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
                 <span className="text-xs text-green-600 font-medium">Read</span>
               </div>
-                <CheckCircle className="text-success text-sm" size={12} />
-                <span className="text-xs text-success font-medium hidden sm:inline">Read</span>
-              </div>
             ) : (
               <Circle
                 className="text-accent fill-accent animate-pulse"

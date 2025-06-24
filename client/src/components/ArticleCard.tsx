@@ -130,7 +130,13 @@ export function ArticleCard({
       userName: string;
       commentedAt: string;
     }>;
-    likes: Array<any>;
+    likes: Array<{
+      id: string;
+      userId: string;
+      userName: string;
+      likedAt: string;
+    }>;
+    likesDisplay: string;
     recommender: any;
   } | undefined;
 
@@ -277,10 +283,18 @@ export function ArticleCard({
                 variant="ghost"
                 size="sm"
                 onClick={() => onLikeClick?.(article)}
-                className="flex items-center gap-1 text-muted-foreground hover:text-red-500"
+                className={`flex items-center gap-1 hover:text-red-500 ${
+                  typedArticleDetails?.likes?.some(like => like.userId === currentUserId) 
+                    ? 'text-red-500' 
+                    : 'text-muted-foreground'
+                }`}
               >
-                <Heart className="h-4 w-4" />
-                <span>{article.likesCount || 0}</span>
+                <Heart className={`h-4 w-4 ${
+                  typedArticleDetails?.likes?.some(like => like.userId === currentUserId) 
+                    ? 'fill-current' 
+                    : ''
+                }`} />
+                <span>{typedArticleDetails?.likes?.length || article.likesCount || 0}</span>
               </Button>
               <Dialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
                 <DialogTrigger asChild>
@@ -343,6 +357,13 @@ export function ArticleCard({
                 <Share2 className="h-4 w-4" />
                 <span>Share</span>
               </Button>
+            </div>
+          )}
+
+          {/* Likes display */}
+          {typedArticleDetails?.likesDisplay && (
+            <div className="text-xs text-muted-foreground mb-2" onClick={(e) => e.stopPropagation()}>
+              {typedArticleDetails.likesDisplay}
             </div>
           )}
 

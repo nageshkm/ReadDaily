@@ -30,8 +30,8 @@ function Router() {
     if (location.startsWith("/share/")) {
       const articleId = location.replace("/share/", "");
       console.log("Redirecting shared article:", articleId);
-      // Use window.location to ensure URL parameters are properly set
-      window.location.href = `/?shared=${articleId}`;
+      // Redirect to home with shared parameter in URL
+      setLocation(`/?shared=${articleId}`);
     }
   }, [location, setLocation]);
   

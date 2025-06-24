@@ -29,7 +29,16 @@ function Router() {
   useEffect(() => {
     if (location.startsWith("/share/")) {
       const articleId = location.replace("/share/", "");
-      console.log("Redirecting shared article:", articleId);
+      console.log("CLIENT: Redirecting shared article:", articleId);
+      console.log("CLIENT: Storing in localStorage:", articleId);
+      
+      // Store the shared article for after authentication
+      localStorage.setItem('pendingSharedArticle', articleId);
+      
+      // Verify it was stored
+      const stored = localStorage.getItem('pendingSharedArticle');
+      console.log("CLIENT: Verified stored value:", stored);
+      
       // Redirect to home with shared parameter in URL
       setLocation(`/?shared=${articleId}`);
     }

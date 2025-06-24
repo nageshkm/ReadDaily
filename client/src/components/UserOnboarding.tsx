@@ -68,7 +68,10 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
       
       // Clear the pending shared article as it's now in session
       if (sharedArticleId) {
+        console.log('AUTH: Clearing localStorage after successful storage in session');
         localStorage.removeItem('pendingSharedArticle');
+      } else {
+        console.log('AUTH: No sharedArticleId found, keeping localStorage intact');
       }
       
       onComplete(user);

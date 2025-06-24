@@ -168,6 +168,8 @@ export default function Home() {
   useEffect(() => {
     if (isAdmin()) {
       localStorage.removeItem('share-prompt-shown');
+      setShowSharePrompt(false);
+      setHasReadArticle(false);
     }
   }, [user]);
 

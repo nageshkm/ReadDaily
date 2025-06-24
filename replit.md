@@ -123,6 +123,7 @@ The application follows a modern full-stack architecture with clear separation b
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+No toast notifications for like/unlike actions - user dislikes them.
 
 ## Changelog
 

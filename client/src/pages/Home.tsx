@@ -70,19 +70,6 @@ export default function Home() {
     onSuccess: (data) => {
       // Invalidate article details to refresh like status immediately
       queryClient.invalidateQueries({ queryKey: [`/api/articles/${data.articleId}/details`] });
-      
-      // Show feedback message
-      if (data.action === "liked") {
-        toast({
-          title: "Article liked!",
-          description: "You liked this article",
-        });
-      } else if (data.action === "unliked") {
-        toast({
-          title: "Article unliked",
-          description: "You removed your like from this article",
-        });
-      }
     },
     onError: (error: any) => {
       toast({

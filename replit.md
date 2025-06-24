@@ -137,3 +137,7 @@ Preferred communication style: Simple, everyday language.
   - FCM token management in user profiles
 - Enhanced URL extraction with retry mechanism for blocked domains
 - Fixed like button functionality across all tabs with optimistic updates
+- Improved like/unlike performance by removing slow optimistic updates
+- Added proper like/unlike toggle behavior with visual feedback
+- Added database constraint to prevent duplicate likes
+- Hidden likes display feature (who liked the article) per user request

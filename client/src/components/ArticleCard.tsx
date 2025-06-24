@@ -360,8 +360,8 @@ export function ArticleCard({
             </div>
           )}
 
-          {/* Likes display */}
-          {typedArticleDetails?.likesDisplay && (
+          {/* Likes display - hidden for now */}
+          {false && typedArticleDetails?.likesDisplay && (
             <div className="text-xs text-muted-foreground mb-2" onClick={(e) => e.stopPropagation()}>
               {typedArticleDetails.likesDisplay}
             </div>

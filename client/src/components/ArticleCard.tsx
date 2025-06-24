@@ -300,7 +300,7 @@ export function ArticleCard({
 
           {/* User commentary as description - hidden on mobile for more compact view */}
           {article.userCommentary && (
-            <p className="hidden sm:block text-gray-600 mb-3 line-clamp-2 text-sm">
+            <p className="hidden sm:block text-gray-600 mb-3 line-clamp-2 text-sm italic">
               {article.userCommentary}
             </p>
           )}

@@ -217,6 +217,7 @@ export default function Home() {
       // Check if there's a pending shared article from localStorage after auth
       const pendingShared = localStorage.getItem('pendingSharedArticle');
       if (pendingShared && storedUser) {
+        console.log("Found pending shared article after auth:", pendingShared);
         setSharedArticleId(pendingShared);
         // Clear it once we've used it
         localStorage.removeItem('pendingSharedArticle');

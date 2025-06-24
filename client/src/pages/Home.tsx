@@ -636,7 +636,7 @@ export default function Home() {
                               onViewClick={handleViewArticle}
                               onLikeClick={handleLikeArticle}
                               showSocialActions={true}
-                              recommenderName={article.recommenderName}
+                              recommenderName={article.recommenderName || article.recommendedBy}
                               currentUserId={user?.id}
                             />
                             {isAdmin() && (

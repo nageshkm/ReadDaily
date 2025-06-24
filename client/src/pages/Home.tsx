@@ -331,9 +331,8 @@ export default function Home() {
         <div className="space-y-8">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-lg font-semibold">Today's Reading</h2>
               <p className="text-sm text-gray-600">
-                Featured articles and community shares
+                Read interesting articles everyday
               </p>
             </div>
             {isAdmin() && (

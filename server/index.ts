@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 // Removed content automation import
@@ -9,6 +10,18 @@ process.env.VITE_GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Configure sessions BEFORE any routes
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'readaily-secret-key-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // Set to true in production with HTTPS
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
 
 // Force HTTPS in production
 if (process.env.NODE_ENV === 'production') {

@@ -461,6 +461,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           likedAt: new Date().toISOString()
         });
         
+        // Get article and user info for notification
+        const [article] = await db.select().from(articles).where(eq(articles.id, articleId));
+        const [liker] = await db.select().from(users).where(eq(users.id, userId));
+        const [author] = await db.select().from(users).where(eq(users.id, article?.recommendedBy || ''));
+
+        // Send notification to article author
+        if (article && author && author.fcmToken && author.id !== userId && liker) {
+          try {
+            await sendNotificationForLike(
+              author.fcmToken,
+              liker.name,
+              article.title,
+              article.id
+            );
+          } catch (notificationError) {
+            console.error("Failed to send like notification:", notificationError);
+          }
+        }
+        
         const result = await db
           .update(articles)
           .set({ likesCount: sql`${articles.likesCount} + 1` })

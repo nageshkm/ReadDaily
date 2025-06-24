@@ -2,7 +2,7 @@
 
 ## Overview
 
-ReadDaily is a full-stack social reading habit application designed to help users build daily reading habits through curated content. The application transforms digital content into personalized, engaging articles with intelligent platform-specific content extraction and advanced user analytics. Users can discover recommended articles, share content with commentary, track reading streaks, and build a social reading community.
+ReadDaily is a full-stack Progressive Web App (PWA) designed to help users build daily reading habits through curated content. The application transforms digital content into personalized, engaging articles with intelligent platform-specific content extraction, push notifications, and advanced user analytics. Users can discover recommended articles, share content with commentary, track reading streaks, and build a social reading community. The PWA features offline-ready architecture, native app-like experience, and real-time notifications.
 
 ## System Architecture
 
@@ -126,5 +126,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Changelog
 
-Changelog:
-- June 24, 2025. Initial setup
+### June 24, 2025
+- Initial setup
+- Implemented Progressive Web App (PWA) features:
+  - Web App Manifest for installable app experience
+  - Service Worker for background functionality
+  - Firebase Cloud Messaging for push notifications
+  - Native Web Share API integration
+  - Notification system for article likes
+  - FCM token management in user profiles
+- Enhanced URL extraction with retry mechanism for blocked domains
+- Fixed like button functionality across all tabs with optimistic updates

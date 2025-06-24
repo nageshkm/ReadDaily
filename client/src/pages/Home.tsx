@@ -318,6 +318,7 @@ export default function Home() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
+      <PWANotifications user={user} onFCMTokenUpdate={handleFCMTokenUpdate} />
       <main className="space-y-8">
         <div className="flex justify-between items-center">
           <div>

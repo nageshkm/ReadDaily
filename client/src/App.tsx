@@ -25,12 +25,12 @@ function MobileNavigation() {
 function Router() {
   const [location, setLocation] = useLocation();
   
-  // Handle shared article routes - redirect to home with stored article ID
+  // Handle shared article routes - redirect to home with shared parameter
   useEffect(() => {
     if (location.startsWith("/share/")) {
       const articleId = location.replace("/share/", "");
-      LocalStorage.setSharedArticleId(articleId);
-      setLocation("/");
+      // Redirect to home with shared parameter in URL
+      setLocation(`/?shared=${articleId}`);
     }
   }, [location, setLocation]);
   

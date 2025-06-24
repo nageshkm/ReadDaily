@@ -451,11 +451,45 @@ export default function Home() {
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Featured Articles Section */}
-              {(featuredArticles as any[]).length > 0 && (
+              {/* Shared Article Priority Section */}
+              {sharedArticleDetails?.article && sharedArticleId && (
                 <div className="space-y-4">
                   <div className="grid gap-2 sm:gap-4">
-                    {(featuredArticles as any[]).map((article: any) => {
+                    <div className="relative">
+                      <Badge 
+                        variant="secondary" 
+                        className="mb-2 bg-blue-100 text-blue-800 border-blue-200"
+                      >
+                        📤 Shared with you
+                      </Badge>
+                      <ArticleCard
+                        article={{
+                          ...sharedArticleDetails.article,
+                          likesCount: sharedArticleDetails.likesCount || 0,
+                          likes: sharedArticleDetails.likes || []
+                        }}
+                        category={getCategoryById(sharedArticleDetails.article.categoryId) || {
+                          id: "general",
+                          name: "General",
+                          description: "General content",
+                        }}
+                        isRead={isArticleRead(sharedArticleDetails.article.id)}
+                        onReadClick={handleReadArticle}
+                        onViewClick={handleViewArticle}
+                        onLikeClick={handleLikeArticle}
+                        showSocialActions={true}
+                        currentUserId={user?.id}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Featured Articles Section */}
+              {(featuredArticles as any[]).filter(a => a.id !== sharedArticleId).length > 0 && (
+                <div className="space-y-4">
+                  <div className="grid gap-2 sm:gap-4">
+                    {(featuredArticles as any[]).filter(a => a.id !== sharedArticleId).map((article: any) => {
                       const category = getCategoryById(article.categoryId);
                       const displayCategory = category || {
                         id: "general",
@@ -465,12 +499,12 @@ export default function Home() {
 
                       return (
                         <div key={article.id} className="relative">
-                          <div className="absolute -top-2 -right-2 z-10">
-                            <div className="bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                              <Star size={12} fill="currentColor" />
-                              Featured Today
-                            </div>
-                          </div>
+                          <Badge 
+                            variant="secondary" 
+                            className="mb-2 bg-yellow-100 text-yellow-800 border-yellow-200"
+                          >
+                            ⭐ Featured Today
+                          </Badge>
                           <ArticleCard
                             article={article}
                             category={displayCategory}
@@ -479,16 +513,15 @@ export default function Home() {
                             onViewClick={handleViewArticle}
                             onLikeClick={handleLikeArticle}
                             showSocialActions={true}
-                            recommenderName={article.recommenderName}
                             currentUserId={user?.id}
                           />
                           {isAdmin() && (
-                            <div className="absolute top-2 right-2 z-10">
+                            <div className="absolute top-2 right-2 flex gap-2">
                               <Button
-                                variant="destructive"
+                                variant="ghost"
                                 size="sm"
                                 onClick={() => handleUnfeatureArticle(article)}
-                                className="opacity-80 hover:opacity-100"
+                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
                               >
                                 <Trash2 size={14} />
                               </Button>

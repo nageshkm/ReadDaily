@@ -15,7 +15,8 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { requestNotificationPermission, shareContent, onForegroundMessage } from "@/lib/firebase";
+import { PWANotifications } from "@/components/PWANotifications";
+import { ShareButton } from "@/components/ShareButton";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -29,6 +30,19 @@ export default function Home() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const categories = LocalStorage.getCategories();
+
+  // FCM token update mutation
+  const updateFCMTokenMutation = useMutation({
+    mutationFn: async (fcmToken: string) => {
+      const response = await fetch("/api/users/fcm-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user?.id, fcmToken }),
+      });
+      if (!response.ok) throw new Error("Failed to update FCM token");
+      return response.json();
+    },
+  });
 
   const { data: recommendedArticles = [], isLoading: isLoadingRecommended } =
     useQuery({
@@ -265,6 +279,12 @@ export default function Home() {
   const handleLikeArticle = (article: Article) => {
     if (!user) return;
     likeArticleMutation.mutate(article.id);
+  };
+
+  const handleFCMTokenUpdate = (token: string) => {
+    if (user) {
+      updateFCMTokenMutation.mutate(token);
+    }
   };
 
   const handleFeatureArticle = (article: Article) => {

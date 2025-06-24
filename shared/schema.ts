@@ -122,6 +122,7 @@ export const users = pgTable("users", {
   readArticles: text("read_articles").notNull(), // JSON string
   streakData: text("streak_data").notNull(), // JSON string
   articlesShared: text("articles_shared").notNull().default("[]"), // JSON string array of article IDs
+  fcmToken: text("fcm_token") // Firebase Cloud Messaging token for push notifications
 });
 
 // Analytics Tables

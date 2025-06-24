@@ -10,6 +10,7 @@ import { articles, articleLikes, articleComments, users } from "@shared/schema";
 import { eq, desc, and, sql } from "drizzle-orm";
 import { analyticsService } from "./analytics";
 import { userSyncService } from "./user-sync";
+import { sendNotificationForLike } from "./notifications";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Helper function to get device info from request
@@ -342,6 +343,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting user:", error);
       res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // Update FCM token for notifications
+  app.post("/api/users/fcm-token", async (req, res) => {
+    try {
+      const { userId, fcmToken } = req.body;
+      
+      if (!userId || !fcmToken) {
+        return res.status(400).json({ message: "User ID and FCM token are required" });
+      }
+
+      await db.update(users)
+        .set({ fcmToken })
+        .where(eq(users.id, userId));
+
+      res.json({ message: "FCM token updated successfully" });
+    } catch (error) {
+      console.error("Error updating FCM token:", error);
+      res.status(500).json({ message: "Failed to update FCM token" });
     }
   });
 

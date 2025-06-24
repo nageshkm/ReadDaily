@@ -26,9 +26,7 @@ export function Header({ user }: HeaderProps) {
               <BookOpen className="text-accent text-xl" size={24} />
               <h1 className="text-xl font-semibold">ReadDaily</h1>
             </Link>
-            <p className="text-sm text-gray-600 ml-8">
-              Read interesting articles everyday
-            </p>
+            <p className="text-sm text-gray-600 ml-8">Curated articles. Everyday</p>
           </div>
           
           <nav className="hidden sm:flex items-center space-x-6">

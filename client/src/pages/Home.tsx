@@ -501,7 +501,7 @@ export default function Home() {
                       className="mb-4 bg-blue-600 text-white border-blue-600 flex items-center gap-1 w-fit mx-auto"
                     >
                       <Share2 size={14} />
-                      🎯 SHARED WITH YOU 🎯
+                      Shared with you
                     </Badge>
                   </div>
                   <div className="grid gap-2 sm:gap-4">
@@ -526,9 +526,7 @@ export default function Home() {
                       />
                     </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-blue-700 text-sm font-medium">👆 This article was specifically shared with you!</p>
-                  </div>
+
                 </div>
               )}
               

@@ -294,7 +294,7 @@ export function ArticleCard({
                     ? 'fill-current' 
                     : ''
                 }`} />
-                <span>{typedArticleDetails?.likes?.length || article.likesCount || 0}</span>
+                <span>{typedArticleDetails?.likesCount || article.likesCount || 0}</span>
               </Button>
               <Dialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
                 <DialogTrigger asChild>

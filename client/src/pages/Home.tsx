@@ -79,12 +79,14 @@ export default function Home() {
         
         const userLiked = old.likes.some((like: any) => like.userId === user?.id);
         
+        const newLikesCount = userLiked ? Math.max(0, old.likesCount - 1) : old.likesCount + 1;
+        
         return {
           ...old,
           likes: userLiked 
             ? old.likes.filter((like: any) => like.userId !== user?.id)
             : [...old.likes, { userId: user?.id, userName: user?.name }],
-          likesCount: userLiked ? old.likesCount - 1 : old.likesCount + 1
+          likesCount: newLikesCount
         };
       });
       
@@ -96,8 +98,25 @@ export default function Home() {
         queryClient.setQueryData([`/api/articles/${articleId}/details`], context.previousData);
       }
     },
+    onSuccess: (data) => {
+      // Update the cache with server response to ensure consistency
+      queryClient.setQueryData([`/api/articles/${data.articleId}/details`], (old: any) => {
+        if (!old) return old;
+        
+        // Update both likes array and count based on server response
+        const updatedLikes = data.action === "liked" 
+          ? [...(old.likes || []).filter((like: any) => like.userId !== user?.id), { userId: user?.id, userName: user?.name }]
+          : (old.likes || []).filter((like: any) => like.userId !== user?.id);
+        
+        return {
+          ...old,
+          likes: updatedLikes,
+          likesCount: data.likesCount
+        };
+      });
+    },
     onSettled: (data) => {
-      // Only refresh the specific article details, not all lists
+      // Refresh to ensure we have the latest data
       if (data?.articleId) {
         queryClient.invalidateQueries({ queryKey: [`/api/articles/${data.articleId}/details`] });
       }

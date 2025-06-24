@@ -424,17 +424,24 @@ export default function Home() {
                   <div className="grid gap-2 sm:gap-4">
                     {(() => {
                       const articles = recommendedArticles as any[];
+                      const featuredIds = (featuredArticles as any[]).map(a => a.id);
+                      
+                      // Filter out featured articles from recommended articles
+                      const nonFeaturedArticles = articles.filter(
+                        (a) => !featuredIds.includes(a.id)
+                      );
+                      
                       const sharedArticle = sharedArticleId
-                        ? articles.find((a) => a.id === sharedArticleId)
+                        ? nonFeaturedArticles.find((a) => a.id === sharedArticleId)
                         : null;
-                      const otherArticles = articles.filter(
+                      const otherArticles = nonFeaturedArticles.filter(
                         (a) => a.id !== sharedArticleId,
                       );
 
                       // Combine shared and other articles
                       const orderedArticles = sharedArticle
                         ? [sharedArticle, ...otherArticles]
-                        : articles;
+                        : nonFeaturedArticles;
 
                       return orderedArticles.map((article: any) => {
                         const category = getCategoryById(article.categoryId);

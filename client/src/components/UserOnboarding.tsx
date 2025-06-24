@@ -59,6 +59,15 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
       LocalStorage.saveUser(user);
       localStorage.setItem('sessionId', sessionId);
       
+      // Check if there's a pending shared article and redirect with it
+      const pendingShared = localStorage.getItem('pendingSharedArticle');
+      if (pendingShared) {
+        localStorage.removeItem('pendingSharedArticle');
+        // Redirect to home with shared parameter to maintain the shared article flow
+        window.location.href = `/?shared=${pendingShared}`;
+        return;
+      }
+      
       onComplete(user);
     } catch (error) {
       console.error('Server authentication failed:', error);
@@ -68,6 +77,16 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
         userEmail.trim(),
         ['general']
       );
+      
+      // Check if there's a pending shared article and redirect with it
+      const pendingShared = localStorage.getItem('pendingSharedArticle');
+      if (pendingShared) {
+        localStorage.removeItem('pendingSharedArticle');
+        // Redirect to home with shared parameter to maintain the shared article flow
+        window.location.href = `/?shared=${pendingShared}`;
+        return;
+      }
+      
       onComplete(localUser);
     } finally {
       setIsSubmitting(false);

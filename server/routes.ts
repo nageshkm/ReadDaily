@@ -89,6 +89,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get shared article from session
+  app.get('/api/auth/shared-article', (req, res) => {
+    const sharedArticleId = req.session?.sharedArticleId || null;
+    if (sharedArticleId) {
+      // Clear it after retrieving to prevent reuse
+      delete req.session.sharedArticleId;
+      console.log('Retrieved and cleared shared article from session:', sharedArticleId);
+    }
+    res.json({ sharedArticleId });
+  });
+
   app.post("/api/auth/signout", async (req, res) => {
     try {
       const { userId } = req.body;

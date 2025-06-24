@@ -38,14 +38,18 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
       // Get existing localStorage data for migration
       const existingUser = LocalStorage.getUser();
       
-      // Sign in with server, migrating local data
+      // Check for shared article in localStorage
+      const sharedArticleId = localStorage.getItem('pendingSharedArticle');
+      
+      // Sign in with server, migrating local data and shared article
       const response = await fetch('/api/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: userEmail,
           name: userName,
-          localData: existingUser
+          localData: existingUser,
+          sharedArticleId
         })
       });
 
@@ -58,6 +62,11 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
       // Save synced user data and session info
       LocalStorage.saveUser(user);
       localStorage.setItem('sessionId', sessionId);
+      
+      // Clear the pending shared article as it's now in session
+      if (sharedArticleId) {
+        localStorage.removeItem('pendingSharedArticle');
+      }
       
       onComplete(user);
     } catch (error) {

@@ -172,6 +172,18 @@ export default function Home() {
     if (storedUser) {
       setUser(storedUser);
       setTodayReadCount(LocalStorage.getTodayReadCount(storedUser));
+      startUserSession(storedUser);
+      
+      // Check if this is a new user's first session for WhatsApp invite
+      const whatsAppInviteShown = localStorage.getItem('whatsapp-invite-shown');
+      const userJoinDate = new Date(storedUser.joinDate);
+      const now = new Date();
+      const daysSinceJoin = Math.floor((now.getTime() - userJoinDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      // Show WhatsApp invite if user joined today and hasn't seen it before
+      if (daysSinceJoin === 0 && !whatsAppInviteShown) {
+        setShowWhatsAppInvite(true);
+      }
     } else {
       setShowOnboarding(true);
     }

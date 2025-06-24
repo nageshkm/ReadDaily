@@ -234,7 +234,7 @@ export function ArticleCard({
             categoryId={article.categoryId}
           />
         </div>
-        <div className="flex-1 p-5 pb-4">
+        <div className="flex-1 p-5 pb-3">
           <div className="flex items-center space-x-2 mb-2">
             <Badge className={getCategoryColor(article.categoryId)}>
               {category.name}

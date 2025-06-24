@@ -164,6 +164,13 @@ export default function Home() {
     return user?.email === "readdailyco@gmail.com";
   };
 
+  // Reset share prompt for admin user
+  useEffect(() => {
+    if (isAdmin()) {
+      localStorage.removeItem('share-prompt-shown');
+    }
+  }, [user]);
+
   const isFeatured = (articleId: string): boolean => {
     return (featuredArticles as any[]).some(
       (article) => article.id === articleId,

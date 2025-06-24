@@ -231,8 +231,12 @@ export default function Home() {
       // Show WhatsApp community invite for all users after sign in
       const whatsAppInviteShown = localStorage.getItem('whatsapp-invite-shown');
       
-      // Show WhatsApp invite if user hasn't seen it before (regardless of join date)
-      if (!whatsAppInviteShown) {
+      // For admin user, reset the flag for testing purposes
+      if (storedUser.email === 'readdailyco@gmail.com') {
+        localStorage.removeItem('whatsapp-invite-shown');
+        console.log("Reset WhatsApp invite for admin user");
+        setShowWhatsAppInvite(true);
+      } else if (!whatsAppInviteShown) {
         console.log("Showing WhatsApp invite for user:", storedUser.name);
         setShowWhatsAppInvite(true);
       } else {

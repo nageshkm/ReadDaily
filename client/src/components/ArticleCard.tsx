@@ -1,8 +1,29 @@
-import { CheckCircle, ArrowRight, Circle, Heart, MessageCircle, User, ExternalLink, FileText, Code, Building, Heart as HealthIcon, BookOpen, Send, Share2 } from "lucide-react";
+import {
+  CheckCircle,
+  ArrowRight,
+  Circle,
+  Heart,
+  MessageCircle,
+  User,
+  ExternalLink,
+  FileText,
+  Code,
+  Building,
+  Heart as HealthIcon,
+  BookOpen,
+  Send,
+  Share2,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Article, Category } from "@shared/schema";
 import { formatDate } from "@/lib/utils";
@@ -53,7 +74,9 @@ function ArticleImage({ src, alt, categoryId }: ArticleImageProps) {
 
   if (!src || imageError) {
     return (
-      <div className={`w-full h-full bg-gradient-to-br ${getCategoryGradient(categoryId)} flex items-center justify-center`}>
+      <div
+        className={`w-full h-full bg-gradient-to-br ${getCategoryGradient(categoryId)} flex items-center justify-center`}
+      >
         {getCategoryIcon(categoryId)}
       </div>
     );
@@ -62,7 +85,9 @@ function ArticleImage({ src, alt, categoryId }: ArticleImageProps) {
   return (
     <div className="relative w-full h-full">
       {isLoading && (
-        <div className={`absolute inset-0 bg-gradient-to-br ${getCategoryGradient(categoryId)} flex items-center justify-center animate-pulse`}>
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${getCategoryGradient(categoryId)} flex items-center justify-center animate-pulse`}
+        >
           {getCategoryIcon(categoryId)}
         </div>
       )}
@@ -70,7 +95,7 @@ function ArticleImage({ src, alt, categoryId }: ArticleImageProps) {
         src={src}
         alt={alt}
         className={`w-full h-full object-cover transition-opacity duration-300 ${
-          isLoading ? 'opacity-0' : 'opacity-100'
+          isLoading ? "opacity-0" : "opacity-100"
         }`}
         onLoad={() => setIsLoading(false)}
         onError={() => {
@@ -119,29 +144,29 @@ export function ArticleCard({
   // Fetch article comments
   const { data: articleDetails } = useQuery({
     queryKey: [`/api/articles/${article.id}/details`],
-    enabled: true // Always fetch comments for all articles
+    enabled: true, // Always fetch comments for all articles
   });
 
-  const typedArticleDetails = articleDetails as {
-    article: any;
-    comments: Array<{
-      id: string;
-      content: string;
-      userName: string;
-      commentedAt: string;
-    }>;
-    likes: Array<{
-      id: string;
-      userId: string;
-      userName: string;
-      likedAt: string;
-    }>;
-    likesCount: number;
-    likesDisplay: string;
-    recommender: any;
-  } | undefined;
-
-
+  const typedArticleDetails = articleDetails as
+    | {
+        article: any;
+        comments: Array<{
+          id: string;
+          content: string;
+          userName: string;
+          commentedAt: string;
+        }>;
+        likes: Array<{
+          id: string;
+          userId: string;
+          userName: string;
+          likedAt: string;
+        }>;
+        likesCount: number;
+        likesDisplay: string;
+        recommender: any;
+      }
+    | undefined;
 
   // Comments are fetched and available
 
@@ -150,18 +175,22 @@ export function ArticleCard({
   const extractDomain = (url: string) => {
     try {
       const domain = new URL(url).hostname;
-      return domain.replace('www.', '');
+      return domain.replace("www.", "");
     } catch {
       return url;
     }
   };
 
   const commentMutation = useMutation({
-    mutationFn: async (data: { content: string; userId: string; articleId: string }) => {
+    mutationFn: async (data: {
+      content: string;
+      userId: string;
+      articleId: string;
+    }) => {
       const response = await fetch(`/api/articles/${data.articleId}/comment`, {
         method: "POST",
         body: JSON.stringify({ content: data.content, userId: data.userId }),
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
       if (!response.ok) {
         const error = await response.json();
@@ -173,15 +202,17 @@ export function ArticleCard({
       setComment("");
       setIsCommentDialogOpen(false);
       // Refresh the specific article details to show new comment immediately
-      queryClient.invalidateQueries({ queryKey: [`/api/articles/${article.id}/details`] });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/articles/${article.id}/details`],
+      });
     },
     onError: (error: any) => {
       toast({
         title: "Failed to add comment",
         description: error.message || "Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
-    }
+    },
   });
 
   const handleShare = async () => {
@@ -190,18 +221,21 @@ export function ArticleCard({
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      toast({
-        title: "Link copied!",
-        description: "Article link has been copied to clipboard."
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        toast({
+          title: "Link copied!",
+          description: "Article link has been copied to clipboard.",
+        });
+      })
+      .catch(() => {
+        toast({
+          title: "Could not copy link",
+          description: "Please copy the link manually.",
+          variant: "destructive",
+        });
       });
-    }).catch(() => {
-      toast({
-        title: "Could not copy link",
-        description: "Please copy the link manually.",
-        variant: "destructive"
-      });
-    });
   };
   const getCategoryColor = (categoryId: string) => {
     switch (categoryId) {
@@ -219,22 +253,22 @@ export function ArticleCard({
   };
 
   return (
-    <Card 
+    <Card
       className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
       onClick={() => {
-        window.open(article.sourceUrl, '_blank', 'noopener,noreferrer');
+        window.open(article.sourceUrl, "_blank", "noopener,noreferrer");
         onReadClick(article); // Mark as read
       }}
     >
       <div className="flex flex-col sm:flex-row">
         <div className="sm:w-44 h-44 sm:h-auto">
-          <ArticleImage 
-            src={article.imageUrl} 
+          <ArticleImage
+            src={article.imageUrl}
             alt={article.title}
             categoryId={article.categoryId}
           />
         </div>
-        <div className="flex-1 p-5 pb-3">
+        <div className="flex-1 p-5 pb-2">
           <div className="flex items-center space-x-2 mb-2">
             <Badge className={getCategoryColor(article.categoryId)}>
               {category.name}
@@ -248,19 +282,22 @@ export function ArticleCard({
                 <span className="text-xs text-success font-medium">Read</span>
               </div>
             ) : (
-              <Circle className="text-accent fill-accent animate-pulse" size={8} />
+              <Circle
+                className="text-accent fill-accent animate-pulse"
+                size={8}
+              />
             )}
           </div>
-          
+
           <h3 className="text-lg font-semibold mb-2 line-clamp-2">
             {decodeHtmlEntities(article.title)}
           </h3>
-          
+
           {/* Source URL as domain */}
           <p className="text-sm text-gray-500 mb-2">
             {extractDomain(article.sourceUrl)}
           </p>
-          
+
           {/* User commentary as description */}
           {article.userCommentary && (
             <p className="text-gray-600 mb-3 line-clamp-2 text-sm">
@@ -281,25 +318,39 @@ export function ArticleCard({
 
           {/* Social actions */}
           {showSocialActions && (
-            <div className="flex items-center gap-4 mb-2 pb-2 border-b" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="flex items-center gap-4 mb-2 pb-2 border-b"
+              onClick={(e) => e.stopPropagation()}
+            >
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onLikeClick?.(article)}
                 className={`flex items-center gap-1 hover:text-red-500 ${
-                  typedArticleDetails?.likes?.some(like => like.userId === currentUserId) 
-                    ? 'text-red-500' 
-                    : 'text-muted-foreground'
+                  typedArticleDetails?.likes?.some(
+                    (like) => like.userId === currentUserId,
+                  )
+                    ? "text-red-500"
+                    : "text-muted-foreground"
                 }`}
               >
-                <Heart className={`h-4 w-4 ${
-                  typedArticleDetails?.likes?.some(like => like.userId === currentUserId) 
-                    ? 'fill-current' 
-                    : ''
-                }`} />
-                <span>{typedArticleDetails?.likesCount || article.likesCount || 0}</span>
+                <Heart
+                  className={`h-4 w-4 ${
+                    typedArticleDetails?.likes?.some(
+                      (like) => like.userId === currentUserId,
+                    )
+                      ? "fill-current"
+                      : ""
+                  }`}
+                />
+                <span>
+                  {typedArticleDetails?.likesCount || article.likesCount || 0}
+                </span>
               </Button>
-              <Dialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
+              <Dialog
+                open={isCommentDialogOpen}
+                onOpenChange={setIsCommentDialogOpen}
+              >
                 <DialogTrigger asChild>
                   <Button
                     variant="ghost"
@@ -316,8 +367,13 @@ export function ArticleCard({
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <h4 className="text-sm font-medium mb-2">{article.title}</h4>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{article.userCommentary || "Share your thoughts about this article..."}</p>
+                      <h4 className="text-sm font-medium mb-2">
+                        {article.title}
+                      </h4>
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {article.userCommentary ||
+                          "Share your thoughts about this article..."}
+                      </p>
                     </div>
                     <Textarea
                       placeholder="Share your thoughts about this article..."
@@ -338,13 +394,15 @@ export function ArticleCard({
                             commentMutation.mutate({
                               content: comment.trim(),
                               userId: currentUserId,
-                              articleId: article.id
+                              articleId: article.id,
                             });
                           }
                         }}
                         disabled={!comment.trim() || commentMutation.isPending}
                       >
-                        {commentMutation.isPending ? "Posting..." : "Post Comment"}
+                        {commentMutation.isPending
+                          ? "Posting..."
+                          : "Post Comment"}
                         <Send className="ml-1 h-3 w-3" />
                       </Button>
                     </div>
@@ -365,60 +423,92 @@ export function ArticleCard({
 
           {/* Likes display - hidden for now */}
           {false && typedArticleDetails?.likesDisplay && (
-            <div className="text-xs text-muted-foreground mb-2" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="text-xs text-muted-foreground mb-2"
+              onClick={(e) => e.stopPropagation()}
+            >
               {typedArticleDetails.likesDisplay}
             </div>
           )}
 
           {/* Comments display - always show if comments exist */}
-          {typedArticleDetails?.comments && typedArticleDetails.comments.length > 0 && (
-            <div className="mt-4 pt-3 border-t" onClick={(e) => e.stopPropagation()}>
-              <h4 className="text-sm font-medium mb-2">Comments ({typedArticleDetails.comments.length})</h4>
-              <div className="space-y-2">
-                {typedArticleDetails.comments.slice(0, 2).map((comment: any) => (
-                  <div key={comment.id} className="text-xs bg-gray-50 p-2 rounded">
-                    <div className="flex items-center gap-1 mb-1">
-                      <span className="text-gray-600">{comment.userName || 'Anonymous'}</span>
-                      <span className="text-gray-400">•</span>
-                      <span className="text-gray-500">{formatDate(comment.commentedAt)}</span>
-                    </div>
-                    <p className="text-gray-700 italic text-sm">{comment.content}</p>
-                  </div>
-                ))}
-                {typedArticleDetails.comments.length > 2 && (
-                  <button 
-                    className="text-xs text-blue-600 hover:text-blue-800 font-medium mt-1"
-                    onClick={() => setIsAllCommentsDialogOpen(true)}
-                  >
-                    See more comments ({typedArticleDetails.comments.length - 2} more)
-                  </button>
-                )}
+          {typedArticleDetails?.comments &&
+            typedArticleDetails.comments.length > 0 && (
+              <div
+                className="mt-4 pt-3 border-t"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h4 className="text-sm font-medium mb-2">
+                  Comments ({typedArticleDetails.comments.length})
+                </h4>
+                <div className="space-y-2">
+                  {typedArticleDetails.comments
+                    .slice(0, 2)
+                    .map((comment: any) => (
+                      <div
+                        key={comment.id}
+                        className="text-xs bg-gray-50 p-2 rounded"
+                      >
+                        <div className="flex items-center gap-1 mb-1">
+                          <span className="text-gray-600">
+                            {comment.userName || "Anonymous"}
+                          </span>
+                          <span className="text-gray-400">•</span>
+                          <span className="text-gray-500">
+                            {formatDate(comment.commentedAt)}
+                          </span>
+                        </div>
+                        <p className="text-gray-700 italic text-sm">
+                          {comment.content}
+                        </p>
+                      </div>
+                    ))}
+                  {typedArticleDetails.comments.length > 2 && (
+                    <button
+                      className="text-xs text-blue-600 hover:text-blue-800 font-medium mt-1"
+                      onClick={() => setIsAllCommentsDialogOpen(true)}
+                    >
+                      See more comments (
+                      {typedArticleDetails.comments.length - 2} more)
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-
-
+            )}
         </div>
       </div>
 
       {/* All Comments Dialog */}
-      <Dialog open={isAllCommentsDialogOpen} onOpenChange={setIsAllCommentsDialogOpen}>
+      <Dialog
+        open={isAllCommentsDialogOpen}
+        onOpenChange={setIsAllCommentsDialogOpen}
+      >
         <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>All Comments - {article.title}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 mt-4">
-            {typedArticleDetails && 'comments' in typedArticleDetails && typedArticleDetails.comments.map((comment: any) => (
-              <div key={comment.id} className="p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-gray-600 text-sm">{comment.userName || 'Anonymous'}</span>
-                  <span className="text-gray-400">•</span>
-                  <span className="text-gray-500 text-xs">{formatDate(comment.commentedAt)}</span>
+            {typedArticleDetails &&
+              "comments" in typedArticleDetails &&
+              typedArticleDetails.comments.map((comment: any) => (
+                <div key={comment.id} className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-gray-600 text-sm">
+                      {comment.userName || "Anonymous"}
+                    </span>
+                    <span className="text-gray-400">•</span>
+                    <span className="text-gray-500 text-xs">
+                      {formatDate(comment.commentedAt)}
+                    </span>
+                  </div>
+                  <p className="text-gray-700 text-sm italic">
+                    {comment.content}
+                  </p>
                 </div>
-                <p className="text-gray-700 text-sm italic">{comment.content}</p>
-              </div>
-            ))}
-            {(!typedArticleDetails || !('comments' in typedArticleDetails) || typedArticleDetails.comments.length === 0) && (
+              ))}
+            {(!typedArticleDetails ||
+              !("comments" in typedArticleDetails) ||
+              typedArticleDetails.comments.length === 0) && (
               <p className="text-gray-500 text-center py-4">No comments yet</p>
             )}
           </div>

@@ -358,10 +358,6 @@ export default function Home() {
               {/* Featured Articles Section */}
               {(featuredArticles as any[]).length > 0 && (
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Star size={16} className="text-yellow-500" fill="currentColor" />
-                    <h3 className="text-md font-medium text-gray-800">Featured Today</h3>
-                  </div>
                   <div className="grid gap-2 sm:gap-4">
                     {(featuredArticles as any[]).map((article: any) => {
                       const category = getCategoryById(article.categoryId);
@@ -376,7 +372,7 @@ export default function Home() {
                           <div className="absolute -top-2 -right-2 z-10">
                             <div className="bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
                               <Star size={12} fill="currentColor" />
-                              Featured
+                              Featured Today
                             </div>
                           </div>
                           <ArticleCard
@@ -426,14 +422,6 @@ export default function Home() {
                 </Card>
               ) : (recommendedArticles as any[]).length > 0 && (
                 <div className="space-y-4">
-                  {(featuredArticles as any[]).length > 0 && (
-                    <div className="flex items-center gap-2 pt-4 border-t">
-                      <div className="w-4 h-4 bg-blue-100 rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      </div>
-                      <h3 className="text-md font-medium text-gray-800">Community Shares</h3>
-                    </div>
-                  )}
                   <div className="grid gap-2 sm:gap-4">
                     {(() => {
                       const articles = recommendedArticles as any[];

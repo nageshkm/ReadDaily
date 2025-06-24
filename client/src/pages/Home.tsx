@@ -523,22 +523,13 @@ export default function Home() {
                       const articles = recommendedArticles as any[];
                       const featuredIds = (featuredArticles as any[]).map(a => a.id);
                       
-                      // Filter out featured articles from recommended articles
+                      // Filter out featured articles and shared article from recommended articles
                       const nonFeaturedArticles = articles.filter(
-                        (a) => !featuredIds.includes(a.id)
-                      );
-                      
-                      const sharedArticle = sharedArticleId
-                        ? nonFeaturedArticles.find((a) => a.id === sharedArticleId)
-                        : null;
-                      const otherArticles = nonFeaturedArticles.filter(
-                        (a) => a.id !== sharedArticleId,
+                        (a) => !featuredIds.includes(a.id) && a.id !== sharedArticleId
                       );
 
-                      // Combine shared and other articles
-                      const orderedArticles = sharedArticle
-                        ? [sharedArticle, ...otherArticles]
-                        : nonFeaturedArticles;
+                      // Use filtered articles directly since shared article is handled separately above
+                      const orderedArticles = nonFeaturedArticles;
 
                       return orderedArticles.map((article: any) => {
                         const category = getCategoryById(article.categoryId);

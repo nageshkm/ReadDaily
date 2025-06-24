@@ -202,9 +202,6 @@ export default function Home() {
     console.log("Final shared:", shared);
     
     if (shared) {
-      // Store the shared article ID in localStorage to persist through auth
-      localStorage.setItem('pendingSharedArticle', shared);
-      
       // If there's a shared article but no user, require signup first
       if (!storedUser) {
         setSharedArticleId(shared);
@@ -213,15 +210,6 @@ export default function Home() {
       }
       // If user exists, set the shared article for priority display
       setSharedArticleId(shared);
-    } else {
-      // Check if there's a pending shared article from localStorage after auth
-      const pendingShared = localStorage.getItem('pendingSharedArticle');
-      if (pendingShared && storedUser) {
-        console.log("Found pending shared article after auth:", pendingShared);
-        setSharedArticleId(pendingShared);
-        // Clear it once we've used it
-        localStorage.removeItem('pendingSharedArticle');
-      }
     }
     
     if (storedUser) {
@@ -267,6 +255,17 @@ export default function Home() {
     setUser(newUser);
     setShowOnboarding(false);
     startUserSession(newUser);
+    
+    // Check if there's a shared article from URL after completing onboarding
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedFromQuery = urlParams.get("shared");
+    const sharedFromRoute = location.startsWith("/share/") ? location.replace("/share/", "") : null;
+    const shared = sharedFromRoute || sharedFromQuery;
+    
+    if (shared) {
+      console.log("Setting shared article after onboarding:", shared);
+      setSharedArticleId(shared);
+    }
     
     // Show WhatsApp invite for new users
     setShowWhatsAppInvite(true);

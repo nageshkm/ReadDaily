@@ -12,7 +12,7 @@ export function SharePromptToast({ isVisible, onDismiss }: SharePromptToastProps
   const [, setLocation] = useLocation();
 
   const handleShareClick = () => {
-    setLocation("/profile");
+    setLocation("/myarticles");
     onDismiss();
   };
 

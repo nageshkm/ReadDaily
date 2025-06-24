@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArticleCard } from "@/components/ArticleCard";
+import { ShareArticleForm } from "@/components/ShareArticleForm";
 import { LocalStorage } from "@/lib/storage";
 import { User, Article, Category } from "@shared/schema";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
 
 export default function MyArticles() {
@@ -63,6 +65,19 @@ export default function MyArticles() {
         <h1 className="text-2xl font-bold text-gray-900">My Articles</h1>
       </div>
 
+      {/* Share Article Section */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Share2 size={20} />
+            Share Article
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ShareArticleForm user={user!} />
+        </CardContent>
+      </Card>
+
       {isLoading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin" />
@@ -71,13 +86,8 @@ export default function MyArticles() {
         <div className="text-center py-12">
           <p className="text-muted-foreground">You haven't shared any articles yet.</p>
           <p className="text-sm text-muted-foreground mt-2">
-            Go to the home page and click "Share Article" to add your first article.
+            Use the form above to share your first article with the community.
           </p>
-          <Link href="/today">
-            <Button className="mt-4">
-              Start Sharing
-            </Button>
-          </Link>
         </div>
       ) : (
         <div className="grid gap-6">

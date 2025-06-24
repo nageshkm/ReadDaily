@@ -46,7 +46,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication and user sync endpoints
   app.post("/api/auth/signin", async (req, res) => {
     try {
-      const { email, name, localData } = req.body;
+      const { email, name, localData, sharedArticleId } = req.body;
       
       if (!email || !name) {
         return res.status(400).json({ message: "Email and name are required" });
@@ -62,9 +62,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ipAddress: getIpAddress(req)
       });
 
+      // Store shared article in session if provided
+      if (sharedArticleId && req.session) {
+        req.session.sharedArticleId = sharedArticleId;
+        console.log('Stored shared article in session:', sharedArticleId);
+      }
+
       res.json({ 
         user, 
         sessionId,
+        sharedArticleId,
         message: localData ? "User data synced successfully" : "User signed in successfully" 
       });
     } catch (error) {

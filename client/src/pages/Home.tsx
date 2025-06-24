@@ -233,7 +233,10 @@ export default function Home() {
       
       // Show WhatsApp invite if user hasn't seen it before (regardless of join date)
       if (!whatsAppInviteShown) {
+        console.log("Showing WhatsApp invite for user:", storedUser.name);
         setShowWhatsAppInvite(true);
+      } else {
+        console.log("WhatsApp invite already shown for this user");
       }
     } else if (!shared) {
       setShowOnboarding(true);
@@ -267,6 +270,7 @@ export default function Home() {
   const handleWhatsAppInviteDismiss = () => {
     setShowWhatsAppInvite(false);
     localStorage.setItem('whatsapp-invite-shown', 'true');
+    console.log("WhatsApp invite dismissed and marked as shown");
   };
 
   const handleSharePromptDismiss = () => {

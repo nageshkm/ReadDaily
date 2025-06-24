@@ -12,6 +12,20 @@ import { analyticsService } from "./analytics";
 import { userSyncService } from "./user-sync";
 import { sendNotificationForLike } from "./notifications";
 
+// Helper function to format likes display
+function formatLikesDisplay(likes: any[]): string {
+  if (likes.length === 0) return "";
+  
+  if (likes.length === 1) {
+    return `${likes[0].userName} liked this article`;
+  } else if (likes.length === 2) {
+    return `${likes[0].userName} and ${likes[1].userName} liked this article`;
+  } else {
+    const othersCount = likes.length - 1;
+    return `${likes[0].userName} and ${othersCount} other${othersCount > 1 ? 's' : ''} liked this article`;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Helper function to get device info from request
   const getDeviceInfo = (req: any) => {
@@ -440,7 +454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Like article endpoint
+  // Like/unlike article endpoint
   app.post("/api/articles/:id/like", async (req, res) => {
     try {
       const { id: articleId } = req.params;
@@ -450,35 +464,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "userId is required" });
       }
 
-      // Simply add like and increment count - let database handle duplicates
-      const likeId = `like-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
-      try {
+      // Check if user already liked this article
+      const existingLike = await db
+        .select()
+        .from(articleLikes)
+        .where(and(eq(articleLikes.articleId, articleId), eq(articleLikes.userId, userId)))
+        .limit(1);
+
+      if (existingLike.length > 0) {
+        // Unlike: Remove like and decrement count
+        await db
+          .delete(articleLikes)
+          .where(and(eq(articleLikes.articleId, articleId), eq(articleLikes.userId, userId)));
+        
+        const result = await db
+          .update(articles)
+          .set({ likesCount: sql`GREATEST(${articles.likesCount} - 1, 0)` })
+          .where(eq(articles.id, articleId))
+          .returning({ likesCount: articles.likesCount });
+
+        const likesCount = result[0]?.likesCount || 0;
+        res.json({ message: "Article unliked successfully", action: "unliked", likesCount });
+      } else {
+        // Like: Add like and increment count
+        const likeId = `like-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
         await db.insert(articleLikes).values({
           id: likeId,
           articleId,
           userId,
           likedAt: new Date().toISOString()
         });
-        
-        // Get article and user info for notification
-        const [article] = await db.select().from(articles).where(eq(articles.id, articleId));
-        const [liker] = await db.select().from(users).where(eq(users.id, userId));
-        const [author] = await db.select().from(users).where(eq(users.id, article?.recommendedBy || ''));
-
-        // Send notification to article author
-        if (article && author && author.fcmToken && author.id !== userId && liker) {
-          try {
-            await sendNotificationForLike(
-              author.fcmToken,
-              liker.name,
-              article.title,
-              article.id
-            );
-          } catch (notificationError) {
-            console.error("Failed to send like notification:", notificationError);
-          }
-        }
         
         const result = await db
           .update(articles)
@@ -487,28 +503,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .returning({ likesCount: articles.likesCount });
 
         const likesCount = result[0]?.likesCount || 1;
+
+        // Get article and user info for notification (async, don't wait)
+        setImmediate(async () => {
+          try {
+            const [article] = await db.select().from(articles).where(eq(articles.id, articleId));
+            const [liker] = await db.select().from(users).where(eq(users.id, userId));
+            const [author] = await db.select().from(users).where(eq(users.id, article?.recommendedBy || ''));
+
+            // Send notification to article author
+            if (article && author && author.fcmToken && author.id !== userId && liker) {
+              await sendNotificationForLike(
+                author.fcmToken,
+                liker.name,
+                article.title,
+                article.id
+              );
+            }
+          } catch (notificationError) {
+            console.error("Failed to send like notification:", notificationError);
+          }
+        });
+
         res.json({ message: "Article liked successfully", action: "liked", likesCount });
-      } catch (dbError: any) {
-        // If duplicate key error (user already liked), just return current count
-        if (dbError.code === '23505') {
-          const article = await db
-            .select({ likesCount: articles.likesCount })
-            .from(articles)
-            .where(eq(articles.id, articleId))
-            .limit(1);
-          
-          res.json({ 
-            message: "Already liked", 
-            action: "already_liked", 
-            likesCount: article[0]?.likesCount || 0 
-          });
-        } else {
-          throw dbError;
-        }
       }
     } catch (error) {
-      console.error("Error liking article:", error);
-      res.status(500).json({ message: "Failed to like article" });
+      console.error("Error processing like/unlike:", error);
+      res.status(500).json({ message: "Failed to process like/unlike" });
     }
   });
 
@@ -600,7 +621,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         recommender,
         likes,
         comments,
-        likesCount: likes.length
+        likesCount: likes.length,
+        likesDisplay: formatLikesDisplay(likes)
       });
     } catch (error) {
       console.error("Error fetching article details:", error);

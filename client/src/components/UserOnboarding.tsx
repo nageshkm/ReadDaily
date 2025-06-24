@@ -39,6 +39,9 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
       const existingUser = LocalStorage.getUser();
       
       // Check for shared article in localStorage
+      console.log('AUTH: Checking all localStorage keys:', Object.keys(localStorage));
+      console.log('AUTH: Full localStorage contents:', { ...localStorage });
+      
       const sharedArticleId = localStorage.getItem('pendingSharedArticle');
       console.log('AUTH: Retrieved from localStorage:', sharedArticleId);
       console.log('AUTH: Type of sharedArticleId:', typeof sharedArticleId);

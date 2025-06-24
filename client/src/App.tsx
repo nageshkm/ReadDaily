@@ -38,6 +38,7 @@ function Router() {
       // Verify it was stored
       const stored = localStorage.getItem('pendingSharedArticle');
       console.log("CLIENT: Verified stored value:", stored);
+      console.log("CLIENT: All localStorage keys after storage:", Object.keys(localStorage));
       
       // Redirect to home with shared parameter in URL
       setLocation(`/?shared=${articleId}`);

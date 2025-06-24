@@ -28,6 +28,7 @@ export default function Home() {
 
   const [todayReadCount, setTodayReadCount] = useState(0);
   const [sharedArticleId, setSharedArticleId] = useState<string | null>(null);
+  const [prioritySharedArticle, setPrioritySharedArticle] = useState<any | null>(null);
 
 
   const { toast } = useToast();
@@ -58,6 +59,12 @@ export default function Home() {
       queryKey: ["/api/featured"],
       enabled: !!user,
     });
+
+  // Fetch shared article details when there's a shared article ID
+  const { data: sharedArticleDetails } = useQuery({
+    queryKey: [`/api/articles/${sharedArticleId}/details`],
+    enabled: !!sharedArticleId && !!user,
+  });
 
   const likeArticleMutation = useMutation({
     mutationFn: async (articleId: string) => {
@@ -181,6 +188,22 @@ export default function Home() {
 
   useEffect(() => {
     const storedUser = LocalStorage.getUser();
+    
+    // Check for shared article in URL first
+    const urlParams = new URLSearchParams(window.location.search);
+    const shared = urlParams.get("shared");
+    
+    if (shared) {
+      // If there's a shared article but no user, require signup first
+      if (!storedUser) {
+        setSharedArticleId(shared);
+        setShowOnboarding(true);
+        return;
+      }
+      // If user exists, set the shared article for priority display
+      setSharedArticleId(shared);
+    }
+    
     if (storedUser) {
       setUser(storedUser);
       setTodayReadCount(LocalStorage.getTodayReadCount(storedUser));
@@ -196,22 +219,8 @@ export default function Home() {
       if (daysSinceJoin === 0 && !whatsAppInviteShown) {
         setShowWhatsAppInvite(true);
       }
-    } else {
+    } else if (!shared) {
       setShowOnboarding(true);
-    }
-
-    // Check for shared article in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const shared = urlParams.get("shared");
-    if (shared) {
-      setSharedArticleId(shared);
-      LocalStorage.setSharedArticleId(shared);
-      window.history.replaceState({}, "", window.location.pathname);
-    } else {
-      const storedSharedId = LocalStorage.getSharedArticleId();
-      if (storedSharedId && LocalStorage.isFirstViewOfSharedArticle()) {
-        setSharedArticleId(storedSharedId);
-      }
     }
   }, []);
 

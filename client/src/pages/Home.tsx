@@ -619,7 +619,6 @@ export default function Home() {
                       const orderedArticles = nonFeaturedArticles;
 
                       return orderedArticles.map((article: any) => {
-                        console.log("DEBUG Home article object:", article);
                         const category = getCategoryById(article.categoryId);
                         const displayCategory = category || {
                           id: "general",
@@ -637,7 +636,7 @@ export default function Home() {
                               onViewClick={handleViewArticle}
                               onLikeClick={handleLikeArticle}
                               showSocialActions={true}
-                              recommenderName={article.recommenderName || "MISSING"}
+                              recommenderName={article.recommenderName}
                               currentUserId={user?.id}
                             />
                             {isAdmin() && (

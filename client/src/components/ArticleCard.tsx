@@ -305,14 +305,16 @@ export function ArticleCard({
             </p>
           )}
 
-          {/* Recommender info - FORCED VISIBLE FOR DEBUG */}
-          <div className="flex items-center gap-1 text-xs text-red-600 mb-1 sm:mb-2 bg-yellow-100 p-1">
-            <User className="h-3 w-3" />
-            <span className="truncate">DEBUG: prop={recommenderName} | article.recommenderName={article.recommenderName} | Shared by {article.recommenderName || 'NO NAME'}</span>
-            {article.recommendedAt && (
-              <span className="hidden sm:inline">• {formatDate(article.recommendedAt)}</span>
-            )}
-          </div>
+          {/* Recommender info */}
+          {article.recommenderName && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1 sm:mb-2">
+              <User className="h-3 w-3" />
+              <span className="truncate">Shared by {article.recommenderName}</span>
+              {article.recommendedAt && (
+                <span className="hidden sm:inline">• {formatDate(article.recommendedAt)}</span>
+              )}
+            </div>
+          )}
 
           {/* Social actions */}
           {showSocialActions && (

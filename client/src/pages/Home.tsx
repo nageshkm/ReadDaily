@@ -3,15 +3,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { StreakDisplay } from "@/components/StreakDisplay";
 import { ArticleCard } from "@/components/ArticleCard";
 import { UserOnboarding } from "@/components/UserOnboarding";
-import { ShareArticleForm } from "@/components/ShareArticleForm";
+
 
 import { LocalStorage } from "@/lib/storage";
 import { getTodayString } from "@/lib/utils";
 import { decodeHtmlEntities } from "@/lib/html-utils";
 import { User, Article, Category } from "@shared/schema";
-import { Loader2, Plus, Star, Trash2, RotateCcw } from "lucide-react";
+import { Loader2, Star, Trash2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+
 
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -22,7 +22,7 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+
   const [todayReadCount, setTodayReadCount] = useState(0);
   const [sharedArticleId, setSharedArticleId] = useState<string | null>(null);
 
@@ -309,23 +309,9 @@ export default function Home() {
         <div className="flex justify-between items-center">
           <div>
             <p className="text-sm text-gray-600">
-              Share what's worth reading today
+              Read interesting articles everyday
             </p>
           </div>
-          <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
-                <Plus size={16} />
-                Share Article
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <ShareArticleForm
-                user={user}
-                onSuccess={() => setIsShareDialogOpen(false)}
-              />
-            </DialogContent>
-          </Dialog>
         </div>
 
         <div className="space-y-8">

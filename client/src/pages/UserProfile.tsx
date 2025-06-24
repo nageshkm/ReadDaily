@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import { ArticleCard } from "../components/ArticleCard";
+import { ShareArticleForm } from "../components/ShareArticleForm";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Heart, BookOpen, User, Calendar } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Heart, BookOpen, User, Calendar, Plus } from "lucide-react";
 import { formatDate } from "../lib/utils";
+import { LocalStorage } from "@/lib/storage";
 
 interface UserProfileData {
   id: string;
@@ -27,6 +30,8 @@ interface UserProfileData {
 export function UserProfile() {
   const { userName } = useParams();
   const [activeTab, setActiveTab] = useState("read");
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const currentUser = LocalStorage.getUser();
 
   // Fetch user's read articles
   const { data: readArticles = [], isLoading: readLoading } = useQuery({
@@ -142,16 +147,35 @@ export function UserProfile() {
 
         {/* Articles Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="read">
-              <BookOpen className="w-4 h-4 mr-2" />
-              Read Articles ({readArticles.length})
-            </TabsTrigger>
-            <TabsTrigger value="liked">
-              <Heart className="w-4 h-4 mr-2" />
-              Liked Articles ({likedArticles.length})
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex justify-between items-center mb-4">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="read">
+                <BookOpen className="w-4 h-4 mr-2" />
+                Read Articles ({readArticles.length})
+              </TabsTrigger>
+              <TabsTrigger value="liked">
+                <Heart className="w-4 h-4 mr-2" />
+                Liked Articles ({likedArticles.length})
+              </TabsTrigger>
+            </TabsList>
+            
+            {currentUser && currentUser.name === userName && (
+              <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="flex items-center gap-2">
+                    <Plus size={16} />
+                    Share Article
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <ShareArticleForm
+                    user={currentUser}
+                    onSuccess={() => setIsShareDialogOpen(false)}
+                  />
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
 
           <TabsContent value="read" className="mt-6">
             {readLoading ? (

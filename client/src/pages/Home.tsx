@@ -187,6 +187,20 @@ export default function Home() {
     );
   };
 
+  // Check for shared article from session after auth
+  const checkSessionSharedArticle = async () => {
+    try {
+      const response = await fetch('/api/auth/shared-article');
+      const { sharedArticleId } = await response.json();
+      if (sharedArticleId) {
+        console.log("Found shared article in session:", sharedArticleId);
+        setSharedArticleId(sharedArticleId);
+      }
+    } catch (error) {
+      console.error("Failed to check session shared article:", error);
+    }
+  };
+
   useEffect(() => {
     const storedUser = LocalStorage.getUser();
     
@@ -202,6 +216,9 @@ export default function Home() {
     console.log("Final shared:", shared);
     
     if (shared) {
+      // Store for authentication flow
+      localStorage.setItem('pendingSharedArticle', shared);
+      
       // If there's a shared article but no user, require signup first
       if (!storedUser) {
         setSharedArticleId(shared);
@@ -216,6 +233,9 @@ export default function Home() {
       setUser(storedUser);
       setTodayReadCount(LocalStorage.getTodayReadCount(storedUser));
       startUserSession(storedUser);
+      
+      // Check for shared article in session
+      checkSessionSharedArticle();
       
       // Show WhatsApp community invite for all users after sign in
       const whatsAppInviteShown = localStorage.getItem('whatsapp-invite-shown');
@@ -256,12 +276,8 @@ export default function Home() {
     setShowOnboarding(false);
     startUserSession(newUser);
     
-    // Check if there's a stored shared article and restore it
-    const storedShared = localStorage.getItem('currentSharedArticle');
-    if (storedShared) {
-      console.log("Restoring shared article after onboarding:", storedShared);
-      setSharedArticleId(storedShared);
-    }
+    // Check for shared article in session after authentication
+    checkSessionSharedArticle();
     
     // Show WhatsApp invite for new users
     setShowWhatsAppInvite(true);

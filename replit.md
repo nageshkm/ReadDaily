@@ -167,8 +167,8 @@ No success feedback popup after reading articles - completely removed per user r
   - Appears once per day maximum per user
   - Triggers when user reads an article and then scrolls on the page
   - Dismissible with CTA to navigate to sharing page in profile
-- Enhanced shared article priority system for better user experience
-  - Shared articles appear at top of feed with "Shared with you" badge
-  - Requires user signup before showing shared content to non-signed users
-  - Priority display only when URL parameter exists, resets on refresh
-  - Prevents duplication by filtering shared article from normal lists
+- Attempted shared article priority system (currently non-functional)
+  - Goal: Shared articles appear at top of feed with "Shared with you" badge
+  - Issue: Shared article ID does not persist through authentication flow
+  - Current state: URL parameters are lost during sign-in process
+  - User can access shared articles through direct links when already signed in

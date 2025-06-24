@@ -141,6 +141,16 @@ export function UserOnboarding({ isOpen, onComplete }: UserOnboardingProps) {
       };
       
       LocalStorage.saveUser(localUser);
+      
+      // Check if there's a pending shared article and redirect with it
+      const pendingShared = localStorage.getItem('pendingSharedArticle');
+      if (pendingShared) {
+        localStorage.removeItem('pendingSharedArticle');
+        // Redirect to home with shared parameter to maintain the shared article flow
+        window.location.href = `/?shared=${pendingShared}`;
+        return;
+      }
+      
       onComplete(localUser);
     } catch (error) {
       console.error("Error creating user:", error);

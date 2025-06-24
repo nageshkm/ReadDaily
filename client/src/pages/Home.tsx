@@ -4,7 +4,7 @@ import { StreakDisplay } from "@/components/StreakDisplay";
 import { ArticleCard } from "@/components/ArticleCard";
 import { UserOnboarding } from "@/components/UserOnboarding";
 import { ShareArticleForm } from "@/components/ShareArticleForm";
-import { SuccessFeedback } from "@/components/SuccessFeedback";
+
 import { LocalStorage } from "@/lib/storage";
 import { getTodayString } from "@/lib/utils";
 import { decodeHtmlEntities } from "@/lib/html-utils";
@@ -21,7 +21,7 @@ import { ShareButton } from "@/components/ShareButton";
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showSuccessFeedback, setShowSuccessFeedback] = useState(false);
+
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [todayReadCount, setTodayReadCount] = useState(0);
   const [sharedArticleId, setSharedArticleId] = useState<string | null>(null);
@@ -65,35 +65,38 @@ export default function Home() {
       });
       if (!response.ok) throw new Error("Failed to process like/unlike");
       const data = await response.json();
-
       return { articleId, ...data };
     },
     onMutate: async (articleId: string) => {
-      // Cancel outgoing queries to prevent race conditions
+      // Optimistic update for instant UI feedback
       await queryClient.cancelQueries({ queryKey: [`/api/articles/${articleId}/details`] });
       
-      // Get current data for rollback
       const previousData = queryClient.getQueryData([`/api/articles/${articleId}/details`]);
       
-      // Don't do optimistic updates - let server response handle the update
+      queryClient.setQueryData([`/api/articles/${articleId}/details`], (old: any) => {
+        if (!old) return old;
+        
+        const userLiked = old.likes?.some((like: any) => like.userId === user?.id) || false;
+        const newLikesCount = userLiked ? Math.max(0, (old.likesCount || 0) - 1) : (old.likesCount || 0) + 1;
+        
+        return {
+          ...old,
+          likes: userLiked 
+            ? (old.likes || []).filter((like: any) => like.userId !== user?.id)
+            : [...(old.likes || []), { userId: user?.id, userName: user?.name }],
+          likesCount: newLikesCount
+        };
+      });
+      
       return { previousData };
     },
     onError: (error: any, articleId: string, context: any) => {
-      // Revert optimistic update on error
       if (context?.previousData) {
         queryClient.setQueryData([`/api/articles/${articleId}/details`], context.previousData);
       }
     },
-    onSuccess: (data) => {
-
-      // Just invalidate to force a fresh fetch from server
-      queryClient.invalidateQueries({ queryKey: [`/api/articles/${data.articleId}/details`] });
-    },
-    onSettled: (data) => {
-      // Refresh to ensure we have the latest data
-      if (data?.articleId) {
-        queryClient.invalidateQueries({ queryKey: [`/api/articles/${data.articleId}/details`] });
-      }
+    onSettled: () => {
+      // No additional invalidation needed since optimistic update handles UI
     },
   });
 
@@ -216,7 +219,7 @@ export default function Home() {
       const updatedUser = LocalStorage.markArticleAsRead(user, article.id);
       setUser(updatedUser);
       setTodayReadCount(LocalStorage.getTodayReadCount(updatedUser));
-      setShowSuccessFeedback(true);
+      // Success feedback removed per user request
 
       const response = await fetch("/api/analytics/article-read", {
         method: "POST",
@@ -564,11 +567,7 @@ export default function Home() {
         </Tabs>
       </main>
 
-      <SuccessFeedback
-        isOpen={showSuccessFeedback}
-        onClose={() => setShowSuccessFeedback(false)}
-        articleTitle=""
-      />
+
     </div>
   );
 }

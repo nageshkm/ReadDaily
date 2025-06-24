@@ -124,6 +124,7 @@ The application follows a modern full-stack architecture with clear separation b
 
 Preferred communication style: Simple, everyday language.
 No toast notifications for like/unlike actions - user dislikes them.
+No success feedback popup after reading articles - completely removed per user request.
 
 ## Changelog
 
@@ -137,8 +138,9 @@ No toast notifications for like/unlike actions - user dislikes them.
   - Notification system for article likes
   - FCM token management in user profiles
 - Enhanced URL extraction with retry mechanism for blocked domains
-- Fixed like button functionality across all tabs with optimistic updates
-- Improved like/unlike performance by removing slow optimistic updates
+- Fixed like button functionality across all tabs with instant optimistic updates
+- Completely removed success feedback popup per user request
 - Added proper like/unlike toggle behavior with visual feedback
 - Added database constraint to prevent duplicate likes
+- Fixed server response to return actual likesCount from database
 - Hidden likes display feature (who liked the article) per user request

@@ -195,6 +195,11 @@ export default function Home() {
     const sharedFromRoute = location.startsWith("/share/") ? location.replace("/share/", "") : null;
     const shared = sharedFromRoute || sharedFromQuery;
     
+    console.log("Location:", location);
+    console.log("Shared from query:", sharedFromQuery);
+    console.log("Shared from route:", sharedFromRoute);
+    console.log("Final shared:", shared);
+    
     if (shared) {
       // If there's a shared article but no user, require signup first
       if (!storedUser) {

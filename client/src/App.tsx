@@ -29,8 +29,9 @@ function Router() {
   useEffect(() => {
     if (location.startsWith("/share/")) {
       const articleId = location.replace("/share/", "");
-      // Redirect to home with shared parameter in URL
-      setLocation(`/?shared=${articleId}`);
+      console.log("Redirecting shared article:", articleId);
+      // Use window.location to ensure URL parameters are properly set
+      window.location.href = `/?shared=${articleId}`;
     }
   }, [location, setLocation]);
   
